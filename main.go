@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/senither/zen-lang/cli"
 
 func main() {
-	fmt.Println("Hello, World!")
+	cli.Execute()
 }
