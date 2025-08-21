@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/senither/zen-lang/lexer"
+	"github.com/senither/zen-lang/tokens"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +22,11 @@ var rootCommand = &cobra.Command{
 			fmt.Printf("Failed to %s\n", err)
 		}
 
-		fmt.Println(string(content))
+		lexer := lexer.New(string(content))
+
+		for tok := lexer.NextToken(); tok.Type != tokens.EOF; tok = lexer.NextToken() {
+			fmt.Printf("%+v\n", tok)
+		}
 	},
 }
 
