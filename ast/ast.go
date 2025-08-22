@@ -135,6 +135,15 @@ func (sl *StringLiteral) String() string {
 	return fmt.Sprintf("%q", sl.Value)
 }
 
+type Boolean struct {
+	Token tokens.Token
+	Value bool
+}
+
+func (b *Boolean) expressionNode()      {}
+func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
+func (b *Boolean) String() string       { return b.Token.Literal }
+
 type PrefixExpression struct {
 	Token    tokens.Token
 	Operator string

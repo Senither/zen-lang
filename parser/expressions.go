@@ -128,6 +128,10 @@ func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
 
+func (p *Parser) parseBooleanLiteral() ast.Expression {
+	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(tokens.TRUE)}
+}
+
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	expression := &ast.PrefixExpression{
 		Token:    p.curToken,
