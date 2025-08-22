@@ -15,9 +15,10 @@ const (
 	EOL     TokenType = "EOL"     // End of line
 
 	// Identifiers + literals
-	IDENT  TokenType = "IDENT"  // add, foobar, x, y, ...
-	INT    TokenType = "INT"    // 1343456
-	STRING TokenType = "STRING" // "string"
+	VARIABLE TokenType = "VARIABLE" // var (and later var mut)
+	IDENT    TokenType = "IDENT"    // add, foobar, x, y, ...
+	INT      TokenType = "INT"      // 1343456
+	STRING   TokenType = "STRING"   // "string"
 
 	// String literals
 	DOUBLE_QUOTE TokenType = "\"" // "string"
@@ -61,6 +62,8 @@ const (
 )
 
 var keywords = map[string]TokenType{
+	"var":    VARIABLE,
+	"func":   FUNCTION,
 	"fn":     FUNCTION,
 	"true":   TRUE,
 	"false":  FALSE,
