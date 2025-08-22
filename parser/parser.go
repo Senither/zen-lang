@@ -9,10 +9,14 @@ import (
 )
 
 type Parser struct {
-	lexer     *lexer.Lexer
+	lexer  *lexer.Lexer
+	errors []ParserError
+
 	curToken  tokens.Token
 	peekToken tokens.Token
-	errors    []ParserError
+
+	prefixParseFns map[tokens.TokenType]prefixParseFn
+	infixParseFns  map[tokens.TokenType]infixParseFn
 }
 
 type ParserError struct {
@@ -25,6 +29,12 @@ func New(lexer *lexer.Lexer) *Parser {
 		lexer:  lexer,
 		errors: []ParserError{},
 	}
+
+	p.prefixParseFns = make(map[tokens.TokenType]prefixParseFn)
+	p.registerPrefix(tokens.IDENT, p.parseIdentifier)
+	p.registerPrefix(tokens.INT, p.parseIntegerLiteral)
+	p.registerPrefix(tokens.BANG, p.parsePrefixExpression)
+	p.registerPrefix(tokens.MINUS, p.parsePrefixExpression)
 
 	// Read two tokens, so curToken and peekToken are both set
 	p.nextToken()
@@ -53,6 +63,14 @@ func (p *Parser) Errors() []ParserError {
 	return p.errors
 }
 
+func (p *Parser) registerPrefix(tokenType tokens.TokenType, fn prefixParseFn) {
+	p.prefixParseFns[tokenType] = fn
+}
+
+func (p *Parser) registerInfix(tokenType tokens.TokenType, fn infixParseFn) {
+	p.infixParseFns[tokenType] = fn
+}
+
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case tokens.VARIABLE:
@@ -60,7 +78,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case tokens.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
 }
 

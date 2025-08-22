@@ -43,7 +43,7 @@ var astCommand = &cobra.Command{
 			program := parser.ParseProgram()
 
 			for _, statement := range program.Statements {
-				fmt.Printf("%v\n", statement)
+				fmt.Printf("%s\n", statement.String())
 			}
 		}
 	},

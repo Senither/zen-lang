@@ -33,7 +33,7 @@ var rootCommand = &cobra.Command{
 			}
 		} else {
 			for _, statement := range program.Statements {
-				fmt.Printf("%q\n", statement)
+				fmt.Printf("%s\n", statement.String())
 			}
 		}
 	},
