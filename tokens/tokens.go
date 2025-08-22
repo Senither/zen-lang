@@ -10,12 +10,12 @@ type Token struct {
 type TokenType string
 
 const (
-	ILLEGAL TokenType = "ILLEGAL" // Illegal token
-	EOF     TokenType = "EOF"     // End of file
-	EOL     TokenType = "EOL"     // End of line
+	ILLEGAL   TokenType = "ILLEGAL" // Illegal token
+	EOF       TokenType = "EOF"     // End of file
+	SEMICOLON TokenType = ";"
 
 	// Identifiers + literals
-	VARIABLE TokenType = "VARIABLE" // var (and later var mut)
+	VARIABLE TokenType = "VARIABLE" // Variable identifiers
 	IDENT    TokenType = "IDENT"    // add, foobar, x, y, ...
 	INT      TokenType = "INT"      // 1343456
 	STRING   TokenType = "STRING"   // "string"

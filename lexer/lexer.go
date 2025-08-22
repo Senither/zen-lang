@@ -30,7 +30,7 @@ func (l *Lexer) NextToken() tokens.Token {
 
 	switch l.ch {
 	case ';':
-		token = newToken(tokens.EOL, l)
+		token = newToken(tokens.SEMICOLON, l)
 	case '"':
 		token = newTokenWithValue(tokens.STRING, l, l.readString('"'))
 	case '\'':

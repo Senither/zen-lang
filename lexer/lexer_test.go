@@ -44,7 +44,7 @@ func TestNextToken(t *testing.T) {
 		{tokens.IDENT, "five"},
 		{tokens.ASSIGN, "="},
 		{tokens.INT, "5"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		// Variable for add function
 		{tokens.VARIABLE, "var"},
 		{tokens.IDENT, "add"},
@@ -60,7 +60,7 @@ func TestNextToken(t *testing.T) {
 		{tokens.IDENT, "x"},
 		{tokens.PLUS, "+"},
 		{tokens.IDENT, "y"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},
 		// Variable assignment to result for function call
 		{tokens.VARIABLE, "var"},
@@ -72,7 +72,7 @@ func TestNextToken(t *testing.T) {
 		{tokens.COMMA, ","},
 		{tokens.INT, "10"},
 		{tokens.RPAREN, ")"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		// If & if-else statement
 		{tokens.IF, "if"},
 		{tokens.LPAREN, "("},
@@ -83,7 +83,7 @@ func TestNextToken(t *testing.T) {
 		{tokens.LBRACE, "{"},
 		{tokens.RETURN, "return"},
 		{tokens.TRUE, "true"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},
 		{tokens.ELSE_IF, "elseif"},
 		{tokens.LPAREN, "("},
@@ -94,23 +94,23 @@ func TestNextToken(t *testing.T) {
 		{tokens.LBRACE, "{"},
 		{tokens.RETURN, "return"},
 		{tokens.FALSE, "false"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},
 		{tokens.ELSE, "else"},
 		{tokens.LBRACE, "{"},
 		{tokens.RETURN, "return"},
 		{tokens.STRING, "Something went wrong"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},
 		// String literals
 		{tokens.STRING, "one-word"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		{tokens.STRING, "multiple words"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		{tokens.STRING, "one-word"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		{tokens.STRING, "multiple words"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		// Expression operators
 		{tokens.ASSIGN, "="},
 		{tokens.PLUS, "+"},
@@ -123,10 +123,10 @@ func TestNextToken(t *testing.T) {
 		{tokens.GT, ">"},
 		{tokens.EQ, "=="},
 		{tokens.NOT_EQ, "!="},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 		// Illegal
 		{tokens.ILLEGAL, "@"},
-		{tokens.EOL, ";"},
+		{tokens.SEMICOLON, ";"},
 	}
 
 	l := New(input)
