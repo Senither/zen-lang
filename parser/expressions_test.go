@@ -27,18 +27,15 @@ func TestIdentifierExpression(t *testing.T) {
 
 	ident, ok := stmt.Expression.(*ast.Identifier)
 	if !ok {
-		t.Fatalf("stmt.Expression is not ast.Identifier, got %T",
-			stmt.Expression)
+		t.Fatalf("stmt.Expression is not ast.Identifier, got %T", stmt.Expression)
 	}
 
 	if ident.Value != "foobar" {
-		t.Errorf("ident.Value is not 'foobar', got %q",
-			ident.Value)
+		t.Errorf("ident.Value is not 'foobar', got %q", ident.Value)
 	}
 
 	if ident.TokenLiteral() != "foobar" {
-		t.Errorf("ident.TokenLiteral() is not 'foobar', got %q",
-			ident.TokenLiteral())
+		t.Errorf("ident.TokenLiteral() is not 'foobar', got %q", ident.TokenLiteral())
 	}
 }
 
@@ -62,18 +59,15 @@ func TestIntegerLiteralExpression(t *testing.T) {
 
 	literal, ok := stmt.Expression.(*ast.IntegerLiteral)
 	if !ok {
-		t.Fatalf("stmt.Expression is not ast.IntegerLiteral, got %T",
-			stmt.Expression)
+		t.Fatalf("stmt.Expression is not ast.IntegerLiteral, got %T", stmt.Expression)
 	}
 
 	if literal.Value != 5 {
-		t.Errorf("literal.Value is not 5, got %d",
-			literal.Value)
+		t.Errorf("literal.Value is not 5, got %d", literal.Value)
 	}
 
 	if literal.TokenLiteral() != "5" {
-		t.Errorf("literal.TokenLiteral() is not '5', got %q",
-			literal.TokenLiteral())
+		t.Errorf("literal.TokenLiteral() is not '5', got %q", literal.TokenLiteral())
 	}
 }
 
@@ -121,9 +115,9 @@ func TestParsingPrefixExpressions(t *testing.T) {
 func TestParsingInfixExpressions(t *testing.T) {
 	tests := []struct {
 		input    string
-		left     int64
+		left     interface{}
 		operator string
-		right    int64
+		right    interface{}
 	}{
 		{"5 + 5", 5, "+", 5},
 		{"5 - 5", 5, "-", 5},
@@ -133,6 +127,14 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"5 > 5", 5, ">", 5},
 		{"5 == 5", 5, "==", 5},
 		{"5 != 5", 5, "!=", 5},
+		{"foobar + barfoo;", "foobar", "+", "barfoo"},
+		{"foobar - barfoo;", "foobar", "-", "barfoo"},
+		{"foobar * barfoo;", "foobar", "*", "barfoo"},
+		{"foobar / barfoo;", "foobar", "/", "barfoo"},
+		{"foobar > barfoo;", "foobar", ">", "barfoo"},
+		{"foobar < barfoo;", "foobar", "<", "barfoo"},
+		{"foobar == barfoo;", "foobar", "==", "barfoo"},
+		{"foobar != barfoo;", "foobar", "!=", "barfoo"},
 	}
 
 	for _, tt := range tests {
@@ -151,21 +153,8 @@ func TestParsingInfixExpressions(t *testing.T) {
 			t.Fatalf("program.Statements[0] is not an ExpressionStatement, got %T", program.Statements[0])
 		}
 
-		exp, ok := stmt.Expression.(*ast.InfixExpression)
-		if !ok {
-			t.Fatalf("stmt.Expression is not ast.InfixExpression, got %T", stmt.Expression)
-		}
-
-		if !testIntegerLiteral(t, exp.Left, tt.left) {
-			t.Errorf("exp.Left is not '%d', got %q", tt.left, exp.Left.String())
-		}
-
-		if exp.Operator != tt.operator {
-			t.Errorf("exp.Operator is not '%s', got %q", tt.operator, exp.Operator)
-		}
-
-		if !testIntegerLiteral(t, exp.Right, tt.right) {
-			t.Errorf("exp.Right is not '%d', got %q", tt.right, exp.Right.String())
+		if !testInfixExpression(t, stmt.Expression, tt.left, tt.operator, tt.right) {
+			return
 		}
 	}
 }

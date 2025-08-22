@@ -21,10 +21,29 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	t.FailNow()
 }
 
+func testLiteralExpression(
+	t *testing.T,
+	exp ast.Expression,
+	expected interface{},
+) bool {
+	switch v := expected.(type) {
+	case int:
+		return testIntegerLiteral(t, exp, int64(v))
+	case int64:
+		return testIntegerLiteral(t, exp, v)
+	case string:
+		return testIdentifier(t, exp, v)
+	}
+
+	t.Errorf("type of exp not handled. got %T", exp)
+
+	return false
+}
+
 func testIntegerLiteral(t *testing.T, literal ast.Expression, value int64) bool {
 	integer, ok := literal.(*ast.IntegerLiteral)
 	if !ok {
-		t.Errorf("il is not ast.IntegerLiteral. got %T", literal)
+		t.Errorf("integer is not ast.IntegerLiteral. got %T", literal)
 		return false
 	}
 
@@ -35,6 +54,51 @@ func testIntegerLiteral(t *testing.T, literal ast.Expression, value int64) bool 
 
 	if integer.TokenLiteral() != fmt.Sprintf("%d", value) {
 		t.Errorf("integer.TokenLiteral is not %d. got %q", value, integer.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+func testIdentifier(t *testing.T, ident ast.Expression, value string) bool {
+	identifier, ok := ident.(*ast.Identifier)
+	if !ok {
+		t.Errorf("ident is not ast.Identifier. got %T", ident)
+		return false
+	}
+
+	if identifier.Value != value {
+		t.Errorf("identifier.Value is not %q. got %q", value, identifier.Value)
+		return false
+	}
+
+	if identifier.TokenLiteral() != value {
+		t.Errorf("identifier.TokenLiteral is not %q. got %q", value, identifier.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+func testInfixExpression(t *testing.T, exp ast.Expression, left interface{},
+	operator string, right interface{}) bool {
+
+	expression, ok := exp.(*ast.InfixExpression)
+	if !ok {
+		t.Errorf("expression is not ast.InfixExpression. got %T(%s)", exp, exp)
+		return false
+	}
+
+	if !testLiteralExpression(t, expression.Left, left) {
+		return false
+	}
+
+	if expression.Operator != operator {
+		t.Errorf("exp.Operator is not '%s'. got=%q", operator, expression.Operator)
+		return false
+	}
+
+	if !testLiteralExpression(t, expression.Right, right) {
 		return false
 	}
 
