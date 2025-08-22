@@ -27,8 +27,14 @@ var rootCommand = &cobra.Command{
 
 		program := parser.ParseProgram()
 
-		for _, statement := range program.Statements {
-			fmt.Printf("%q\n", statement)
+		if len(parser.Errors()) > 0 {
+			for _, err := range parser.Errors() {
+				fmt.Printf("Parser error: %v @ %d:%d\n", err.Message, err.Token.Line, err.Token.Column)
+			}
+		} else {
+			for _, statement := range program.Statements {
+				fmt.Printf("%q\n", statement)
+			}
 		}
 	},
 }

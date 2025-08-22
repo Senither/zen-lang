@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/tokens"
@@ -10,11 +12,18 @@ type Parser struct {
 	lexer     *lexer.Lexer
 	curToken  tokens.Token
 	peekToken tokens.Token
+	errors    []ParserError
+}
+
+type ParserError struct {
+	Message string
+	Token   tokens.Token
 }
 
 func New(lexer *lexer.Lexer) *Parser {
 	p := &Parser{
-		lexer: lexer,
+		lexer:  lexer,
+		errors: []ParserError{},
 	}
 
 	// Read two tokens, so curToken and peekToken are both set
@@ -22,6 +31,15 @@ func New(lexer *lexer.Lexer) *Parser {
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) Errors() []ParserError {
+	return p.errors
+}
+
+func (p *Parser) peekError(t tokens.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %q, got %q instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, ParserError{Message: msg, Token: p.peekToken})
 }
 
 func (p *Parser) nextToken() {
@@ -42,6 +60,7 @@ func (p *Parser) expectPeek(t tokens.TokenType) bool {
 		p.nextToken()
 		return true
 	} else {
+		p.peekError(t)
 		return false
 	}
 }
