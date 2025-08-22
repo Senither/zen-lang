@@ -77,3 +77,24 @@ func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
 }
 func (i *Identifier) String() string { return i.Value }
+
+type ReturnStatement struct {
+	Token       tokens.Token
+	ReturnValue Expression
+}
+
+func (rs *ReturnStatement) statementNode()       {}
+func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
+func (rs *ReturnStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(rs.TokenLiteral() + " ")
+
+	if rs.ReturnValue != nil {
+		out.WriteString(rs.ReturnValue.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
