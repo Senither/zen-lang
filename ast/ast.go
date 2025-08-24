@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/senither/zen-lang/tokens"
 )
@@ -230,6 +231,39 @@ func (bs *BlockStatement) String() string {
 	for _, stmt := range bs.Statements {
 		out.WriteString(stmt.String())
 	}
+
+	return out.String()
+}
+
+type FunctionLiteral struct {
+	Token      tokens.Token
+	Name       *Identifier
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (fl *FunctionLiteral) expressionNode()      {}
+func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
+func (fl *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, param := range fl.Parameters {
+		params = append(params, param.String())
+	}
+
+	out.WriteString(fl.TokenLiteral())
+	out.WriteString(" ")
+
+	if fl.Name != nil {
+		out.WriteString(fl.Name.String())
+	}
+
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") { ")
+	out.WriteString(fl.Body.String())
+	out.WriteString(" }")
 
 	return out.String()
 }

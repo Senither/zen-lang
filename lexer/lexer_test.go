@@ -10,8 +10,12 @@ func TestNextToken(t *testing.T) {
 	input := `
 		var five = 5;
 
-		var add = fn(x, y) {
+		var add = func(x, y) {
 			return x + y;
+		}
+
+		func multiply(x, y) {
+			return x * y;
 		}
 
 		var result = add(five, 10);
@@ -49,7 +53,7 @@ func TestNextToken(t *testing.T) {
 		{tokens.VARIABLE, "var"},
 		{tokens.IDENT, "add"},
 		{tokens.ASSIGN, "="},
-		{tokens.FUNCTION, "fn"},
+		{tokens.FUNCTION, "func"},
 		{tokens.LPAREN, "("},
 		{tokens.IDENT, "x"},
 		{tokens.COMMA, ","},
@@ -59,6 +63,21 @@ func TestNextToken(t *testing.T) {
 		{tokens.RETURN, "return"},
 		{tokens.IDENT, "x"},
 		{tokens.PLUS, "+"},
+		{tokens.IDENT, "y"},
+		{tokens.SEMICOLON, ";"},
+		{tokens.RBRACE, "}"},
+		// Named function for multiply function
+		{tokens.FUNCTION, "func"},
+		{tokens.IDENT, "multiply"},
+		{tokens.LPAREN, "("},
+		{tokens.IDENT, "x"},
+		{tokens.COMMA, ","},
+		{tokens.IDENT, "y"},
+		{tokens.RPAREN, ")"},
+		{tokens.LBRACE, "{"},
+		{tokens.RETURN, "return"},
+		{tokens.IDENT, "x"},
+		{tokens.ASTERISK, "*"},
 		{tokens.IDENT, "y"},
 		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},

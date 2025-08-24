@@ -188,6 +188,60 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	return expression
 }
 
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	funcLiteral := &ast.FunctionLiteral{
+		Token: p.curToken,
+		Name:  nil,
+	}
+
+	if p.peekTokenIs(tokens.IDENT) {
+		p.nextToken()
+		funcLiteral.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	}
+
+	if !p.expectPeek(tokens.LPAREN) {
+		return nil
+	}
+
+	funcLiteral.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(tokens.LBRACE) {
+		return nil
+	}
+
+	funcLiteral.Body = p.parseBlockStatement()
+
+	return funcLiteral
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	identifiers := []*ast.Identifier{}
+
+	if p.peekTokenIs(tokens.RPAREN) {
+		p.nextToken()
+		return identifiers
+	}
+
+	p.nextToken()
+
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	identifiers = append(identifiers, ident)
+
+	for p.peekTokenIs(tokens.COMMA) {
+		p.nextToken()
+		p.nextToken()
+
+		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		identifiers = append(identifiers, ident)
+	}
+
+	if !p.expectPeek(tokens.RPAREN) {
+		return nil
+	}
+
+	return identifiers
+}
+
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	block := &ast.BlockStatement{Token: p.curToken}
 	block.Statements = []ast.Statement{}
