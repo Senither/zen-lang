@@ -598,3 +598,52 @@ func TestFunctionParameterParsing(t *testing.T) {
 		}
 	}
 }
+
+func TestCallExpressionParsing(t *testing.T) {
+	tests := []struct {
+		input             string
+		expectedFunction  string
+		expectedArguments []string
+	}{
+		{"add(1, 2)", "add", []string{"1", "2"}},
+		{"subtract(5, 3)", "subtract", []string{"5", "3"}},
+		{"multiply(2, 4)", "multiply", []string{"2", "4"}},
+		{"special(1, 2 * 3, 4 + 5)", "special", []string{"1", "(2 * 3)", "(4 + 5)"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+		}
+
+		callExp, ok := stmt.Expression.(*ast.CallExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.CallExpression. got %T", stmt.Expression)
+		}
+
+		if !testIdentifier(t, callExp.Function, tt.expectedFunction) {
+			return
+		}
+
+		if len(callExp.Arguments) != len(tt.expectedArguments) {
+			t.Errorf("wrong number of arguments. want %d, got %d", len(tt.expectedArguments), len(callExp.Arguments))
+		}
+
+		for i, arg := range tt.expectedArguments {
+			if callExp.Arguments[i].String() != arg {
+				t.Errorf("argument %d is not %q. got %q", i, arg, callExp.Arguments[i].String())
+			}
+		}
+	}
+}

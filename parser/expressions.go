@@ -28,6 +28,7 @@ var precedences = map[tokens.TokenType]int{
 	tokens.MINUS:    SUM,
 	tokens.SLASH:    PRODUCT,
 	tokens.ASTERISK: PRODUCT,
+	tokens.LPAREN:   CALL,
 }
 
 type (
@@ -257,4 +258,35 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	}
 
 	return block
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(tokens.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(tokens.COMMA) {
+		p.nextToken()
+		p.nextToken()
+
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(tokens.RPAREN) {
+		return nil
+	}
+
+	return args
 }
