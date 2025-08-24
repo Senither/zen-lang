@@ -27,6 +27,8 @@ func testLiteralExpression(
 	expected interface{},
 ) bool {
 	switch v := expected.(type) {
+	case bool:
+		return testBooleanLiteral(t, exp, v)
 	case int:
 		return testIntegerLiteral(t, exp, int64(v))
 	case int64:
@@ -38,6 +40,26 @@ func testLiteralExpression(
 	t.Errorf("type of exp not handled. got %T", exp)
 
 	return false
+}
+
+func testBooleanLiteral(t *testing.T, expression ast.Expression, value bool) bool {
+	boolean, ok := expression.(*ast.Boolean)
+	if !ok {
+		t.Errorf("expression is not ast.Boolean. got %T", expression)
+		return false
+	}
+
+	if boolean.Value != value {
+		t.Errorf("boolean.Value is not %t. got %t", value, boolean.Value)
+		return false
+	}
+
+	if boolean.TokenLiteral() != fmt.Sprintf("%t", value) {
+		t.Errorf("boolean.TokenLiteral is not %t got %q", value, boolean.TokenLiteral())
+		return false
+	}
+
+	return true
 }
 
 func testIntegerLiteral(t *testing.T, literal ast.Expression, value int64) bool {
