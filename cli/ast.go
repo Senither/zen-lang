@@ -44,7 +44,7 @@ var astCommand = &cobra.Command{
 
 			if len(parser.Errors()) > 0 {
 				for _, err := range parser.Errors() {
-					fmt.Printf("Parser error: %v @ %d:%d\n", err.Message, err.Token.Line, err.Token.Column)
+					fmt.Println(err.String())
 				}
 				continue
 			}

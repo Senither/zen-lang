@@ -24,6 +24,13 @@ type ParserError struct {
 	Token   tokens.Token
 }
 
+func (e *ParserError) String() string {
+	return fmt.Sprintf(
+		"Parser error: %s\n  Token: %q\n  File:  %d:%d",
+		e.Message, e.Token.Literal, e.Token.Line, e.Token.Column,
+	)
+}
+
 func New(lexer *lexer.Lexer) *Parser {
 	p := &Parser{
 		lexer:  lexer,

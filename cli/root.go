@@ -29,7 +29,7 @@ var rootCommand = &cobra.Command{
 
 		if len(parser.Errors()) > 0 {
 			for _, err := range parser.Errors() {
-				fmt.Printf("Parser error: %v @ %d:%d\n", err.Message, err.Token.Line, err.Token.Column)
+				fmt.Println(err.String())
 			}
 		} else {
 			for _, statement := range program.Statements {
