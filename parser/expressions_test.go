@@ -390,3 +390,80 @@ func TestIfElseExpression(t *testing.T) {
 		return
 	}
 }
+
+func TestIfElseIfElseExpression(t *testing.T) {
+	input := []string{
+		"if (x < y) { x } elseif (x > y) { y } else { z }",
+		"if (x < y) { x } else if (x > y) { y } else { z }",
+	}
+
+	for _, expr := range input {
+		l := lexer.New(expr)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+		}
+
+		exp, ok := stmt.Expression.(*ast.IfExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.IfExpression. got %T", stmt.Expression)
+		}
+
+		if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+			return
+		}
+
+		if len(exp.Consequence.Statements) != 1 {
+			t.Errorf("consequence is not 1 statement. got %d", len(exp.Consequence.Statements))
+		}
+
+		consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("consequence is not ast.ExpressionStatement. got %T", exp.Consequence.Statements[0])
+		}
+
+		if !testIdentifier(t, consequence.Expression, "x") {
+			return
+		}
+
+		if len(exp.Intermediaries) != 1 {
+			t.Errorf("exp.Intermediaries does not contain 1 statements. got %d\n", len(exp.Intermediaries))
+		}
+
+		elseif := exp.Intermediaries[0]
+		if !testInfixExpression(t, elseif.Condition, "x", ">", "y") {
+			return
+		}
+
+		if len(elseif.Consequence.Statements) != 1 {
+			t.Errorf("elseif.Consequence is not 1 statements. got %d\n", len(elseif.Consequence.Statements))
+		}
+
+		elseifConsequence, ok := elseif.Consequence.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", elseif.Consequence.Statements[0])
+		}
+
+		if !testIdentifier(t, elseifConsequence.Expression, "y") {
+			return
+		}
+
+		alternative, ok := elseif.Alternative.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", elseif.Alternative.Statements[0])
+		}
+
+		if !testIdentifier(t, alternative.Expression, "z") {
+			return
+		}
+	}
+}

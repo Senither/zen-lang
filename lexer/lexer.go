@@ -104,6 +104,13 @@ func (l *Lexer) NextToken() tokens.Token {
 		if isLetter(l.ch) {
 			literal := l.readIdentifier()
 
+			if literal == "else" {
+				token := l.readIfElseToken()
+				if token != nil {
+					return *token
+				}
+			}
+
 			return newTokenWithValue(tokens.LookupIdent(literal), l, literal)
 		} else if isDigit(l.ch) {
 			return newTokenWithValue(tokens.INT, l, l.readNumber())
@@ -115,6 +122,33 @@ func (l *Lexer) NextToken() tokens.Token {
 	l.readChar()
 
 	return token
+}
+
+func (l *Lexer) readIfElseToken() *tokens.Token {
+	l.skipWhitespace()
+
+	if l.ch == 0 {
+		return nil
+	}
+
+	if !isLetter(l.ch) {
+		return nil
+	}
+
+	start := l.position
+	nextIdent := l.readIdentifier()
+
+	if nextIdent != "if" {
+		// Reset the position to fix the lexer state
+		l.position = start
+		l.readPosition = start + 1
+		l.ch = l.input[l.position]
+
+		return nil
+	}
+
+	token := newTokenWithValue(tokens.ELSE_IF, l, "else if")
+	return &token
 }
 
 func newTokenWithValue(tokenType tokens.TokenType, l *Lexer, value string) tokens.Token {
