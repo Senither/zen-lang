@@ -36,7 +36,7 @@ var rootCommand = &cobra.Command{
 
 		evaluated := evaluator.Eval(program)
 		if evaluated == nil {
-			fmt.Print("Failed to evaluate program, evaluation returned nil")
+			fmt.Println("Failed to evaluate program, evaluation returned nil")
 			return
 		}
 
