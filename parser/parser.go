@@ -45,6 +45,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	p.registerPrefix(tokens.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(tokens.TRUE, p.parseBooleanLiteral)
 	p.registerPrefix(tokens.FALSE, p.parseBooleanLiteral)
+	p.registerPrefix(tokens.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(tokens.IF, p.parseIfExpression)
 	p.registerPrefix(tokens.FUNCTION, p.parseFunctionLiteral)
 
