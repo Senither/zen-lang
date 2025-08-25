@@ -12,25 +12,29 @@ var (
 )
 
 func Eval(node ast.Node) objects.Object {
-	switch n := node.(type) {
+	switch node := node.(type) {
 	// Statements
 	case *ast.Program:
-		return evalStatements(n.Statements)
+		return evalStatements(node.Statements)
 	case *ast.ExpressionStatement:
-		return Eval(n.Expression)
+		return Eval(node.Expression)
 
 	// Expression types
 	case *ast.StringLiteral:
-		return &objects.String{Value: n.Value}
+		return &objects.String{Value: node.Value}
 	case *ast.IntegerLiteral:
-		return &objects.Integer{Value: n.Value}
+		return &objects.Integer{Value: node.Value}
 	case *ast.BooleanLiteral:
-		return nativeBoolToBooleanObject(n.Value)
+		return nativeBoolToBooleanObject(node.Value)
 
 	// Expression operators
 	case *ast.PrefixExpression:
-		right := Eval(n.Right)
-		return evalPrefixExpression(n.Operator, right)
+		right := Eval(node.Right)
+		return evalPrefixExpression(node.Operator, right)
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
+		right := Eval(node.Right)
+		return evalInfixExpression(node.Operator, left, right)
 	}
 
 	return nil
@@ -83,4 +87,43 @@ func evalMinusPrefixOperatorExpression(right objects.Object) objects.Object {
 	}
 
 	return &objects.Integer{Value: -right.(*objects.Integer).Value}
+}
+
+func evalInfixExpression(operator string, left, right objects.Object) objects.Object {
+	switch {
+	case left.Type() == objects.INTEGER_OBJ && right.Type() == objects.INTEGER_OBJ:
+		return evalIntegerInfixExpression(operator, left, right)
+	case operator == "==":
+		return nativeBoolToBooleanObject(left == right)
+	case operator == "!=":
+		return nativeBoolToBooleanObject(left != right)
+	default:
+		return NULL
+	}
+}
+
+func evalIntegerInfixExpression(operator string, left, right objects.Object) objects.Object {
+	leftVal := left.(*objects.Integer).Value
+	rightVal := right.(*objects.Integer).Value
+
+	switch operator {
+	case "+":
+		return &objects.Integer{Value: leftVal + rightVal}
+	case "-":
+		return &objects.Integer{Value: leftVal - rightVal}
+	case "*":
+		return &objects.Integer{Value: leftVal * rightVal}
+	case "/":
+		return &objects.Integer{Value: leftVal / rightVal}
+	case "<":
+		return nativeBoolToBooleanObject(leftVal < rightVal)
+	case ">":
+		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case "==":
+		return nativeBoolToBooleanObject(leftVal == rightVal)
+	case "!=":
+		return nativeBoolToBooleanObject(leftVal != rightVal)
+	default:
+		return NULL
+	}
 }
