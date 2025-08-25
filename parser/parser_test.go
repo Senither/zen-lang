@@ -43,7 +43,7 @@ func testLiteralExpression(
 }
 
 func testBooleanLiteral(t *testing.T, expression ast.Expression, value bool) bool {
-	boolean, ok := expression.(*ast.Boolean)
+	boolean, ok := expression.(*ast.BooleanLiteral)
 	if !ok {
 		t.Errorf("expression is not ast.Boolean. got %T", expression)
 		return false

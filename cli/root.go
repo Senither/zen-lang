@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/parser"
 	"github.com/spf13/cobra"
@@ -26,16 +27,20 @@ var rootCommand = &cobra.Command{
 		parser := parser.New(lexer)
 
 		program := parser.ParseProgram()
-
 		if len(parser.Errors()) > 0 {
 			for _, err := range parser.Errors() {
 				fmt.Println(err.String())
 			}
-		} else {
-			for _, statement := range program.Statements {
-				fmt.Printf("%s\n", statement.String())
-			}
+			return
 		}
+
+		evaluated := evaluator.Eval(program)
+		if evaluated == nil {
+			fmt.Print("Failed to evaluate program, evaluation returned nil")
+			return
+		}
+
+		fmt.Println(evaluated.Inspect())
 	},
 }
 

@@ -130,7 +130,7 @@ func (p *Parser) parseStringLiteral() ast.Expression {
 }
 
 func (p *Parser) parseBooleanLiteral() ast.Expression {
-	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(tokens.TRUE)}
+	return &ast.BooleanLiteral{Token: p.curToken, Value: p.curTokenIs(tokens.TRUE)}
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
