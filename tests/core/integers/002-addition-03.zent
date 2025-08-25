@@ -1,0 +1,6 @@
+--TEST--
+Additions with long numbers and parentheses
+--FILE--
+(123456789 + 987654321) + 123456789
+--EXPECT--
+1234567899

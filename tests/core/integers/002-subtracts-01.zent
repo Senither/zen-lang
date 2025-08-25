@@ -1,0 +1,6 @@
+--TEST--
+Subtractions with two numbers
+--FILE--
+10 - 5
+--EXPECT--
+5

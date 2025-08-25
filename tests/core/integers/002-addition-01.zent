@@ -1,0 +1,6 @@
+--TEST--
+Additions with two numbers
+--FILE--
+5 + 4
+--EXPECT--
+9

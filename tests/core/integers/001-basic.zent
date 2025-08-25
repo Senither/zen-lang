@@ -1,0 +1,6 @@
+--TEST--
+Defines an integer
+--FILE--
+5
+--EXPECT--
+5

@@ -5,7 +5,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/senither/zen-lang/evaluator"
+	"github.com/senither/zen-lang/lexer"
+	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/parser"
 	"github.com/spf13/cobra"
 )
 
@@ -14,6 +19,8 @@ type TestInstance struct {
 	file    string
 	expect  string
 }
+
+var exitStatusCode = 0
 
 func init() {
 	rootCommand.AddCommand(testCommand)
@@ -31,7 +38,13 @@ var testCommand = &cobra.Command{
 			testDirectory = args[0]
 		}
 
-		relativeTestFiles := discoverTestFiles(testDirectory)
+		absolutePath, err := filepath.Abs(testDirectory)
+		if err != nil {
+			fmt.Printf("Error getting absolute path: %s\n", err)
+			return
+		}
+
+		relativeTestFiles := discoverTestFiles(absolutePath)
 		groupedTestFiles := make(map[string][]string)
 
 		for _, relativePath := range relativeTestFiles {
@@ -39,16 +52,22 @@ var testCommand = &cobra.Command{
 			groupedTestFiles[dir] = append(groupedTestFiles[dir], relativePath)
 		}
 
+		start := time.Now()
+
 		for dir, files := range groupedTestFiles {
-			dirPath := strings.Join(strings.Split(dir, string(os.PathSeparator)), "/")
-			fmt.Printf("  %s/%s\n", testDirectory, dirPath)
+			dirPath := strings.Trim(filepath.Join(absolutePath, dir), absolutePath)
+			fmt.Printf("  %s%s%s\n", testDirectory, string(os.PathSeparator), dirPath)
 
 			for _, file := range files {
-				runTestFile(filepath.Join(testDirectory, file))
+				runTestFile(file)
 			}
 
 			fmt.Println()
 		}
+
+		fmt.Printf("Finished running the test suite in %s\nTime taken %s\n\n", absolutePath, time.Since(start))
+
+		os.Exit(exitStatusCode)
 	},
 }
 
@@ -61,8 +80,8 @@ func discoverTestFiles(directory string) []string {
 		}
 
 		if !info.IsDir() && strings.HasSuffix(info.Name(), ".zent") {
-			relativePath, _ := filepath.Rel("tests", path)
-			testFiles = append(testFiles, relativePath)
+			absolutePath, _ := filepath.Abs(path)
+			testFiles = append(testFiles, absolutePath)
 		}
 
 		return nil
@@ -112,20 +131,52 @@ func runTestFile(file string) {
 		}
 	}
 
-	// TODO: Evaluate test code and check it against our expectations
-	// For now we'll simulate a passing test
+	test.file = cleanString(test.file)
+	test.expect = cleanString(test.expect)
 
-	// fmt.Printf("  ✖ %s\n", strings.Trim(test.message, "\n"))
+	l := lexer.New(test.file)
+	p := parser.New(l)
+
+	program := p.ParseProgram()
+	if len(p.Errors()) > 0 {
+		printErrorStatusMessage(test, "Parser errors found")
+		for _, err := range p.Errors() {
+			fmt.Printf("    %s\n", err.String())
+		}
+		return
+	}
+
+	evaluated := evaluator.Eval(program)
+	if evaluated == nil {
+		printErrorStatusMessage(test, "Evaluator returned nil, failed to evaluate the test input")
+		return
+	}
+
+	if evaluated.Type() == objects.ERROR_OBJ {
+		printErrorStatusMessage(test, "Evaluator returned an error")
+		fmt.Printf("    %s\n", evaluated.Inspect())
+		return
+	}
+
+	if strings.Trim(evaluated.Inspect(), "\n") != test.expect {
+		printErrorStatusMessage(test, "Test expectation does not match the evaluated result")
+		fmt.Printf("     Got:   %s\n", strings.Trim(evaluated.Inspect(), "\n"))
+		fmt.Printf("     Want:  %s\n", test.expect)
+		return
+	}
+
 	fmt.Printf("  ✔ %s\n", strings.Trim(test.message, "\n"))
+}
 
-	// Develop information
-	fmt.Printf("       File:\n")
-	for line := range strings.SplitSeq(strings.Trim(test.file, "\n"), "\n") {
-		fmt.Printf("         %s\n", strings.Trim(line, "\n"))
-	}
+func cleanString(str string) string {
+	str = strings.ReplaceAll(str, "\r\n", "\n")
+	str = strings.Trim(str, "\n")
 
-	fmt.Printf("       Expect:\n")
-	for line := range strings.SplitSeq(strings.Trim(test.expect, "\n"), "\n") {
-		fmt.Printf("         %s\n", strings.Trim(line, "\n"))
-	}
+	return str
+}
+
+func printErrorStatusMessage(test TestInstance, message string) {
+	exitStatusCode = 1
+
+	fmt.Printf("  ✖ %s\n     %s\n", cleanString(test.message), message)
 }

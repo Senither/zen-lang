@@ -1,6 +1,0 @@
---TEST--
-Adds two numbers together
---FILE--
-echo 5 + 4;
---EXPECT--
-9

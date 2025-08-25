@@ -1,0 +1,6 @@
+--TEST--
+Additions with three numbers and parentheses
+--FILE--
+(5 + 4) + 3
+--EXPECT--
+12

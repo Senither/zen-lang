@@ -1,0 +1,6 @@
+--TEST--
+Subtractions with negative result
+--FILE--
+5 - 10
+--EXPECT--
+-5
