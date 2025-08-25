@@ -15,6 +15,15 @@ func testEval(input string) objects.Object {
 	return Eval(p.ParseProgram())
 }
 
+func testNullObject(t *testing.T, obj objects.Object) bool {
+	if obj == NULL {
+		return true
+	}
+
+	t.Errorf("object is not NULL. got %T (%+v)", obj, obj)
+	return false
+}
+
 func testStringObject(t *testing.T, obj objects.Object, expected string) bool {
 	result, ok := obj.(*objects.String)
 	if !ok {

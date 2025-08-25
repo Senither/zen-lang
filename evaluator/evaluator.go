@@ -18,6 +18,10 @@ func Eval(node ast.Node) objects.Object {
 		return evalStatements(node.Statements)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
+	case *ast.BlockStatement:
+		return evalStatements(node.Statements)
+	case *ast.IfExpression:
+		return evalIfExpression(node)
 
 	// Expression types
 	case *ast.StringLiteral:
@@ -50,11 +54,40 @@ func evalStatements(statements []ast.Statement) objects.Object {
 	return result
 }
 
+func evalIfExpression(ie *ast.IfExpression) objects.Object {
+	condition := Eval(ie.Condition)
+
+	if isTruthy(condition) {
+		return Eval(ie.Consequence)
+	}
+
+	if ie.Intermediary != nil {
+		return Eval(ie.Intermediary)
+	}
+
+	if ie.Alternative != nil {
+		return Eval(ie.Alternative)
+	}
+
+	return NULL
+}
+
 func nativeBoolToBooleanObject(input bool) *objects.Boolean {
 	if input {
 		return TRUE
 	}
 	return FALSE
+}
+
+func isTruthy(obj objects.Object) bool {
+	switch obj {
+	case NULL:
+		return false
+	case FALSE:
+		return false
+	default:
+		return true
+	}
 }
 
 func evalPrefixExpression(operator string, right objects.Object) objects.Object {

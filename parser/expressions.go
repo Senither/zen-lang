@@ -160,8 +160,8 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 
 func (p *Parser) parseIfExpression() ast.Expression {
 	expression := &ast.IfExpression{
-		Token:          p.curToken,
-		Intermediaries: []*ast.IfExpression{},
+		Token:        p.curToken,
+		Intermediary: nil,
 	}
 
 	if !p.expectPeek(tokens.LPAREN) {
@@ -183,9 +183,7 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	for p.peekTokenIs(tokens.ELSE_IF) {
 		p.nextToken()
-
-		elseif := p.parseIfExpression().(*ast.IfExpression)
-		expression.Intermediaries = append(expression.Intermediaries, elseif)
+		expression.Intermediary = p.parseIfExpression().(*ast.IfExpression)
 	}
 
 	if p.peekTokenIs(tokens.ELSE) {

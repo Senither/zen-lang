@@ -435,31 +435,30 @@ func TestIfElseIfElseExpression(t *testing.T) {
 			return
 		}
 
-		if len(exp.Intermediaries) != 1 {
-			t.Errorf("exp.Intermediaries does not contain 1 statements. got %d\n", len(exp.Intermediaries))
+		if exp.Intermediary == nil {
+			t.Errorf("exp.Intermediaries is nil, expected *ast.IfExpression. got %T\n", exp.Intermediary)
 		}
 
-		elseif := exp.Intermediaries[0]
-		if !testInfixExpression(t, elseif.Condition, "x", ">", "y") {
+		if !testInfixExpression(t, exp.Intermediary.Condition, "x", ">", "y") {
 			return
 		}
 
-		if len(elseif.Consequence.Statements) != 1 {
-			t.Errorf("elseif.Consequence is not 1 statements. got %d\n", len(elseif.Consequence.Statements))
+		if len(exp.Intermediary.Consequence.Statements) != 1 {
+			t.Errorf("exp.Intermediaries.Consequence is not 1 statements. got %d\n", len(exp.Intermediary.Consequence.Statements))
 		}
 
-		elseifConsequence, ok := elseif.Consequence.Statements[0].(*ast.ExpressionStatement)
+		elseifConsequence, ok := exp.Intermediary.Consequence.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", elseif.Consequence.Statements[0])
+			t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", exp.Intermediary.Consequence.Statements[0])
 		}
 
 		if !testIdentifier(t, elseifConsequence.Expression, "y") {
 			return
 		}
 
-		alternative, ok := elseif.Alternative.Statements[0].(*ast.ExpressionStatement)
+		alternative, ok := exp.Intermediary.Alternative.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", elseif.Alternative.Statements[0])
+			t.Fatalf("Statements[0] is not ast.ExpressionStatement. got %T", exp.Intermediary.Alternative.Statements[0])
 		}
 
 		if !testIdentifier(t, alternative.Expression, "z") {
