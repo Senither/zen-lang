@@ -1,0 +1,58 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  interpreter_tests:
+    runs-on: ubuntu-latest
+    name: Interpreter Test Suite
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - run: go version
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Verify the dependencies
+        run: go mod verify
+
+      - name: Run tests
+        run: go test -v ./...
+
+  zen_tests:
+    runs-on: ubuntu-latest
+    name: Zen Internal Test Suite
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - run: go version
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Verify the dependencies
+        run: go mod verify
+
+      - name: Build binary
+        run: go build -o zen-lang
+
+      - name: Run Zen tests
+        run: ./zen-lang test
