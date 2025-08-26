@@ -69,6 +69,36 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		return evalIfExpression(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
+
+	// Functions & Builtins
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+
+		function := &objects.Function{
+			Name:       node.Name,
+			Parameters: params,
+			Env:        env,
+			Body:       body,
+		}
+
+		if function.Name != nil {
+			env.Set(function.Name.Value, function)
+		}
+
+		return function
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+
+		return applyFunction(function, args)
 	}
 
 	return nil
@@ -254,4 +284,52 @@ func evalStringInfixExpression(operator string, left, right objects.Object) obje
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
+}
+
+func evalExpressions(exps []ast.Expression, env *objects.Environment) []objects.Object {
+	var result []objects.Object
+
+	for _, e := range exps {
+		evaluated := Eval(e, env)
+		if isError(evaluated) {
+			return []objects.Object{evaluated}
+		}
+
+		result = append(result, evaluated)
+	}
+
+	return result
+}
+
+func applyFunction(fn objects.Object, args []objects.Object) objects.Object {
+	function, ok := fn.(*objects.Function)
+	if !ok {
+		return newError("not a function: %s", fn.Type())
+	}
+
+	extendedEnv := extendFunctionEnv(function, args)
+	evaluated := Eval(function.Body, extendedEnv)
+
+	return unwrapReturnValue(evaluated)
+}
+
+func extendFunctionEnv(
+	fn *objects.Function,
+	args []objects.Object,
+) *objects.Environment {
+	env := objects.NewEnclosedEnvironment(fn.Env)
+
+	for paramIdx, param := range fn.Parameters {
+		env.Set(param.Value, args[paramIdx])
+	}
+
+	return env
+}
+
+func unwrapReturnValue(obj objects.Object) objects.Object {
+	if returnValue, ok := obj.(*objects.ReturnValue); ok {
+		return returnValue.Value
+	}
+
+	return obj
 }
