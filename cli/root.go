@@ -6,6 +6,7 @@ import (
 
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/lexer"
+	"github.com/senither/zen-lang/objects"
 	"github.com/senither/zen-lang/parser"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +35,8 @@ var rootCommand = &cobra.Command{
 			return
 		}
 
-		evaluated := evaluator.Eval(program)
+		env := objects.NewEnvironment()
+		evaluated := evaluator.Eval(program, env)
 		if evaluated == nil {
 			fmt.Println("Failed to evaluate program, evaluation returned nil")
 			return

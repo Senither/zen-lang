@@ -146,7 +146,8 @@ func runTestFile(file string) {
 		return
 	}
 
-	evaluated := evaluator.Eval(program)
+	env := objects.NewEnvironment()
+	evaluated := evaluator.Eval(program, env)
 	if evaluated == nil {
 		printErrorStatusMessage(test, "Evaluator returned nil, failed to evaluate the test input")
 		return

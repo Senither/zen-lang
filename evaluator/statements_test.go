@@ -32,3 +32,19 @@ func TestNestedReturnStatements(t *testing.T) {
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 }
+
+func TestVarStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"var x = 5; x;", 5},
+		{"var x = 5 * 5; x;", 25},
+		{"var x = 5; var y = 10; x + y;", 15},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}

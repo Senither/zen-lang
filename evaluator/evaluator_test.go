@@ -53,6 +53,10 @@ if (10 > 1) {
 `,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{
+			"foobar",
+			"identifier not found: foobar",
+		},
 	}
 
 	for _, tt := range tests {
@@ -74,7 +78,7 @@ func testEval(input string) objects.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 
-	return Eval(p.ParseProgram())
+	return Eval(p.ParseProgram(), objects.NewEnvironment())
 }
 
 func testNullObject(t *testing.T, obj objects.Object) bool {
