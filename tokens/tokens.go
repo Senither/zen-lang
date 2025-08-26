@@ -16,6 +16,7 @@ const (
 
 	// Identifiers + literals
 	VARIABLE TokenType = "VARIABLE" // Variable identifiers
+	MUTABLE  TokenType = "MUTABLE"  // Mutable variable identifiers
 	IDENT    TokenType = "IDENT"    // add, foobar, x, y, ...
 	INT      TokenType = "INT"      // 1343456
 	STRING   TokenType = "STRING"   // "string"
@@ -63,6 +64,7 @@ const (
 
 var keywords = map[string]TokenType{
 	"var":     VARIABLE,
+	"mut":     MUTABLE,
 	"func":    FUNCTION,
 	"true":    TRUE,
 	"false":   FALSE,

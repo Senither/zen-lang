@@ -6,7 +6,12 @@ import (
 )
 
 func (p *Parser) parseVariableStatement() *ast.VariableStatement {
-	stmt := &ast.VariableStatement{Token: p.curToken}
+	stmt := &ast.VariableStatement{Token: p.curToken, Mutable: false}
+
+	if p.peekTokenIs(tokens.MUTABLE) {
+		stmt.Mutable = true
+		p.nextToken()
+	}
 
 	if !p.expectPeek(tokens.IDENT) {
 		return nil

@@ -46,9 +46,10 @@ func (p *Program) String() string {
 }
 
 type VariableStatement struct {
-	Token tokens.Token
-	Name  *Identifier
-	Value Expression
+	Token   tokens.Token
+	Name    *Identifier
+	Value   Expression
+	Mutable bool
 }
 
 func (vs *VariableStatement) statementNode()       {}
@@ -57,6 +58,11 @@ func (ls *VariableStatement) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(ls.TokenLiteral() + " ")
+
+	if ls.Mutable {
+		out.WriteString("mut ")
+	}
+
 	out.WriteString(ls.Name.String())
 	out.WriteString(" = ")
 

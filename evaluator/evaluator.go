@@ -35,7 +35,7 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 			return val
 		}
 
-		return env.Set(node.Name.Value, val)
+		return env.Set(node.Name.Value, val, node.Mutable)
 
 	// Expression types
 	case *ast.StringLiteral:
@@ -90,7 +90,10 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		}
 
 		if function.Name != nil {
-			env.Set(function.Name.Value, function)
+			rs := env.Set(function.Name.Value, function, false)
+			if isError(rs) {
+				return rs
+			}
 		}
 
 		return function
@@ -257,9 +260,7 @@ func evalAssignmentExpression(left ast.Expression, right objects.Object, env *ob
 		return newError("left hand side of assignment is not an identifier: %s", left)
 	}
 
-	env.Set(ident.Value, right)
-
-	return right
+	return env.Set(ident.Value, right, false)
 }
 
 func evalIntegerInfixExpression(operator string, left, right objects.Object) objects.Object {
@@ -331,14 +332,11 @@ func applyFunction(fn objects.Object, args []objects.Object) objects.Object {
 	return unwrapReturnValue(evaluated)
 }
 
-func extendFunctionEnv(
-	fn *objects.Function,
-	args []objects.Object,
-) *objects.Environment {
+func extendFunctionEnv(fn *objects.Function, args []objects.Object) *objects.Environment {
 	env := objects.NewEnclosedEnvironment(fn.Env)
 
 	for paramIdx, param := range fn.Parameters {
-		env.Set(param.Value, args[paramIdx])
+		env.Set(param.Value, args[paramIdx], false)
 	}
 
 	return env
