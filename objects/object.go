@@ -30,7 +30,7 @@ type String struct {
 }
 
 func (s *String) Type() ObjectType { return STRING_OBJ }
-func (s *String) Inspect() string  { return fmt.Sprintf("%q", s.Value) }
+func (s *String) Inspect() string  { return fmt.Sprintf("%v", s.Value) }
 
 type Integer struct {
 	Value int64
