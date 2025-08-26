@@ -85,9 +85,23 @@ func (l *Lexer) NextToken() tokens.Token {
 	case '%':
 		token = newToken(tokens.MOD, l)
 	case '>':
-		token = newToken(tokens.GT, l)
+		switch l.peekChar() {
+		case '=':
+			ch := l.ch
+			l.readChar()
+			token = newTokenWithValue(tokens.GT_EQ, l, string(ch)+string(l.ch))
+		default:
+			token = newToken(tokens.GT, l)
+		}
 	case '<':
-		token = newToken(tokens.LT, l)
+		switch l.peekChar() {
+		case '=':
+			ch := l.ch
+			l.readChar()
+			token = newTokenWithValue(tokens.LT_EQ, l, string(ch)+string(l.ch))
+		default:
+			token = newToken(tokens.LT, l)
+		}
 
 	case ',':
 		token = newToken(tokens.COMMA, l)

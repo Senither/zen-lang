@@ -39,6 +39,8 @@ const (
 
 	EQ     TokenType = "=="
 	NOT_EQ TokenType = "!="
+	LT_EQ  TokenType = "<="
+	GT_EQ  TokenType = ">="
 
 	// Delimiters
 	COMMA TokenType = ","

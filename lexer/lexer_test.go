@@ -36,6 +36,7 @@ func TestNextToken(t *testing.T) {
 
 		=+-!*%/<>
 		== !=;
+		<= >=;
 
 		@;
 	`
@@ -149,6 +150,9 @@ func TestNextToken(t *testing.T) {
 		{tokens.GT, ">"},
 		{tokens.EQ, "=="},
 		{tokens.NOT_EQ, "!="},
+		{tokens.SEMICOLON, ";"},
+		{tokens.LT_EQ, "<="},
+		{tokens.GT_EQ, ">="},
 		{tokens.SEMICOLON, ";"},
 		// Illegal
 		{tokens.ILLEGAL, "@"},
