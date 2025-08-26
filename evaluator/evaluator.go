@@ -65,6 +65,13 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		}
 
 		return evalInfixExpression(node.Operator, left, right)
+	case *ast.AssignmentExpression:
+		right := Eval(node.Right, env)
+		if isError(right) {
+			return right
+		}
+
+		return evalAssignmentExpression(node.Left, right, env)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
 	case *ast.Identifier:
@@ -242,6 +249,17 @@ func evalInfixExpression(operator string, left, right objects.Object) objects.Ob
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
+}
+
+func evalAssignmentExpression(left ast.Expression, right objects.Object, env *objects.Environment) objects.Object {
+	ident, ok := left.(*ast.Identifier)
+	if !ok {
+		return newError("left hand side of assignment is not an identifier: %s", left)
+	}
+
+	env.Set(ident.Value, right)
+
+	return right
 }
 
 func evalIntegerInfixExpression(operator string, left, right objects.Object) objects.Object {

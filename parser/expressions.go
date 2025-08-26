@@ -107,7 +107,26 @@ func (p *Parser) noPrefixParseFnError(t tokens.TokenType) {
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
-	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	if !p.peekTokenIs(tokens.ASSIGN) {
+		return ident
+	}
+
+	p.nextToken()
+
+	return p.parseAssignmentExpression(ident)
+}
+
+func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
+	expression := &ast.AssignmentExpression{
+		Token: p.curToken,
+		Left:  left,
+	}
+
+	p.nextToken()
+	expression.Right = p.parseExpression(LOWEST)
+
+	return expression
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {

@@ -22,3 +22,24 @@ func TestBangOperator(t *testing.T) {
 		testBooleanObject(t, evaluated, tt.expected, tt.input)
 	}
 }
+
+func TestVarReassignmentStatements(t *testing.T) {
+	input := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`var x = 5; x = 10; x;`, 10},
+		{`var x = "hello"; x = "world"; x;`, "world"},
+	}
+
+	for _, tt := range input {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case string:
+			testStringObject(t, evaluated, expected)
+		}
+	}
+}
