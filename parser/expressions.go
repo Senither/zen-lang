@@ -144,6 +144,21 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return literal
 }
 
+func (p *Parser) parseFloatLiteral() ast.Expression {
+	literal := &ast.FloatLiteral{Token: p.curToken}
+
+	value, err := strconv.ParseFloat(p.curToken.Literal, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as float", p.curToken.Literal)
+		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
+		return nil
+	}
+
+	literal.Value = value
+
+	return literal
+}
+
 func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }

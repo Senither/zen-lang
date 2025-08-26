@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/senither/zen-lang/lexer"
@@ -193,6 +194,21 @@ func testIntegerObject(t *testing.T, obj objects.Object, expected int64) bool {
 
 	if result.Value != expected {
 		t.Errorf("object has wrong value. got %d, expected %d", result.Value, expected)
+		return false
+	}
+
+	return true
+}
+
+func testFloatObject(t *testing.T, obj objects.Object, expected float64) bool {
+	result, ok := obj.(*objects.Float)
+	if !ok {
+		t.Errorf("object is not Float. got %T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Inspect() != fmt.Sprintf("%f", expected) {
+		t.Errorf("object has wrong value. got %v, expected %v", result.Value, expected)
 		return false
 	}
 

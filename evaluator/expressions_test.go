@@ -68,6 +68,37 @@ func TestEvalIntegerExpression(t *testing.T) {
 	}
 }
 
+func TestEvalFloatExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"5.5", 5.5},
+		{"10.5", 10.5},
+		{"-5.5", -5.5},
+		{"-10.0", -10.0},
+		{"1.2 + 3.4 + 5.6 + 7.8 - 10.0", 8.0},
+		{"5.5 + 5.45 - 10", 0.95},
+		{"5.123 - 10.321", -5.198},
+		{"5.5 + 5.5 + 5.5 - 10", 6.5},
+		{"2 / 5", 0.4},
+		{"5 / 2", 2.5},
+		{"5.0 / 2.0", 2.5},
+		{"5.5 / 2.5", 2.2},
+		{"5.5 / -2.5", -2.2},
+		{"-5.5 / 2.5", -2.2},
+		{"14 / (10 - 3.75)", 2.24},
+		{"5.5 * 2.5", 13.75},
+		{"10.5 * 9.15", 96.075},
+		{"2.5 * (2.5 + 25)", 68.75},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testFloatObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestEvalBooleanExpression(t *testing.T) {
 	tests := []struct {
 		input    string

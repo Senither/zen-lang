@@ -42,6 +42,8 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		return &objects.String{Value: node.Value}
 	case *ast.IntegerLiteral:
 		return &objects.Integer{Value: node.Value}
+	case *ast.FloatLiteral:
+		return &objects.Float{Value: node.Value}
 	case *ast.BooleanLiteral:
 		return nativeBoolToBooleanObject(node.Value)
 
@@ -204,6 +206,15 @@ func isTruthy(obj objects.Object) bool {
 	}
 }
 
+func isNumber(obj objects.ObjectType) bool {
+	switch obj {
+	case objects.INTEGER_OBJ, objects.FLOAT_OBJ:
+		return true
+	default:
+		return false
+	}
+}
+
 func evalPrefixExpression(operator string, right objects.Object) objects.Object {
 	switch operator {
 	case "!":
@@ -229,17 +240,20 @@ func evalBangOperatorExpression(right objects.Object) objects.Object {
 }
 
 func evalMinusPrefixOperatorExpression(right objects.Object) objects.Object {
-	if right.Type() != objects.INTEGER_OBJ {
+	switch right := right.(type) {
+	case *objects.Integer:
+		return &objects.Integer{Value: -right.Value}
+	case *objects.Float:
+		return &objects.Float{Value: -right.Value}
+	default:
 		return newError("unknown operator: -%s", right.Type())
 	}
-
-	return &objects.Integer{Value: -right.(*objects.Integer).Value}
 }
 
 func evalInfixExpression(operator string, left, right objects.Object) objects.Object {
 	switch {
-	case left.Type() == objects.INTEGER_OBJ && right.Type() == objects.INTEGER_OBJ:
-		return evalIntegerInfixExpression(operator, left, right)
+	case isNumber(left.Type()) && isNumber(right.Type()):
+		return evalNumberInfixExpression(operator, left, right)
 	case left.Type() == objects.STRING_OBJ && right.Type() == objects.STRING_OBJ:
 		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
@@ -263,19 +277,19 @@ func evalAssignmentExpression(left ast.Expression, right objects.Object, env *ob
 	return env.Set(ident.Value, right, false)
 }
 
-func evalIntegerInfixExpression(operator string, left, right objects.Object) objects.Object {
-	leftVal := left.(*objects.Integer).Value
-	rightVal := right.(*objects.Integer).Value
+func evalNumberInfixExpression(operator string, left, right objects.Object) objects.Object {
+	leftVal := unwrapNumberValue(left)
+	rightVal := unwrapNumberValue(right)
 
 	switch operator {
 	case "+":
-		return &objects.Integer{Value: leftVal + rightVal}
+		return wrapNumberValue(leftVal+rightVal, left, right)
 	case "-":
-		return &objects.Integer{Value: leftVal - rightVal}
+		return wrapNumberValue(leftVal-rightVal, left, right)
 	case "*":
-		return &objects.Integer{Value: leftVal * rightVal}
+		return wrapNumberValue(leftVal*rightVal, left, right)
 	case "/":
-		return &objects.Integer{Value: leftVal / rightVal}
+		return wrapNumberValue(leftVal/rightVal, left, right)
 	case "<":
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
@@ -348,4 +362,27 @@ func unwrapReturnValue(obj objects.Object) objects.Object {
 	}
 
 	return obj
+}
+
+func wrapNumberValue(value float64, left, right objects.Object) objects.Object {
+	if left.Type() == objects.FLOAT_OBJ || right.Type() == objects.FLOAT_OBJ {
+		return &objects.Float{Value: value}
+	}
+
+	if float64(int64(value)) == value {
+		return &objects.Integer{Value: int64(value)}
+	}
+
+	return &objects.Float{Value: value}
+}
+
+func unwrapNumberValue(obj objects.Object) float64 {
+	switch n := obj.(type) {
+	case *objects.Integer:
+		return float64(n.Value)
+	case *objects.Float:
+		return n.Value
+	default:
+		return 0
+	}
 }

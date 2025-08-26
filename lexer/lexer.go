@@ -1,6 +1,10 @@
 package lexer
 
-import "github.com/senither/zen-lang/tokens"
+import (
+	"strings"
+
+	"github.com/senither/zen-lang/tokens"
+)
 
 type Lexer struct {
 	input         string
@@ -113,7 +117,7 @@ func (l *Lexer) NextToken() tokens.Token {
 
 			return newTokenWithValue(tokens.LookupIdent(literal), l, literal)
 		} else if isDigit(l.ch) {
-			return newTokenWithValue(tokens.INT, l, l.readNumber())
+			return l.readNumberToken()
 		} else {
 			token = newToken(tokens.ILLEGAL, l)
 		}
@@ -212,11 +216,28 @@ func (l *Lexer) readChar() {
 	l.currentColumn++
 }
 
+func (l *Lexer) readNumberToken() tokens.Token {
+	val := l.readNumber()
+	if strings.Contains(val, ".") {
+		return newTokenWithValue(tokens.FLOAT, l, val)
+	}
+
+	return newTokenWithValue(tokens.INT, l, val)
+}
+
 func (l *Lexer) readNumber() string {
 	position := l.position
 
 	for isDigit(l.ch) {
 		l.readChar()
+	}
+
+	if l.ch == '.' {
+		l.readChar()
+
+		for isDigit(l.ch) {
+			l.readChar()
+		}
 	}
 
 	return l.input[position:l.position]

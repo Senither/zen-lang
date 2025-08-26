@@ -19,6 +19,7 @@ const (
 	MUTABLE  TokenType = "MUTABLE"  // Mutable variable identifiers
 	IDENT    TokenType = "IDENT"    // add, foobar, x, y, ...
 	INT      TokenType = "INT"      // 1343456
+	FLOAT    TokenType = "FLOAT"    // 3.14
 	STRING   TokenType = "STRING"   // "string"
 
 	// String literals
