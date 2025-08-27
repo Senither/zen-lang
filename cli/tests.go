@@ -55,7 +55,7 @@ var testCommand = &cobra.Command{
 		start := time.Now()
 
 		for dir, files := range groupedTestFiles {
-			dirPath := strings.Trim(filepath.Join(absolutePath, dir), absolutePath)
+			dirPath := strings.TrimLeft(filepath.Join(absolutePath, dir), absolutePath)
 			fmt.Printf("  %s%s%s\n", testDirectory, string(os.PathSeparator), dirPath)
 
 			for _, file := range files {
