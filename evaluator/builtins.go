@@ -1,10 +1,31 @@
 package evaluator
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/senither/zen-lang/objects"
 )
 
 var builtins = map[string]*objects.Builtin{
+	"print": {
+		Fn: func(args ...objects.Object) objects.Object {
+			for _, arg := range args {
+				fmt.Fprint(os.Stdout, arg.Inspect())
+			}
+
+			return NULL
+		},
+	},
+	"println": {
+		Fn: func(args ...objects.Object) objects.Object {
+			for _, arg := range args {
+				fmt.Fprint(os.Stdout, arg.Inspect(), "\n")
+			}
+
+			return NULL
+		},
+	},
 	"len": {
 		Fn: func(args ...objects.Object) objects.Object {
 			if len(args) != 1 {

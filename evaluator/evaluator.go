@@ -1,7 +1,9 @@
 package evaluator
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/objects"
@@ -347,11 +349,10 @@ func applyFunction(fn objects.Object, args []objects.Object) objects.Object {
 	case *objects.Function:
 		extendedEnv := extendFunctionEnv(fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
-
 		return unwrapReturnValue(evaluated)
 
 	case *objects.Builtin:
-		return fn.Fn(args...)
+		return captureStdoutForBuiltin(fn, args)
 
 	default:
 		return newError("not a function: %s", fn.Type())
@@ -397,4 +398,25 @@ func unwrapNumberValue(obj objects.Object) float64 {
 	default:
 		return 0
 	}
+}
+
+func captureStdoutForBuiltin(fn *objects.Builtin, args []objects.Object) objects.Object {
+	var buf bytes.Buffer
+
+	originalStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	rs := fn.Fn(args...)
+
+	w.Close()
+	buf.ReadFrom(r)
+	os.Stdout = originalStdout
+
+	output := buf.String()
+	if output != "" && output != "\n" {
+		Stdout.Write(output)
+	}
+
+	return rs
 }

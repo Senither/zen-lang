@@ -6,7 +6,69 @@ import (
 	"github.com/senither/zen-lang/objects"
 )
 
-func TestLenBuiltinFunctions(t *testing.T) {
+func TestPrintBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`print("hello world")`, "hello world"},
+		{`print(5)`, "5"},
+		{`print(5.5)`, "5.500000"},
+		{`print(true)`, "true"},
+		{`print(false)`, "false"},
+		{`print("hello", "world")`, "helloworld"},
+	}
+
+	for _, tt := range tests {
+		Stdout.Clear()
+		Stdout.Mute(func() {
+			testEval(tt.input)
+		})
+
+		output := Stdout.ReadAll()
+		if len(output) != 1 {
+			t.Errorf("expected 1 lines of output, got %d for %q\n\tOutput: %q", len(output), tt.input, output)
+			return
+		}
+
+		if output[0] != tt.expected {
+			t.Errorf("expected output to be %q, got %q", tt.expected, output[0])
+		}
+	}
+}
+
+func TestPrintlnBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`println("hello world")`, "hello world\n"},
+		{`println(5)`, "5\n"},
+		{`println(5.5)`, "5.500000\n"},
+		{`println(true)`, "true\n"},
+		{`println(false)`, "false\n"},
+		{`println("hello", "world")`, "hello\nworld\n"},
+	}
+
+	for _, tt := range tests {
+		Stdout.Clear()
+		Stdout.Mute(func() {
+			testEval(tt.input)
+		})
+
+		output := Stdout.ReadAll()
+		if len(output) != 1 {
+			t.Errorf("expected 1 lines of output, got %d for %q\n\tOutput: %q", len(output), tt.input, output)
+			return
+		}
+
+		if output[0] != tt.expected {
+			t.Errorf("expected output to be %q, got %q", tt.expected, output[0])
+		}
+	}
+}
+
+func TestLenBuiltinFunction(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected interface{}
