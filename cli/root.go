@@ -42,7 +42,9 @@ var rootCommand = &cobra.Command{
 			return
 		}
 
-		fmt.Println(evaluated.Inspect())
+		if evaluated.Type() == objects.ERROR_OBJ {
+			fmt.Println(evaluated.Inspect())
+		}
 	},
 }
 
