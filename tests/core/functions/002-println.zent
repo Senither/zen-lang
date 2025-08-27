@@ -1,0 +1,6 @@
+--TEST--
+Trivial println "Hello World" test
+--FILE--
+println("Hello, World");
+--EXPECT--
+Hello, World

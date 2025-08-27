@@ -1,6 +1,10 @@
 package evaluator
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/senither/zen-lang/objects"
+)
 
 type StandardOut struct {
 	Messages []string
@@ -28,8 +32,9 @@ func (s *StandardOut) Clear() {
 	s.Messages = []string{}
 }
 
-func (s *StandardOut) Mute(fn func()) {
+func (s *StandardOut) Mute(fn func() objects.Object) objects.Object {
 	s.muted = true
-	fn()
+	rs := fn()
 	s.muted = false
+	return rs
 }

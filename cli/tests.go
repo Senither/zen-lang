@@ -95,6 +95,8 @@ func discoverTestFiles(directory string) []string {
 }
 
 func runTestFile(file string) {
+	evaluator.Stdout.Clear()
+
 	content, err := os.ReadFile(file)
 	if err != nil {
 		fmt.Printf("Error reading test file %s: %s\n", file, err)
@@ -146,8 +148,11 @@ func runTestFile(file string) {
 		return
 	}
 
-	env := objects.NewEnvironment()
-	evaluated := evaluator.Eval(program, env)
+	evaluated := evaluator.Stdout.Mute(func() objects.Object {
+		env := objects.NewEnvironment()
+		return evaluator.Eval(program, env)
+	})
+
 	if evaluated == nil {
 		printErrorStatusMessage(test, "Evaluator returned nil, failed to evaluate the test input")
 		return
@@ -159,6 +164,14 @@ func runTestFile(file string) {
 		return
 	}
 
+	if evaluated.Type() != objects.NULL_OBJ {
+		compareEvaluatedWithExpected(test, evaluated)
+	} else {
+		compareStandardOutputWithExpected(test)
+	}
+}
+
+func compareEvaluatedWithExpected(test TestInstance, evaluated objects.Object) {
 	if strings.Trim(evaluated.Inspect(), "\n") != test.expect {
 		printErrorStatusMessage(test, "Test expectation does not match the evaluated result")
 		fmt.Printf("     Got:   %s\n", strings.Trim(evaluated.Inspect(), "\n"))
@@ -166,7 +179,25 @@ func runTestFile(file string) {
 		return
 	}
 
-	fmt.Printf("  ✔ %s\n", strings.Trim(test.message, "\n"))
+	printSuccessStatusMessage(test)
+}
+
+func compareStandardOutputWithExpected(test TestInstance) {
+	messages := evaluator.Stdout.ReadAll()
+	if len(messages) == 0 {
+		printErrorStatusMessage(test, "No output captured from standard output")
+		return
+	}
+
+	out := strings.Trim(strings.Join(messages, "\n"), "\n")
+	if out != test.expect {
+		printErrorStatusMessage(test, "Test expectation does not match the standard output")
+		fmt.Printf("     Got:   %s\n", out)
+		fmt.Printf("     Want:  %s\n", test.expect)
+		return
+	}
+
+	printSuccessStatusMessage(test)
 }
 
 func cleanString(str string) string {
@@ -174,6 +205,10 @@ func cleanString(str string) string {
 	str = strings.Trim(str, "\n")
 
 	return str
+}
+
+func printSuccessStatusMessage(test TestInstance) {
+	fmt.Printf("  ✔ %s\n", cleanString(test.message))
 }
 
 func printErrorStatusMessage(test TestInstance, message string) {

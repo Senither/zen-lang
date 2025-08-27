@@ -21,8 +21,8 @@ func TestPrintBuiltinFunction(t *testing.T) {
 
 	for _, tt := range tests {
 		Stdout.Clear()
-		Stdout.Mute(func() {
-			testEval(tt.input)
+		Stdout.Mute(func() objects.Object {
+			return testEval(tt.input)
 		})
 
 		output := Stdout.ReadAll()
@@ -52,8 +52,8 @@ func TestPrintlnBuiltinFunction(t *testing.T) {
 
 	for _, tt := range tests {
 		Stdout.Clear()
-		Stdout.Mute(func() {
-			testEval(tt.input)
+		Stdout.Mute(func() objects.Object {
+			return testEval(tt.input)
 		})
 
 		output := Stdout.ReadAll()
