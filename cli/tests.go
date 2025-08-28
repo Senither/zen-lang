@@ -21,6 +21,7 @@ type TestInstance struct {
 }
 
 var exitStatusCode = 0
+var collectedErrors = []string{}
 
 func init() {
 	rootCommand.AddCommand(testCommand)
@@ -56,13 +57,26 @@ var testCommand = &cobra.Command{
 
 		for dir, files := range groupedTestFiles {
 			dirPath := strings.TrimLeft(filepath.Join(absolutePath, dir), absolutePath)
-			fmt.Printf("  %s%s%s\n", testDirectory, string(os.PathSeparator), dirPath)
+			fullPath := fmt.Sprintf("%s%s%s", testDirectory, string(os.PathSeparator), dirPath)
+
+			fmt.Printf("  %s\n", fullPath)
 
 			for _, file := range files {
-				runTestFile(file)
+				runTestFile(fullPath, file)
 			}
 
 			fmt.Println()
+		}
+
+		if len(collectedErrors) > 0 {
+			fmt.Println("Test suite failed with the following errors:")
+
+			for _, err := range collectedErrors {
+				fmt.Println("")
+				fmt.Printf(" - %s\n", err)
+			}
+
+			fmt.Println("")
 		}
 
 		fmt.Printf("Finished running the test suite in %s\nTime taken %s\n\n", absolutePath, time.Since(start))
@@ -94,7 +108,7 @@ func discoverTestFiles(directory string) []string {
 	return testFiles
 }
 
-func runTestFile(file string) {
+func runTestFile(fullPath, file string) {
 	evaluator.Stdout.Clear()
 
 	content, err := os.ReadFile(file)
@@ -141,10 +155,11 @@ func runTestFile(file string) {
 
 	program := p.ParseProgram()
 	if len(p.Errors()) > 0 {
-		printErrorStatusMessage(test, "Parser errors found")
+		msg := []string{"Parser errors found"}
 		for _, err := range p.Errors() {
-			fmt.Printf("    %s\n", err.String())
+			msg = append(msg, fmt.Sprintf("     %s", err.String()))
 		}
+		printErrorStatusMessage(test, fullPath, strings.Join(msg, "\n"))
 		return
 	}
 
@@ -154,46 +169,63 @@ func runTestFile(file string) {
 	})
 
 	if evaluated == nil {
-		printErrorStatusMessage(test, "Evaluator returned nil, failed to evaluate the test input")
+		printErrorStatusMessage(test, fullPath, "Evaluator returned nil, failed to evaluate the test input")
 		return
 	}
 
 	if evaluated.Type() == objects.ERROR_OBJ {
-		printErrorStatusMessage(test, "Evaluator returned an error")
-		fmt.Printf("    %s\n", evaluated.Inspect())
+		printErrorStatusMessage(
+			test,
+			fullPath,
+			fmt.Sprintf("%s    %s", "Evaluator returned an error", evaluated.Inspect()),
+		)
 		return
 	}
 
 	if evaluated.Type() != objects.NULL_OBJ {
-		compareEvaluatedWithExpected(test, evaluated)
+		compareEvaluatedWithExpected(test, fullPath, evaluated)
 	} else {
-		compareStandardOutputWithExpected(test)
+		compareStandardOutputWithExpected(test, fullPath)
 	}
 }
 
-func compareEvaluatedWithExpected(test TestInstance, evaluated objects.Object) {
+func compareEvaluatedWithExpected(test TestInstance, fullPath string, evaluated objects.Object) {
 	if strings.Trim(evaluated.Inspect(), "\n") != test.expect {
-		printErrorStatusMessage(test, "Test expectation does not match the evaluated result")
-		fmt.Printf("     Got:   %s\n", strings.Trim(evaluated.Inspect(), "\n"))
-		fmt.Printf("     Want:  %s\n", test.expect)
+		printErrorStatusMessage(
+			test,
+			fullPath,
+			fmt.Sprintf(
+				"%s\n     Got: %s\n     Want: %s",
+				"Test expectation does not match the evaluated result",
+				strings.Trim(evaluated.Inspect(), "\n"),
+				test.expect,
+			),
+		)
 		return
 	}
 
 	printSuccessStatusMessage(test)
 }
 
-func compareStandardOutputWithExpected(test TestInstance) {
+func compareStandardOutputWithExpected(test TestInstance, fullPath string) {
 	messages := evaluator.Stdout.ReadAll()
 	if len(messages) == 0 {
-		printErrorStatusMessage(test, "No output captured from standard output")
+		printErrorStatusMessage(test, fullPath, "No output captured from standard output")
 		return
 	}
 
 	out := strings.Trim(strings.Join(messages, ""), "\n")
 	if out != test.expect {
-		printErrorStatusMessage(test, "Test expectation does not match the standard output")
-		fmt.Printf("     Got:   %s\n", out)
-		fmt.Printf("     Want:  %s\n", test.expect)
+		printErrorStatusMessage(
+			test,
+			fullPath,
+			fmt.Sprintf(
+				"%s\n     Got: %s\n     Want: %s\n",
+				"Test expectation does not match the standard output",
+				out,
+				test.expect,
+			),
+		)
 		return
 	}
 
@@ -211,8 +243,11 @@ func printSuccessStatusMessage(test TestInstance) {
 	fmt.Printf("  ✔ %s\n", cleanString(test.message))
 }
 
-func printErrorStatusMessage(test TestInstance, message string) {
+func printErrorStatusMessage(test TestInstance, fullPath, message string) {
 	exitStatusCode = 1
 
-	fmt.Printf("  ✖ %s\n     %s\n", cleanString(test.message), message)
+	errorMessage := fmt.Sprintf("%s\n     %s", cleanString(test.message), message)
+	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
+
+	fmt.Printf("  ✖ %s\n", errorMessage)
 }
