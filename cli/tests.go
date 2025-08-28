@@ -20,8 +20,13 @@ type TestInstance struct {
 	expect  string
 }
 
-var exitStatusCode = 0
-var collectedErrors = []string{}
+var (
+	PASSED          = BgGreen + Gray + " PASS " + Reset
+	FAILED          = BgRed + Gray + " FAIL " + Reset
+	messages        = []string{}
+	collectedErrors = []string{}
+	exitStatusCode  = 0
+)
 
 func init() {
 	rootCommand.AddCommand(testCommand)
@@ -34,6 +39,8 @@ var testCommand = &cobra.Command{
 	ArgAliases: []string{"directory"},
 	ValidArgs:  []string{"directory"},
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println()
+
 		testDirectory := "tests"
 		if len(args) > 0 {
 			testDirectory = args[0]
@@ -54,29 +61,37 @@ var testCommand = &cobra.Command{
 		}
 
 		start := time.Now()
-
 		for dir, files := range groupedTestFiles {
+			messages = []string{}
+
 			dirPath := strings.TrimLeft(filepath.Join(absolutePath, dir), absolutePath)
 			fullPath := fmt.Sprintf("%s%s%s", testDirectory, string(os.PathSeparator), dirPath)
 
-			fmt.Printf("  %s\n", fullPath)
-
+			errorsCount := len(collectedErrors)
 			for _, file := range files {
 				runTestFile(fullPath, file)
 			}
 
-			fmt.Println()
+			if errorsCount == len(collectedErrors) {
+				fmt.Printf("  %s %s\n", PASSED, fullPath)
+			} else {
+				fmt.Printf("  %s %s\n", FAILED, fullPath)
+			}
+
+			fmt.Println(strings.Join(messages, ""))
 		}
 
 		if len(collectedErrors) > 0 {
 			fmt.Println("Test suite failed with the following errors:")
 
 			for _, err := range collectedErrors {
-				fmt.Println("")
-				fmt.Printf(" - %s\n", err)
+				parts := strings.Split(err, "\n")
+
+				fmt.Println()
+				fmt.Printf(" %s- %s%s\n%s\n", Red, parts[0], Reset, strings.Join(parts[1:], "\n"))
 			}
 
-			fmt.Println("")
+			fmt.Println()
 		}
 
 		fmt.Printf("Finished running the test suite in %s\nTime taken %s\n\n", absolutePath, time.Since(start))
@@ -113,7 +128,7 @@ func runTestFile(fullPath, file string) {
 
 	content, err := os.ReadFile(file)
 	if err != nil {
-		fmt.Printf("Error reading test file %s: %s\n", file, err)
+		messages = append(messages, fmt.Sprintf("Error reading test file %s: %s\n", file, err))
 		return
 	}
 
@@ -240,7 +255,7 @@ func cleanString(str string) string {
 }
 
 func printSuccessStatusMessage(test TestInstance) {
-	fmt.Printf("  ✔ %s\n", cleanString(test.message))
+	messages = append(messages, fmt.Sprintf("  %s✔%s %s\n", Green, Reset, cleanString(test.message)))
 }
 
 func printErrorStatusMessage(test TestInstance, fullPath, message string) {
@@ -249,5 +264,5 @@ func printErrorStatusMessage(test TestInstance, fullPath, message string) {
 	errorMessage := fmt.Sprintf("%s\n     %s", cleanString(test.message), message)
 	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
 
-	fmt.Printf("  ✖ %s\n", errorMessage)
+	messages = append(messages, fmt.Sprintf("  %s✖%s %s\n", Red, Reset, errorMessage))
 }
