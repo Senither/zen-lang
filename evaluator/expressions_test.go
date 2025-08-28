@@ -137,6 +137,100 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 3, 4 + 5]"
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*objects.Array)
+	if !ok {
+		t.Fatalf("object is not Array. got %T (%+v)", evaluated, evaluated)
+	}
+
+	if len(result.Elements) != 3 {
+		t.Errorf("array has wrong number of elements. got %d", len(result.Elements))
+	}
+
+	testIntegerObject(t, result.Elements[0], 1)
+	testIntegerObject(t, result.Elements[1], 6)
+	testIntegerObject(t, result.Elements[2], 9)
+}
+
+func TestArrayIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[1, 2, 3][1]",
+			2,
+		},
+		{
+			"[1, 2, 3][2]",
+			3,
+		},
+		{
+			"[1, 2, 3][-3]",
+			1,
+		},
+		{
+			"[1, 2, 3][-2]",
+			2,
+		},
+		{
+			"[1, 2, 3][-1]",
+			3,
+		},
+		{
+			"[1, 2, 3][1 + 1]",
+			3,
+		},
+		{
+			"var i = 0; [1, 2][i];",
+			1,
+		},
+		{
+			"var i = 0; [1, 2][i + 1];",
+			2,
+		},
+		{
+			"var myArray = [1, 2, 3]; myArray[2];",
+			3,
+		},
+		{
+			"var myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			6,
+		},
+		{
+			"var myArray = [1, 2, 3]; var i = myArray[0]; myArray[i]",
+			2,
+		},
+		{
+			"[1, 2, 3][3]",
+			"array index out of bounds: 3",
+		},
+		{
+			"[1, 2, 3][-4]",
+			"array index out of bounds: -4",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case string:
+			testErrorObject(t, evaluated, expected)
+		}
+	}
+
+}
+
 func TestIfElseExpressions(t *testing.T) {
 	tests := []struct {
 		input    string

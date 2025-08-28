@@ -229,3 +229,18 @@ func testBooleanObject(t *testing.T, obj objects.Object, expected bool, input st
 
 	return true
 }
+
+func testErrorObject(t *testing.T, obj objects.Object, expected string) bool {
+	err, ok := obj.(*objects.Error)
+	if !ok {
+		t.Errorf("object is not Error. got %T (%+v)", obj, obj)
+		return false
+	}
+
+	if err.Message != expected {
+		t.Errorf("object has wrong message. got %q, expected %q", err.Message, expected)
+		return false
+	}
+
+	return true
+}

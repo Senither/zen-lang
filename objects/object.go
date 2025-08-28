@@ -19,6 +19,8 @@ const (
 	FLOAT_OBJ   = "FLOAT"
 	BOOLEAN_OBJ = "BOOLEAN"
 
+	ARRAY_OBJ = "ARRAY"
+
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 
 	FUNCTION_OBJ = "FUNCTION"
@@ -62,6 +64,26 @@ type Boolean struct {
 
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
+
+type Array struct {
+	Elements []Object
+}
+
+func (a *Array) Type() ObjectType { return ARRAY_OBJ }
+func (a *Array) Inspect() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+	for _, e := range a.Elements {
+		elements = append(elements, e.Inspect())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
 
 type ReturnValue struct {
 	Value Object
