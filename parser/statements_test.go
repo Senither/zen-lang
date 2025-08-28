@@ -102,3 +102,80 @@ func TestReturnStatements(t *testing.T) {
 		}
 	}
 }
+
+func TestCommentStatements(t *testing.T) {
+	input := `
+		// This is a comment
+		var x = 5;
+		// Another comment
+		var y = 10;
+	`
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 2 {
+		t.Fatalf("program.Statements does not contain 2 statements. got %d", len(program.Statements))
+	}
+
+	firstStmt, ok := program.Statements[0].(*ast.VariableStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.VariableStatement. got %T", program.Statements[0])
+	}
+
+	if firstStmt.Name.Value != "x" {
+		t.Errorf("varStmt.Name.Value is not 'x'. got %q", firstStmt.Name.Value)
+	}
+
+	secondStmt, ok := program.Statements[1].(*ast.VariableStatement)
+	if !ok {
+		t.Fatalf("program.Statements[1] is not ast.VariableStatement. got %T", program.Statements[1])
+	}
+
+	if secondStmt.Name.Value != "y" {
+		t.Errorf("varStmt.Name.Value is not 'y'. got %q", secondStmt.Name.Value)
+	}
+}
+
+func TestBlockCommentStatements(t *testing.T) {
+	input := `
+		/* This is a block comment */
+		var x = 5;
+		/*
+		This is a longer block comment
+		That spans multiple lines
+		*/
+		var y = 10;
+	`
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 2 {
+		t.Fatalf("program.Statements does not contain 2 statements. got %d", len(program.Statements))
+	}
+
+	firstStmt, ok := program.Statements[0].(*ast.VariableStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.VariableStatement. got %T", program.Statements[0])
+	}
+
+	if firstStmt.Name.Value != "x" {
+		t.Errorf("varStmt.Name.Value is not 'x'. got %q", firstStmt.Name.Value)
+	}
+
+	secondStmt, ok := program.Statements[1].(*ast.VariableStatement)
+	if !ok {
+		t.Fatalf("program.Statements[1] is not ast.VariableStatement. got %T", program.Statements[1])
+	}
+
+	if secondStmt.Name.Value != "y" {
+		t.Errorf("varStmt.Name.Value is not 'y'. got %q", secondStmt.Name.Value)
+	}
+}

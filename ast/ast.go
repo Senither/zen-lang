@@ -45,6 +45,14 @@ func (p *Program) String() string {
 	return out.String()
 }
 
+type EmptyStatement struct {
+	Token tokens.Token
+}
+
+func (es *EmptyStatement) statementNode()       {}
+func (es *EmptyStatement) TokenLiteral() string { return es.Token.Literal }
+func (es *EmptyStatement) String() string       { return "" }
+
 type VariableStatement struct {
 	Token   tokens.Token
 	Name    *Identifier

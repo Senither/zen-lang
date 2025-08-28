@@ -78,9 +78,11 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 	for !p.curTokenIs(tokens.EOF) {
 		stmt := p.parseStatement()
-		if stmt != nil {
-			program.Statements = append(program.Statements, stmt)
+		if _, ok := stmt.(*ast.EmptyStatement); ok {
+			continue
 		}
+
+		program.Statements = append(program.Statements, stmt)
 
 		p.nextToken()
 	}
@@ -106,6 +108,10 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseVariableStatement()
 	case tokens.RETURN:
 		return p.parseReturnStatement()
+	case tokens.COMMENT:
+		return p.parseCommentStatement()
+	case tokens.BLOCK_COMMENT_START:
+		return p.parseBlockCommentStatement()
 	default:
 		return p.parseExpressionStatement()
 	}
