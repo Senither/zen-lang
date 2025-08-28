@@ -189,7 +189,7 @@ func compareStandardOutputWithExpected(test TestInstance) {
 		return
 	}
 
-	out := strings.Trim(strings.Join(messages, "\n"), "\n")
+	out := strings.Trim(strings.Join(messages, ""), "\n")
 	if out != test.expect {
 		printErrorStatusMessage(test, "Test expectation does not match the standard output")
 		fmt.Printf("     Got:   %s\n", out)

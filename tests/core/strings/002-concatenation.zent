@@ -1,0 +1,6 @@
+--TEST--
+Can concatenate strings
+--FILE--
+println("Hello" + " " + "World!");
+--EXPECT--
+Hello World!

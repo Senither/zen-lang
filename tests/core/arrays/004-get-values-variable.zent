@@ -1,0 +1,10 @@
+--TEST--
+Can get values from array variable
+--FILE--
+var myArray = [1, 2, 3];
+
+println(myArray[2]);
+println(myArray[0] + myArray[1] + myArray[2]);
+--EXPECT--
+3
+6

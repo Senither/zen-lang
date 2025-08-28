@@ -1,0 +1,6 @@
+--TEST--
+Can define an array
+--FILE--
+[1, 2, 3];
+--EXPECT--
+[1, 2, 3]

@@ -1,0 +1,6 @@
+--TEST--
+Can define an array to a variable
+--FILE--
+var arr = [1, 2, 3];
+--EXPECT--
+[1, 2, 3]

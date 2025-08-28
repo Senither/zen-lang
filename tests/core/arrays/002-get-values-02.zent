@@ -1,0 +1,12 @@
+--TEST--
+Can get values using negative indexing
+--FILE--
+var arr = [1, 2, 3];
+
+println(arr[-1]);
+println(arr[-2]);
+println(arr[-3]);
+--EXPECT--
+3
+2
+1
