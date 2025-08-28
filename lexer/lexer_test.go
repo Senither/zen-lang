@@ -8,7 +8,7 @@ import (
 
 func TestNextToken(t *testing.T) {
 	input := `
-		var five = 5;
+		var mut five = 5;
 		var pie = 3.14;
 
 		var add = func(x, y) {
@@ -38,6 +38,8 @@ func TestNextToken(t *testing.T) {
 		== !=;
 		<= >=;
 
+		[1, 2];
+
 		@;
 	`
 
@@ -47,6 +49,7 @@ func TestNextToken(t *testing.T) {
 	}{
 		// Variable assignment to five
 		{tokens.VARIABLE, "var"},
+		{tokens.MUTABLE, "mut"},
 		{tokens.IDENT, "five"},
 		{tokens.ASSIGN, "="},
 		{tokens.INT, "5"},
@@ -153,6 +156,13 @@ func TestNextToken(t *testing.T) {
 		{tokens.SEMICOLON, ";"},
 		{tokens.LT_EQ, "<="},
 		{tokens.GT_EQ, ">="},
+		{tokens.SEMICOLON, ";"},
+		// Array literals
+		{tokens.LBRACKET, "["},
+		{tokens.INT, "1"},
+		{tokens.COMMA, ","},
+		{tokens.INT, "2"},
+		{tokens.RBRACKET, "]"},
 		{tokens.SEMICOLON, ";"},
 		// Illegal
 		{tokens.ILLEGAL, "@"},

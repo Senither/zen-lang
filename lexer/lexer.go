@@ -114,6 +114,10 @@ func (l *Lexer) NextToken() tokens.Token {
 		token = newToken(tokens.LBRACE, l)
 	case '}':
 		token = newToken(tokens.RBRACE, l)
+	case '[':
+		token = newToken(tokens.LBRACKET, l)
+	case ']':
+		token = newToken(tokens.RBRACKET, l)
 
 	case 0:
 		token = newTokenWithValue(tokens.EOF, l, "")

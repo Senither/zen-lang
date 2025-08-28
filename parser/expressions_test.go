@@ -103,6 +103,117 @@ func TestFloatLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"hello world";`
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	literal, ok := stmt.Expression.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("statement expression is not *ast.StringLiteral. got %T", stmt.Expression)
+	}
+
+	if literal.Value != "hello world" {
+		t.Errorf("literal.Value not %q. got %q", "hello world", literal.Value)
+	}
+}
+
+func TestBooleanLiteralExpression(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedBoolean bool
+	}{
+		{"true;", true},
+		{"false;", false},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program has not enough statements. got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+		}
+
+		boolean, ok := stmt.Expression.(*ast.BooleanLiteral)
+		if !ok {
+			t.Fatalf("statement expression is not *ast.Boolean. got %T", stmt.Expression)
+		}
+
+		if boolean.Value != tt.expectedBoolean {
+			t.Errorf("boolean.Value not %t. got %t", tt.expectedBoolean, boolean.Value)
+		}
+	}
+}
+
+func TestArrayLiteralExpression(t *testing.T) {
+	input := "[1, 2 + 3, 4 * 5]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+	}
+
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ArrayLiteral. got %T", stmt.Expression)
+	}
+
+	if len(array.Elements) != 3 {
+		t.Errorf("array.Elements does not contain 3 elements. got %d", len(array.Elements))
+	}
+
+	testIntegerLiteral(t, array.Elements[0], 1)
+	testInfixExpression(t, array.Elements[1], 2, "+", 3)
+	testInfixExpression(t, array.Elements[2], 4, "*", 5)
+}
+
+func TestParsingIndexExpressions(t *testing.T) {
+	input := "myArray[1 + 2]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement, got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T", program.Statements[0])
+	}
+
+	indexExp, ok := stmt.Expression.(*ast.IndexExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IndexExpression, got %T", stmt.Expression)
+	}
+
+	if indexExp.Left.String() != "myArray" {
+		t.Errorf("left side of index expression is not 'myArray', got %q", indexExp.Left.String())
+	}
+
+	testInfixExpression(t, indexExp.Index, 1, "+", 2)
+}
+
 func TestParsingPrefixExpressions(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -253,6 +364,14 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"3 + 4 * 5 == 3 * 1 + 4 * 5",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
 		},
+		{
+			"a * [1, 2, 3, 4][b * c] * d",
+			"((a * ([1, 2, 3, 4][(b * c)])) * d)",
+		},
+		{
+			"add(a * b[1], b[0], 2 * [3, 4][1])",
+			"add((a * (b[1])), (b[0]), (2 * ([3, 4][1])))",
+		},
 	}
 
 	for _, tt := range tests {
@@ -265,61 +384,6 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		actual := program.String()
 		if actual != tt.expected {
 			t.Errorf("expected=%q, got %q", tt.expected, actual)
-		}
-	}
-}
-
-func TestStringLiteralExpression(t *testing.T) {
-	input := `"hello world";`
-
-	l := lexer.New(input)
-	p := New(l)
-
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-
-	stmt := program.Statements[0].(*ast.ExpressionStatement)
-	literal, ok := stmt.Expression.(*ast.StringLiteral)
-	if !ok {
-		t.Fatalf("statement expression is not *ast.StringLiteral. got %T", stmt.Expression)
-	}
-
-	if literal.Value != "hello world" {
-		t.Errorf("literal.Value not %q. got %q", "hello world", literal.Value)
-	}
-}
-
-func TestBooleanExpression(t *testing.T) {
-	tests := []struct {
-		input           string
-		expectedBoolean bool
-	}{
-		{"true;", true},
-		{"false;", false},
-	}
-
-	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := New(l)
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
-
-		if len(program.Statements) != 1 {
-			t.Fatalf("program has not enough statements. got %d", len(program.Statements))
-		}
-
-		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-		if !ok {
-			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
-		}
-
-		boolean, ok := stmt.Expression.(*ast.BooleanLiteral)
-		if !ok {
-			t.Fatalf("statement expression is not *ast.Boolean. got %T", stmt.Expression)
-		}
-
-		if boolean.Value != tt.expectedBoolean {
-			t.Errorf("boolean.Value not %t. got %t", tt.expectedBoolean, boolean.Value)
 		}
 	}
 }

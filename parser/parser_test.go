@@ -102,9 +102,13 @@ func testIdentifier(t *testing.T, ident ast.Expression, value string) bool {
 	return true
 }
 
-func testInfixExpression(t *testing.T, exp ast.Expression, left interface{},
-	operator string, right interface{}) bool {
-
+func testInfixExpression(
+	t *testing.T,
+	exp ast.Expression,
+	left interface{},
+	operator string,
+	right interface{},
+) bool {
 	expression, ok := exp.(*ast.InfixExpression)
 	if !ok {
 		t.Errorf("expression is not ast.InfixExpression. got %T(%s)", exp, exp)
