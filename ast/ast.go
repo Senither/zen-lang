@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/senither/zen-lang/tokens"
@@ -132,7 +133,7 @@ func (es *ExpressionStatement) String() string {
 
 type IntegerLiteral struct {
 	Token tokens.Token
-	Value int64
+	Value *big.Int
 }
 
 func (il *IntegerLiteral) expressionNode()      {}
@@ -141,7 +142,7 @@ func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
 type FloatLiteral struct {
 	Token tokens.Token
-	Value float64
+	Value *big.Float
 }
 
 func (fl *FloatLiteral) expressionNode()      {}

@@ -3,6 +3,7 @@ package evaluator
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"os"
 
 	"github.com/senither/zen-lang/ast"
@@ -267,9 +268,9 @@ func evalBangOperatorExpression(right objects.Object) objects.Object {
 func evalMinusPrefixOperatorExpression(right objects.Object) objects.Object {
 	switch right := right.(type) {
 	case *objects.Integer:
-		return &objects.Integer{Value: -right.Value}
+		return &objects.Integer{Value: right.Value.Neg(right.Value)}
 	case *objects.Float:
-		return &objects.Float{Value: -right.Value}
+		return &objects.Float{Value: right.Value.Neg(right.Value)}
 	default:
 		return newError("unknown operator: -%s", right.Type())
 	}
@@ -309,10 +310,10 @@ func evalArrayIndexExpression(left, index objects.Object) objects.Object {
 	length := int64(len(arrObj.Elements))
 
 	var idx int64
-	if idxObj.Value < 0 {
-		idx = length + idxObj.Value
+	if idxObj.Value.Cmp(big.NewInt(0)) < 0 {
+		idx = length + idxObj.Value.Int64()
 	} else {
-		idx = idxObj.Value
+		idx = idxObj.Value.Int64()
 	}
 
 	if idx < 0 || idx >= length {
@@ -337,25 +338,25 @@ func evalNumberInfixExpression(operator string, left, right objects.Object) obje
 
 	switch operator {
 	case "+":
-		return wrapNumberValue(leftVal+rightVal, left, right)
+		return wrapNumberValue(leftVal.Add(leftVal, rightVal), left, right)
 	case "-":
-		return wrapNumberValue(leftVal-rightVal, left, right)
+		return wrapNumberValue(leftVal.Sub(leftVal, rightVal), left, right)
 	case "*":
-		return wrapNumberValue(leftVal*rightVal, left, right)
+		return wrapNumberValue(leftVal.Mul(leftVal, rightVal), left, right)
 	case "/":
-		return wrapNumberValue(leftVal/rightVal, left, right)
+		return wrapNumberValue(leftVal.Quo(leftVal, rightVal), left, right)
 	case "<":
-		return nativeBoolToBooleanObject(leftVal < rightVal)
+		return nativeBoolToBooleanObject(leftVal.Cmp(rightVal) < 0)
 	case ">":
-		return nativeBoolToBooleanObject(leftVal > rightVal)
+		return nativeBoolToBooleanObject(leftVal.Cmp(rightVal) > 0)
 	case "==":
-		return nativeBoolToBooleanObject(leftVal == rightVal)
+		return nativeBoolToBooleanObject(leftVal.Cmp(rightVal) == 0)
 	case "!=":
-		return nativeBoolToBooleanObject(leftVal != rightVal)
+		return nativeBoolToBooleanObject(leftVal.Cmp(rightVal) != 0)
 	case "<=":
-		return nativeBoolToBooleanObject(leftVal <= rightVal)
+		return nativeBoolToBooleanObject(leftVal.Cmp(rightVal) <= 0)
 	case ">=":
-		return nativeBoolToBooleanObject(leftVal >= rightVal)
+		return nativeBoolToBooleanObject(leftVal.Cmp(rightVal) >= 0)
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -425,26 +426,27 @@ func unwrapReturnValue(obj objects.Object) objects.Object {
 	return obj
 }
 
-func wrapNumberValue(value float64, left, right objects.Object) objects.Object {
+func wrapNumberValue(value *big.Float, left, right objects.Object) objects.Object {
 	if left.Type() == objects.FLOAT_OBJ || right.Type() == objects.FLOAT_OBJ {
 		return &objects.Float{Value: value}
 	}
 
-	if float64(int64(value)) == value {
-		return &objects.Integer{Value: int64(value)}
+	if value.IsInt() {
+		valueInt, _ := value.Int(nil)
+		return &objects.Integer{Value: valueInt}
 	}
 
 	return &objects.Float{Value: value}
 }
 
-func unwrapNumberValue(obj objects.Object) float64 {
+func unwrapNumberValue(obj objects.Object) *big.Float {
 	switch n := obj.(type) {
 	case *objects.Integer:
-		return float64(n.Value)
+		return objects.NewFloatFromBigInt(n.Value).Value
 	case *objects.Float:
 		return n.Value
 	default:
-		return 0
+		return objects.NewFloatFromInt64(int64(0)).Value
 	}
 }
 

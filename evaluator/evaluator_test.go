@@ -1,7 +1,7 @@
 package evaluator
 
 import (
-	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/senither/zen-lang/lexer"
@@ -134,19 +134,19 @@ func TestNamedFunctionObject(t *testing.T) {
 func TestFunctionApplication(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected int64
+		expected *big.Int
 	}{
-		{"var identity = func(x) { x; }; identity(5);", 5},
-		{"func identity(x) { x; }; identity(5);", 5},
-		{"var identity = func(x) { return x; }; identity(5);", 5},
-		{"func identity(x) { return x; }; identity(5);", 5},
-		{"var double = func(x) { x * 2; }; double(5);", 10},
-		{"func double(x) { x * 2; }; double(5);", 10},
-		{"var add = func(x, y) { x + y; }; add(5, 5);", 10},
-		{"func add(x, y) { x + y; }; add(5, 5);", 10},
-		{"var add = func(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-		{"func add(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-		{"func(x) { x; }(5)", 5},
+		{"var identity = func(x) { x; }; identity(5);", big.NewInt(5)},
+		{"func identity(x) { x; }; identity(5);", big.NewInt(5)},
+		{"var identity = func(x) { return x; }; identity(5);", big.NewInt(5)},
+		{"func identity(x) { return x; }; identity(5);", big.NewInt(5)},
+		{"var double = func(x) { x * 2; }; double(5);", big.NewInt(10)},
+		{"func double(x) { x * 2; }; double(5);", big.NewInt(10)},
+		{"var add = func(x, y) { x + y; }; add(5, 5);", big.NewInt(10)},
+		{"func add(x, y) { x + y; }; add(5, 5);", big.NewInt(10)},
+		{"var add = func(x, y) { x + y; }; add(5 + 5, add(5, 5));", big.NewInt(20)},
+		{"func add(x, y) { x + y; }; add(5 + 5, add(5, 5));", big.NewInt(20)},
+		{"func(x) { x; }(5)", big.NewInt(5)},
 	}
 
 	for _, tt := range tests {
@@ -185,14 +185,14 @@ func testStringObject(t *testing.T, obj objects.Object, expected string) bool {
 	return true
 }
 
-func testIntegerObject(t *testing.T, obj objects.Object, expected int64) bool {
+func testIntegerObject(t *testing.T, obj objects.Object, expected *big.Int) bool {
 	result, ok := obj.(*objects.Integer)
 	if !ok {
 		t.Errorf("object is not Integer. got %T (%+v)", obj, obj)
 		return false
 	}
 
-	if result.Value != expected {
+	if result.Value.Cmp(expected) != 0 {
 		t.Errorf("object has wrong value. got %d, expected %d", result.Value, expected)
 		return false
 	}
@@ -200,15 +200,15 @@ func testIntegerObject(t *testing.T, obj objects.Object, expected int64) bool {
 	return true
 }
 
-func testFloatObject(t *testing.T, obj objects.Object, expected float64) bool {
+func testFloatObject(t *testing.T, obj objects.Object, expected *objects.Float) bool {
 	result, ok := obj.(*objects.Float)
 	if !ok {
 		t.Errorf("object is not Float. got %T (%+v)", obj, obj)
 		return false
 	}
 
-	if result.Inspect() != fmt.Sprintf("%f", expected) {
-		t.Errorf("object has wrong value. got %v, expected %v", result.Value, expected)
+	if result.Inspect() != expected.Inspect() {
+		t.Errorf("object has wrong value. got %v expected %v", result.Inspect(), expected.Inspect())
 		return false
 	}
 

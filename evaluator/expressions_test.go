@@ -1,6 +1,8 @@
 package evaluator
 
 import (
+	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/senither/zen-lang/objects"
@@ -64,7 +66,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(tt.expected)))
 	}
 }
 
@@ -95,7 +97,33 @@ func TestEvalFloatExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
-		testFloatObject(t, evaluated, tt.expected)
+		testFloatObject(t, evaluated, objects.NewFloat(tt.expected))
+	}
+}
+
+func TestEvalFloatAtHighPrecision(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"12.3456789", 12.3456789},
+		{"12.3456789 + 0.0000001", 12.3456790},
+		{"12.3456789 - 0.0000001", 12.3456788},
+		{"12.3456789 * 2", 24.6913578},
+		{"12.3456789 / 2", 6.17283945},
+		{"0.123456789123456789123456789", 0.123456789123456789123456789},
+		{"0.123456789123456789123456789 + 0.000000000000000000000000001", 0.123456789123456789123456790},
+		{"0.123456789123456789123456789 + 0.000001000002000003000004000", 0.123457789125456789123456789},
+		{"0.123456789123456789123456789 - 0.000000000000000000000000001", 0.123456789123456789123456788},
+		{"0.123456789123456789123456789 - 0.000001000002000003000004000", 0.123455789121456789123456789},
+		{"0.123456789123456789123456789 * 1.234567891234567891234567890", 0.152415787800000000000000000},
+		{"0.123456789123456789123456789 / 2", 0.061728394561728394561728394},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		fmt.Printf("Input: %q, Output: %q\n", tt.input, evaluated)
+		testFloatObject(t, evaluated, objects.NewFloat(tt.expected))
 	}
 }
 
@@ -150,9 +178,9 @@ func TestArrayLiterals(t *testing.T) {
 		t.Errorf("array has wrong number of elements. got %d", len(result.Elements))
 	}
 
-	testIntegerObject(t, result.Elements[0], 1)
-	testIntegerObject(t, result.Elements[1], 6)
-	testIntegerObject(t, result.Elements[2], 9)
+	testIntegerObject(t, result.Elements[0], new(big.Int).SetInt64(1))
+	testIntegerObject(t, result.Elements[1], new(big.Int).SetInt64(6))
+	testIntegerObject(t, result.Elements[2], new(big.Int).SetInt64(9))
 }
 
 func TestArrayIndexExpressions(t *testing.T) {
@@ -223,7 +251,7 @@ func TestArrayIndexExpressions(t *testing.T) {
 
 		switch expected := tt.expected.(type) {
 		case int:
-			testIntegerObject(t, evaluated, int64(expected))
+			testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(expected)))
 		case string:
 			testErrorObject(t, evaluated, expected)
 		}
@@ -250,7 +278,7 @@ func TestIfElseExpressions(t *testing.T) {
 
 		integer, ok := tt.expected.(int)
 		if ok {
-			testIntegerObject(t, evaluated, int64(integer))
+			testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(integer)))
 		} else {
 			testNullObject(t, evaluated)
 		}
@@ -275,7 +303,7 @@ func TestIfElseIfElseExpressions(t *testing.T) {
 
 		integer, ok := tt.expected.(int)
 		if ok {
-			testIntegerObject(t, evaluated, int64(integer))
+			testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(integer)))
 		} else {
 			testNullObject(t, evaluated)
 		}

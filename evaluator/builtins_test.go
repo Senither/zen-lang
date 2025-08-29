@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/senither/zen-lang/objects"
@@ -13,7 +14,7 @@ func TestPrintBuiltinFunction(t *testing.T) {
 	}{
 		{`print("hello world")`, "hello world"},
 		{`print(5)`, "5"},
-		{`print(5.5)`, "5.500000"},
+		{`print(5.5)`, "5.5"},
 		{`print(true)`, "true"},
 		{`print(false)`, "false"},
 		{`print("hello", "world")`, "helloworld"},
@@ -44,7 +45,7 @@ func TestPrintlnBuiltinFunction(t *testing.T) {
 	}{
 		{`println("hello world")`, "hello world\n"},
 		{`println(5)`, "5\n"},
-		{`println(5.5)`, "5.500000\n"},
+		{`println(5.5)`, "5.5\n"},
 		{`println(true)`, "true\n"},
 		{`println(false)`, "false\n"},
 		{`println("hello", "world")`, "hello\nworld\n"},
@@ -84,7 +85,7 @@ func TestLenBuiltinFunction(t *testing.T) {
 
 		switch expected := tt.expected.(type) {
 		case int:
-			testIntegerObject(t, evaluated, int64(expected))
+			testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(expected)))
 		case string:
 			errObj, ok := evaluated.(*objects.Error)
 			if !ok {

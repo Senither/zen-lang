@@ -2,9 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"strconv"
+	"math/big"
 
 	"github.com/senither/zen-lang/ast"
+	"github.com/senither/zen-lang/objects"
 	"github.com/senither/zen-lang/tokens"
 )
 
@@ -117,14 +118,14 @@ func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
 func (p *Parser) parseIntegerLiteral() ast.Expression {
 	literal := &ast.IntegerLiteral{Token: p.curToken}
 
-	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
-	if err != nil {
+	literal.Value = new(big.Int)
+	_, ok := literal.Value.SetString(p.curToken.Literal, 10)
+
+	if !ok {
 		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
 		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
 		return nil
 	}
-
-	literal.Value = value
 
 	return literal
 }
@@ -132,14 +133,12 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 func (p *Parser) parseFloatLiteral() ast.Expression {
 	literal := &ast.FloatLiteral{Token: p.curToken}
 
-	value, err := strconv.ParseFloat(p.curToken.Literal, 64)
-	if err != nil {
+	literal.Value = objects.NewFloatFromString(p.curToken.Literal).Value
+	if literal.Value == nil {
 		msg := fmt.Sprintf("could not parse %q as float", p.curToken.Literal)
 		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
 		return nil
 	}
-
-	literal.Value = value
 
 	return literal
 }

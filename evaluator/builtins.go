@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 
 	"github.com/senither/zen-lang/objects"
@@ -34,9 +35,9 @@ var builtins = map[string]*objects.Builtin{
 
 			switch arg := args[0].(type) {
 			case *objects.String:
-				return &objects.Integer{Value: int64(len(arg.Value))}
+				return &objects.Integer{Value: new(big.Int).SetInt64(int64(len(arg.Value)))}
 			case *objects.Array:
-				return &objects.Integer{Value: int64(len(arg.Elements))}
+				return &objects.Integer{Value: new(big.Int).SetInt64(int64(len(arg.Elements)))}
 			default:
 				return newError("argument to `len` not supported, got %s", args[0].Type())
 			}

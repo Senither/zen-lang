@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/senither/zen-lang/ast"
@@ -62,7 +63,7 @@ func TestIntegerLiteralExpression(t *testing.T) {
 		t.Fatalf("stmt.Expression is not ast.IntegerLiteral, got %T", stmt.Expression)
 	}
 
-	if literal.Value != 5 {
+	if literal.Value.Cmp(new(big.Int).SetInt64(5)) != 0 {
 		t.Errorf("literal.Value is not 5, got %d", literal.Value)
 	}
 
@@ -94,7 +95,7 @@ func TestFloatLiteralExpression(t *testing.T) {
 		t.Fatalf("stmt.Expression is not ast.FloatLiteral, got %T", stmt.Expression)
 	}
 
-	if literal.Value != 3.14 {
+	if literal.Value.String() != "3.14" {
 		t.Errorf("literal.Value is not 3.14, got %f", literal.Value)
 	}
 
@@ -180,9 +181,9 @@ func TestArrayLiteralExpression(t *testing.T) {
 		t.Errorf("array.Elements does not contain 3 elements. got %d", len(array.Elements))
 	}
 
-	testIntegerLiteral(t, array.Elements[0], 1)
-	testInfixExpression(t, array.Elements[1], 2, "+", 3)
-	testInfixExpression(t, array.Elements[2], 4, "*", 5)
+	testIntegerLiteral(t, array.Elements[0], new(big.Int).SetInt64(1))
+	testInfixExpression(t, array.Elements[1], new(big.Int).SetInt64(2), "+", new(big.Int).SetInt64(3))
+	testInfixExpression(t, array.Elements[2], new(big.Int).SetInt64(4), "*", new(big.Int).SetInt64(5))
 }
 
 func TestParsingIndexExpressions(t *testing.T) {

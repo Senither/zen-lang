@@ -3,6 +3,7 @@ package objects
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/senither/zen-lang/ast"
@@ -45,18 +46,20 @@ func (s *String) Type() ObjectType { return STRING_OBJ }
 func (s *String) Inspect() string  { return fmt.Sprintf("%v", s.Value) }
 
 type Integer struct {
-	Value int64
+	Value *big.Int
 }
 
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
-func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
+func (i *Integer) Inspect() string  { return i.Value.String() }
+
+const FLOATING_PRECISION = 128
 
 type Float struct {
-	Value float64
+	Value *big.Float
 }
 
 func (f *Float) Type() ObjectType { return FLOAT_OBJ }
-func (f *Float) Inspect() string  { return fmt.Sprintf("%f", f.Value) }
+func (f *Float) Inspect() string  { return f.Value.String() }
 
 type Boolean struct {
 	Value bool

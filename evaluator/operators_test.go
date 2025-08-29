@@ -1,6 +1,9 @@
 package evaluator
 
-import "testing"
+import (
+	"math/big"
+	"testing"
+)
 
 func TestBangOperator(t *testing.T) {
 	tests := []struct {
@@ -37,7 +40,7 @@ func TestVarReassignmentStatements(t *testing.T) {
 
 		switch expected := tt.expected.(type) {
 		case int:
-			testIntegerObject(t, evaluated, int64(expected))
+			testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(expected)))
 		case string:
 			testStringObject(t, evaluated, expected)
 		}

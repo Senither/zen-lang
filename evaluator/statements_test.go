@@ -1,6 +1,11 @@
 package evaluator
 
-import "testing"
+import (
+	"math/big"
+	"testing"
+
+	"github.com/senither/zen-lang/objects"
+)
 
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
@@ -15,7 +20,7 @@ func TestReturnStatements(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(tt.expected)))
 	}
 }
 
@@ -29,7 +34,7 @@ func TestNestedReturnStatements(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		testIntegerObject(t, evaluated, new(big.Int).SetInt64(int64(tt.expected)))
 	}
 }
 
@@ -45,6 +50,6 @@ func TestVarStatements(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		testIntegerObject(t, evaluated, objects.NewInteger(int64(tt.expected)).Value)
 	}
 }

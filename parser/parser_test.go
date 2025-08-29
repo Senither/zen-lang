@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/senither/zen-lang/ast"
@@ -30,8 +31,10 @@ func testLiteralExpression(
 	case bool:
 		return testBooleanLiteral(t, exp, v)
 	case int:
-		return testIntegerLiteral(t, exp, int64(v))
+		return testIntegerLiteral(t, exp, new(big.Int).SetInt64(int64(v)))
 	case int64:
+		return testIntegerLiteral(t, exp, new(big.Int).SetInt64(v))
+	case *big.Int:
 		return testIntegerLiteral(t, exp, v)
 	case string:
 		return testIdentifier(t, exp, v)
@@ -62,14 +65,14 @@ func testBooleanLiteral(t *testing.T, expression ast.Expression, value bool) boo
 	return true
 }
 
-func testIntegerLiteral(t *testing.T, literal ast.Expression, value int64) bool {
+func testIntegerLiteral(t *testing.T, literal ast.Expression, value *big.Int) bool {
 	integer, ok := literal.(*ast.IntegerLiteral)
 	if !ok {
 		t.Errorf("integer is not ast.IntegerLiteral. got %T", literal)
 		return false
 	}
 
-	if integer.Value != value {
+	if integer.Value.Cmp(value) != 0 {
 		t.Errorf("integer.Value is not %d. got %d", value, integer.Value)
 		return false
 	}
