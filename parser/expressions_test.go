@@ -185,6 +185,130 @@ func TestArrayLiteralExpression(t *testing.T) {
 	testInfixExpression(t, array.Elements[2], 4, "*", 5)
 }
 
+func TestParsingHashLiteralWithNoKeys(t *testing.T) {
+	input := "{}"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement, got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T", program.Statements[0])
+	}
+
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.HashLiteral, got %T", stmt.Expression)
+	}
+
+	if len(hash.Pairs) != 0 {
+		t.Errorf("hash.Pairs is not empty, got %d", len(hash.Pairs))
+	}
+}
+
+func TestParsingHashLiteralWithStringKeys(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+	expected := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement, got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T", program.Statements[0])
+	}
+
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.HashLiteral, got %T", stmt.Expression)
+	}
+
+	if len(hash.Pairs) != len(expected) {
+		t.Errorf("hash.Pairs is not %d, got %d", len(expected), len(hash.Pairs))
+	}
+
+	for key, value := range hash.Pairs {
+		literal, ok := key.(*ast.StringLiteral)
+		if !ok {
+			t.Errorf("key is not ast.StringLiteral, got %T", key)
+			continue
+		}
+
+		expectedValue := expected[literal.Value]
+		testIntegerLiteral(t, value, expectedValue)
+	}
+}
+
+func TestParsingHashLiteralWithExpressions(t *testing.T) {
+	input := `{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}`
+	tests := map[string]func(ast.Expression){
+		"one": func(e ast.Expression) {
+			testInfixExpression(t, e, 0, "+", 1)
+		},
+		"two": func(e ast.Expression) {
+			testInfixExpression(t, e, 10, "-", 8)
+		},
+		"three": func(e ast.Expression) {
+			testInfixExpression(t, e, 15, "/", 5)
+		},
+	}
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement, got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T", program.Statements[0])
+	}
+
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.HashLiteral, got %T", stmt.Expression)
+	}
+
+	if len(hash.Pairs) != len(tests) {
+		t.Errorf("hash.Pairs is not %d, got %d", len(tests), len(hash.Pairs))
+	}
+
+	for key, value := range hash.Pairs {
+		literal, ok := key.(*ast.StringLiteral)
+		if !ok {
+			t.Errorf("key is not ast.StringLiteral, got %T", key)
+			continue
+		}
+
+		testFunc, ok := tests[literal.Value]
+		if !ok {
+			t.Errorf("no test function for key %q found", literal.Value)
+			continue
+		}
+
+		testFunc(value)
+	}
+}
+
 func TestParsingIndexExpressions(t *testing.T) {
 	input := "myArray[1 + 2]"
 

@@ -44,6 +44,7 @@ const (
 
 	// Delimiters
 	COMMA TokenType = ","
+	COLON TokenType = ":"
 
 	LPAREN   TokenType = "("
 	RPAREN   TokenType = ")"

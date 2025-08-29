@@ -159,6 +159,35 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	return array
 }
 
+func (p *Parser) parseHashLiteral() ast.Expression {
+	hash := &ast.HashLiteral{Token: p.curToken}
+	hash.Pairs = make(map[ast.Expression]ast.Expression)
+
+	for !p.peekTokenIs(tokens.RBRACE) {
+		p.nextToken()
+
+		key := p.parseExpression(LOWEST)
+		if !p.expectPeek(tokens.COLON) {
+			return nil
+		}
+
+		p.nextToken()
+		value := p.parseExpression(LOWEST)
+
+		hash.Pairs[key] = value
+
+		if !p.peekTokenIs(tokens.RBRACE) && !p.expectPeek(tokens.COMMA) {
+			return nil
+		}
+	}
+
+	if !p.expectPeek(tokens.RBRACE) {
+		return nil
+	}
+
+	return hash
+}
+
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	p.nextToken()
 

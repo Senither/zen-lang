@@ -39,6 +39,7 @@ func TestNextToken(t *testing.T) {
 		<= >=;
 
 		[1, 2];
+		{"foo": "bar"};
 
 		@;
 	`
@@ -163,6 +164,13 @@ func TestNextToken(t *testing.T) {
 		{tokens.COMMA, ","},
 		{tokens.INT, "2"},
 		{tokens.RBRACKET, "]"},
+		{tokens.SEMICOLON, ";"},
+		// HashMap literals
+		{tokens.LBRACE, "{"},
+		{tokens.STRING, "foo"},
+		{tokens.COLON, ":"},
+		{tokens.STRING, "bar"},
+		{tokens.RBRACE, "}"},
 		{tokens.SEMICOLON, ";"},
 		// Illegal
 		{tokens.ILLEGAL, "@"},
