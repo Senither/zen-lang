@@ -19,9 +19,10 @@ var rootCommand = &cobra.Command{
 	ArgAliases: []string{"file"},
 	ValidArgs:  []string{"file"},
 	Run: func(cmd *cobra.Command, args []string) {
-		content, err := os.ReadFile(args[0])
+		content, err := loadFileContents(args[0])
 		if err != nil {
-			fmt.Printf("Failed to %s\n", err)
+			fmt.Println(err)
+			return
 		}
 
 		lexer := lexer.New(string(content))
@@ -46,6 +47,14 @@ var rootCommand = &cobra.Command{
 			fmt.Println(evaluated.Inspect())
 		}
 	},
+}
+
+func loadFileContents(file string) (string, error) {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file %q: %w", file, err)
+	}
+	return string(content), nil
 }
 
 func Execute() {

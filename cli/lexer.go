@@ -19,6 +19,17 @@ var lexerCommand = &cobra.Command{
 	Short: "Run code and get the lexer output",
 	Long:  "Runs the code provided to the lexer and outputs the tokens it generates.",
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) > 0 {
+			content, err := loadFileContents(args[0])
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			runAndEvalLexer(content)
+			return
+		}
+
 		scanner := bufio.NewScanner(os.Stdin)
 
 		fmt.Println("Welcome to the Zen lexer, type your code below to see the lexer output.")
@@ -37,11 +48,15 @@ var lexerCommand = &cobra.Command{
 				return
 			}
 
-			lexer := lexer.New(line)
-
-			for tok := lexer.NextToken(); tok.Type != tokens.EOF; tok = lexer.NextToken() {
-				fmt.Printf("%+v\n", tok)
-			}
+			runAndEvalLexer(line)
 		}
 	},
+}
+
+func runAndEvalLexer(input string) {
+	lexer := lexer.New(input)
+
+	for tok := lexer.NextToken(); tok.Type != tokens.EOF; tok = lexer.NextToken() {
+		fmt.Printf("%+v\n", tok)
+	}
 }
