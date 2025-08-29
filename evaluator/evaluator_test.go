@@ -230,6 +230,35 @@ func testBooleanObject(t *testing.T, obj objects.Object, expected bool, input st
 	return true
 }
 
+func testArrayObject(t *testing.T, obj objects.Object, expected []any, input string) bool {
+	array, ok := obj.(*objects.Array)
+	if !ok {
+		t.Errorf("object is not Array. got %T (%+v)", obj, obj)
+		return false
+	}
+
+	if len(array.Elements) != len(expected) {
+		t.Errorf("array has wrong number of elements. got %d, expected %d", len(array.Elements), len(expected))
+		return false
+	}
+
+	for i, elem := range expected {
+		switch elem := elem.(type) {
+		case int:
+			testIntegerObject(t, array.Elements[i], int64(elem))
+		case int64:
+			testIntegerObject(t, array.Elements[i], elem)
+		case bool:
+			testBooleanObject(t, array.Elements[i], elem, input)
+		default:
+			t.Errorf("element type is not support for array testing objects. got %T (%+v)", elem, elem)
+			return false
+		}
+	}
+
+	return true
+}
+
 func testErrorObject(t *testing.T, obj objects.Object, expected string) bool {
 	err, ok := obj.(*objects.Error)
 	if !ok {

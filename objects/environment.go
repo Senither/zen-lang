@@ -57,3 +57,12 @@ func (e *Environment) Set(name string, val Object, mutable bool) Object {
 
 	return val
 }
+
+func (e *Environment) SetImmutableForcefully(name string, val Object) Object {
+	e.store[name] = EnvironmentStateItem{
+		value:   val,
+		mutable: false,
+	}
+
+	return val
+}

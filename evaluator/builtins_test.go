@@ -98,3 +98,95 @@ func TestLenBuiltinFunction(t *testing.T) {
 		}
 	}
 }
+
+func TestArrayPushBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{"array_push([], 1)", []any{1}},
+		{"array_push([1], 2)", []any{1, 2}},
+		{"array_push([1, 2], 3)", []any{1, 2, 3}},
+		{"var x = []; array_push(x, 1);", []any{1}},
+		{"var x = [1]; array_push(x, 2);", []any{1, 2}},
+		{"var x = [1, 2]; array_push(x, 3);", []any{1, 2, 3}},
+		{"var x = []; array_push(x, 1); x;", []any{1}},
+		{"var x = [1]; array_push(x, 2); x;", []any{1, 2}},
+		{"var x = [1, 2]; array_push(x, 3); x;", []any{1, 2, 3}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testArrayObject(t, evaluated, tt.expected, tt.input)
+	}
+}
+
+func TestArrayShiftBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{"array_shift([])", nil},
+		{"array_shift([1])", 1},
+		{"array_shift([1, 2])", 1},
+		{"var x = []; array_shift(x);", nil},
+		{"var x = [1]; array_shift(x);", 1},
+		{"var x = [1, 2]; array_shift(x);", 1},
+		{"var x = []; array_shift(x); x;", []int64{}},
+		{"var x = [1]; array_shift(x); x;", []int64{}},
+		{"var x = [1, 2]; array_shift(x); x;", []int64{2}},
+		{"var x = [1, 2, 3]; array_shift(x); x;", []int64{2, 3}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case nil:
+			testNullObject(t, evaluated)
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case []int64:
+			converted := make([]any, len(expected))
+			for i, v := range expected {
+				converted[i] = v
+			}
+			testArrayObject(t, evaluated, converted, tt.input)
+		}
+	}
+}
+
+func TestArrayPopBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{"array_pop([])", nil},
+		{"array_pop([1])", 1},
+		{"array_pop([1, 2])", 2},
+		{"var x = []; array_pop(x);", nil},
+		{"var x = [1]; array_pop(x);", 1},
+		{"var x = [1, 2]; array_pop(x);", 2},
+		{"var x = []; array_pop(x); x;", []int64{}},
+		{"var x = [1]; array_pop(x); x;", []int64{}},
+		{"var x = [1, 2]; array_pop(x); x;", []int64{1}},
+		{"var x = [1, 2, 3]; array_pop(x); x;", []int64{1, 2}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case nil:
+			testNullObject(t, evaluated)
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case []int64:
+			converted := make([]any, len(expected))
+			for i, v := range expected {
+				converted[i] = v
+			}
+			testArrayObject(t, evaluated, converted, tt.input)
+		}
+	}
+}

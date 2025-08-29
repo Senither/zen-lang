@@ -150,6 +150,8 @@ func isError(obj objects.Object) bool {
 }
 
 func evalProgram(statements []ast.Statement, env *objects.Environment) objects.Object {
+	registerBuiltins()
+
 	var result objects.Object
 
 	for _, stmt := range statements {
