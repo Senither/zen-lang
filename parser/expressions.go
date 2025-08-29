@@ -332,7 +332,13 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 		return nil
 	}
 
-	return exp
+	if !p.peekTokenIs(tokens.ASSIGN) {
+		return exp
+	}
+
+	p.nextToken()
+
+	return p.parseAssignmentExpression(exp)
 }
 
 func (p *Parser) parseExpressionList(end tokens.TokenType) []ast.Expression {

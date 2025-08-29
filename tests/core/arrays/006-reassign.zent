@@ -1,0 +1,13 @@
+--TEST--
+Can reassign values in an array
+--FILE--
+var arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+arr[1] = 'Hello World';
+arr[3] = 3.14;
+arr[5] = true;
+arr[7] = arr[0] + arr[2] + arr[4] + arr[6] + arr[8];
+
+println(arr);
+--EXPECT--
+[1, Hello World, 3, 3.140000, 5, true, 7, 25, 9]

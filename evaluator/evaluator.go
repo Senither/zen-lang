@@ -323,12 +323,41 @@ func evalArrayIndexExpression(left, index objects.Object) objects.Object {
 }
 
 func evalAssignmentExpression(left ast.Expression, right objects.Object, env *objects.Environment) objects.Object {
-	ident, ok := left.(*ast.Identifier)
-	if !ok {
-		return newError("left hand side of assignment is not an identifier: %s", left)
-	}
+	switch left := left.(type) {
+	case *ast.Identifier:
+		return env.Set(left.Value, right, false)
+	case *ast.IndexExpression:
+		leftObj := Eval(left.Left, env)
+		if isError(leftObj) {
+			return leftObj
+		}
 
-	return env.Set(ident.Value, right, false)
+		arr, ok := leftObj.(*objects.Array)
+		if !ok {
+			return newError("expected left hand side of index expression to be an array, got %T", leftObj)
+		}
+
+		idx := Eval(left.Index, env)
+		if isError(idx) {
+			return idx
+		}
+
+		switch idx := idx.(type) {
+		case *objects.Integer:
+			if idx.Value < 0 || idx.Value >= int64(len(arr.Elements)) {
+				return newError("array index out of bounds: %d", idx.Value)
+			}
+
+			arr.Elements[idx.Value] = right
+		default:
+			return newError("index operator not supported: %s", idx.Type())
+		}
+
+		return right
+
+	default:
+		return newError("left hand side of assignment is not a valid expression: %s (%T)", left, left)
+	}
 }
 
 func evalNumberInfixExpression(operator string, left, right objects.Object) objects.Object {

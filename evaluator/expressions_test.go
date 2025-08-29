@@ -228,7 +228,81 @@ func TestArrayIndexExpressions(t *testing.T) {
 			testErrorObject(t, evaluated, expected)
 		}
 	}
+}
 
+func TestReassigningArrayIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{
+			"var x = [1, 2, 3]; x[0] = 99; x;",
+			[]any{99, 2, 3},
+		},
+		{
+			"var x = [1, 2, 3]; x[1] = 99; x;",
+			[]any{1, 99, 3},
+		},
+		{
+			"var x = [1, 2, 3]; x[2] = 99; x;",
+			[]any{1, 2, 99},
+		},
+		{
+			"var x = [1, 2, 3]; x[0] = 'This is a test'; x;",
+			[]any{"This is a test", 2, 3},
+		},
+		{
+			"var x = [1, 2, 3]; x[1] = 3.14; x;",
+			[]any{1, float64(3.14), 3},
+		},
+		{
+			"var x = [1, 2, 3]; x[2] = true; x;",
+			[]any{1, 2, true},
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		arr, ok := evaluated.(*objects.Array)
+		if !ok {
+			t.Fatalf("object is not Array. got %T (%+v)", evaluated, evaluated)
+		}
+
+		for i, expected := range tt.expected {
+			switch expected := expected.(type) {
+			case int:
+				testIntegerObject(t, arr.Elements[i], int64(expected))
+			case float64:
+				testFloatObject(t, arr.Elements[i], expected)
+			case bool:
+				testBooleanObject(t, arr.Elements[i], expected, tt.input)
+			case string:
+				testStringObject(t, arr.Elements[i], expected)
+			}
+		}
+	}
+}
+
+func TestReassigningArrayIndexExpressionsErrors(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"var x = [1, 2, 3]; x[3] = 99;",
+			"array index out of bounds: 3",
+		},
+		{
+			"var x = [1, 2, 3]; x[-4] = 99;",
+			"array index out of bounds: -4",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testErrorObject(t, evaluated, tt.expected)
+	}
 }
 
 func TestIfElseExpressions(t *testing.T) {
