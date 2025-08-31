@@ -3,6 +3,7 @@ package objects
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"strings"
 
 	"github.com/senither/zen-lang/ast"
@@ -20,6 +21,7 @@ const (
 	BOOLEAN_OBJ = "BOOLEAN"
 
 	ARRAY_OBJ = "ARRAY"
+	HASH_OBJ  = "HASH"
 
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 
@@ -30,6 +32,15 @@ const (
 type Object interface {
 	Type() ObjectType
 	Inspect() string
+}
+
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
+
+type Hashable interface {
+	HashKey() HashKey
 }
 
 type Null struct{}
@@ -43,6 +54,12 @@ type String struct {
 
 func (s *String) Type() ObjectType { return STRING_OBJ }
 func (s *String) Inspect() string  { return fmt.Sprintf("%v", s.Value) }
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
+}
 
 type Integer struct {
 	Value int64
@@ -50,6 +67,7 @@ type Integer struct {
 
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
+func (i *Integer) HashKey() HashKey { return HashKey{Type: i.Type(), Value: uint64(i.Value)} }
 
 type Float struct {
 	Value float64
@@ -57,6 +75,12 @@ type Float struct {
 
 func (f *Float) Type() ObjectType { return FLOAT_OBJ }
 func (f *Float) Inspect() string  { return fmt.Sprintf("%f", f.Value) }
+func (f *Float) HashKey() HashKey {
+	h := fnv.New64a()
+	fmt.Fprintf(h, "%f", f.Value)
+
+	return HashKey{Type: f.Type(), Value: h.Sum64()}
+}
 
 type Boolean struct {
 	Value bool
@@ -64,6 +88,14 @@ type Boolean struct {
 
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
+func (b *Boolean) HashKey() HashKey {
+	var value uint64 = 0
+	if b.Value {
+		value = 1
+	}
+
+	return HashKey{Type: b.Type(), Value: value}
+}
 
 type Array struct {
 	Elements []Object
