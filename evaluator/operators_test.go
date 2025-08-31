@@ -71,6 +71,60 @@ func TestVarReassignmentFailure(t *testing.T) {
 	}
 }
 
+func TestVarIncrementingStatements(t *testing.T) {
+	input := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`var x = 5; x++; x;`, 6},
+		{`var mut x = 5; x++; x;`, 6},
+		{`var x = 3.14; x++; x;`, float64(4.14)},
+		{`var mut x = 3.14; x++; x;`, float64(4.14)},
+		{`var x = "hello"; x++; x;`, "unknown operator: ++STRING"},
+		{`var mut x = "hello"; x++; x;`, "unknown operator: ++STRING"},
+	}
+
+	for _, tt := range input {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case float64:
+			testFloatObject(t, evaluated, expected)
+		case string:
+			testErrorObject(t, evaluated, expected)
+		}
+	}
+}
+
+func TestVarDecrementingStatements(t *testing.T) {
+	input := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`var x = 5; x--; x;`, 4},
+		{`var mut x = 5; x--; x;`, 4},
+		{`var x = 3.14; x--; x;`, float64(2.14)},
+		{`var mut x = 3.14; x--; x;`, float64(2.14)},
+		{`var x = "hello"; x--; x;`, "unknown operator: --STRING"},
+		{`var mut x = "hello"; x--; x;`, "unknown operator: --STRING"},
+	}
+
+	for _, tt := range input {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case float64:
+			testFloatObject(t, evaluated, expected)
+		case string:
+			testErrorObject(t, evaluated, expected)
+		}
+	}
+}
+
 func TestArrayReassignmentStatements(t *testing.T) {
 	input := []struct {
 		input    string

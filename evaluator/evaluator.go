@@ -78,6 +78,13 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		}
 
 		return evalInfixExpression(node.Operator, left, right)
+	case *ast.SuffixExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+
+		return evalSuffixExpression(node.Operator, left)
 	case *ast.IndexExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -320,6 +327,43 @@ func evalInfixExpression(operator string, left, right objects.Object) objects.Ob
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+}
+
+func evalSuffixExpression(operator string, left objects.Object) objects.Object {
+	switch operator {
+	case "++":
+		return evalIncrementExpression(left)
+	case "--":
+		return evalDecrementExpression(left)
+	default:
+		return newError("unknown operator: %s%s", operator, left.Type())
+	}
+}
+
+func evalIncrementExpression(left objects.Object) objects.Object {
+	switch left := left.(type) {
+	case *objects.Integer:
+		left.Value++
+		return left
+	case *objects.Float:
+		left.Value++
+		return left
+	default:
+		return newError("unknown operator: %s%s", "++", left.Type())
+	}
+}
+
+func evalDecrementExpression(left objects.Object) objects.Object {
+	switch left := left.(type) {
+	case *objects.Integer:
+		left.Value--
+		return left
+	case *objects.Float:
+		left.Value--
+		return left
+	default:
+		return newError("unknown operator: %s%s", "--", left.Type())
 	}
 }
 

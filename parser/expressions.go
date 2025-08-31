@@ -93,13 +93,18 @@ func (p *Parser) curPrecedence() int {
 
 func (p *Parser) parseIdentifier() ast.Expression {
 	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-	if !p.peekTokenIs(tokens.ASSIGN) {
-		return ident
+
+	if p.peekTokenIs(tokens.ASSIGN) {
+		p.nextToken()
+
+		return p.parseAssignmentExpression(ident)
+	} else if p.peekTokenIs(tokens.INCREMENT) || p.peekTokenIs(tokens.DECREMENT) {
+		p.nextToken()
+
+		return p.parseSuffixExpression(ident)
 	}
 
-	p.nextToken()
-
-	return p.parseAssignmentExpression(ident)
+	return ident
 }
 
 func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
@@ -229,6 +234,17 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	p.nextToken()
 	expression.Right = p.parseExpression(precedence)
 
+	return expression
+}
+
+func (p *Parser) parseSuffixExpression(left ast.Expression) ast.Expression {
+	expression := &ast.SuffixExpression{
+		Token:    p.curToken,
+		Operator: p.curToken.Literal,
+		Left:     left,
+	}
+
+	p.nextToken()
 	return expression
 }
 

@@ -431,6 +431,49 @@ func TestParsingInfixExpressions(t *testing.T) {
 	}
 }
 
+func TestParsingSuffixExpressions(t *testing.T) {
+	tests := []struct {
+		input string
+		left  interface{}
+		op    string
+	}{
+		{"i++", "i", "++"},
+		{"i--", "i", "--"},
+		{"longerVarName++", "longerVarName", "++"},
+		{"longerVarName--", "longerVarName", "--"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement, got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T", program.Statements[0])
+		}
+
+		exp, ok := stmt.Expression.(*ast.SuffixExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.SuffixExpression, got %T", stmt.Expression)
+		}
+
+		if exp.Operator != tt.op {
+			t.Errorf("exp.Operator is not '%s', got %q", tt.op, exp.Operator)
+		}
+
+		if !testLiteralExpression(t, exp.Left, tt.left) {
+			t.Errorf("exp.Left is not '%q', got %q", tt.left, exp.Left.String())
+		}
+	}
+}
+
 func TestOperatorPrecedenceParsing(t *testing.T) {
 	tests := []struct {
 		input    string

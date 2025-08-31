@@ -38,6 +38,8 @@ func TestNextToken(t *testing.T) {
 		== !=;
 		<= >=;
 
+		++ --;
+
 		[1, 2];
 		{"foo": "bar"};
 
@@ -157,6 +159,10 @@ func TestNextToken(t *testing.T) {
 		{tokens.SEMICOLON, ";"},
 		{tokens.LT_EQ, "<="},
 		{tokens.GT_EQ, ">="},
+		{tokens.SEMICOLON, ";"},
+		// Increment & Decrement
+		{tokens.INCREMENT, "++"},
+		{tokens.DECREMENT, "--"},
 		{tokens.SEMICOLON, ";"},
 		// Array literals
 		{tokens.LBRACKET, "["},

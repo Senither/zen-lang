@@ -272,6 +272,25 @@ func (ie *InfixExpression) String() string {
 	return out.String()
 }
 
+type SuffixExpression struct {
+	Token    tokens.Token
+	Operator string
+	Left     Expression
+}
+
+func (se *SuffixExpression) expressionNode()      {}
+func (se *SuffixExpression) TokenLiteral() string { return se.Token.Literal }
+func (se *SuffixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(se.Left.String())
+	out.WriteString(se.Operator)
+	out.WriteString(")")
+
+	return out.String()
+}
+
 type IfExpression struct {
 	Token        tokens.Token
 	Condition    Expression

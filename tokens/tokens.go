@@ -37,10 +37,15 @@ const (
 	GT       TokenType = ">"
 	LT       TokenType = "<"
 
+	// Comparison operators
 	EQ     TokenType = "=="
 	NOT_EQ TokenType = "!="
 	LT_EQ  TokenType = "<="
 	GT_EQ  TokenType = ">="
+
+	// Increment/Decrement operators
+	INCREMENT TokenType = "++"
+	DECREMENT TokenType = "--"
 
 	// Delimiters
 	COMMA TokenType = ","

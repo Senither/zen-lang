@@ -70,9 +70,21 @@ func (l *Lexer) NextToken() tokens.Token {
 			token = newToken(tokens.SLASH, l)
 		}
 	case '+':
-		token = newToken(tokens.PLUS, l)
+		if l.peekChar() == '+' {
+			ch := l.ch
+			l.readChar()
+			token = newTokenWithValue(tokens.INCREMENT, l, string(ch)+string(l.ch))
+		} else {
+			token = newToken(tokens.PLUS, l)
+		}
 	case '-':
-		token = newToken(tokens.MINUS, l)
+		if l.peekChar() == '-' {
+			ch := l.ch
+			l.readChar()
+			token = newTokenWithValue(tokens.DECREMENT, l, string(ch)+string(l.ch))
+		} else {
+			token = newToken(tokens.MINUS, l)
+		}
 	case '*':
 		switch l.peekChar() {
 		case '/':
