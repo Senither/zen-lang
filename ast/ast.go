@@ -344,6 +344,26 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+type WhileExpression struct {
+	Token     tokens.Token
+	Condition Expression
+	Body      *BlockStatement
+}
+
+func (w *WhileExpression) expressionNode()      {}
+func (w *WhileExpression) TokenLiteral() string { return w.Token.Literal }
+func (w *WhileExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("while (")
+	out.WriteString(w.Condition.String())
+	out.WriteString(") { ")
+	out.WriteString(w.Body.String())
+	out.WriteString(" }")
+
+	return out.String()
+}
+
 type BlockStatement struct {
 	Token      tokens.Token
 	Statements []Statement

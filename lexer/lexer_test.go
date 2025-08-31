@@ -29,6 +29,10 @@ func TestNextToken(t *testing.T) {
 			return "Something went wrong";
 		}
 
+		while (i < 10) {
+			i++;
+		}
+
 		"one-word";
 		"multiple words";
 		'one-word';
@@ -134,6 +138,18 @@ func TestNextToken(t *testing.T) {
 		{tokens.LBRACE, "{"},
 		{tokens.RETURN, "return"},
 		{tokens.STRING, "Something went wrong"},
+		{tokens.SEMICOLON, ";"},
+		{tokens.RBRACE, "}"},
+		// While loops
+		{tokens.WHILE, "while"},
+		{tokens.LPAREN, "("},
+		{tokens.IDENT, "i"},
+		{tokens.LT, "<"},
+		{tokens.INT, "10"},
+		{tokens.RPAREN, ")"},
+		{tokens.LBRACE, "{"},
+		{tokens.IDENT, "i"},
+		{tokens.INCREMENT, "++"},
 		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},
 		// String literals

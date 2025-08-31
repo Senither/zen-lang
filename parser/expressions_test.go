@@ -730,6 +730,47 @@ func TestIfElseIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestWhileExpression(t *testing.T) {
+	input := "while (i < 5) { i++ }"
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.WhileExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.WhileExpression. got %T", stmt.Expression)
+	}
+
+	if !testInfixExpression(t, exp.Condition, "i", "<", 5) {
+		return
+	}
+
+	if len(exp.Body.Statements) != 1 {
+		t.Errorf("while body is not 1 statement. got %d", len(exp.Body.Statements))
+	}
+
+	body, ok := exp.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("while body is not ast.ExpressionStatement. got %T", exp.Body.Statements[0])
+	}
+
+	if body.String() != "(i++)" {
+		t.Errorf("while body is not '(i++)'. got %q", body.String())
+	}
+}
+
 func TestFunctionLiteralParsing(t *testing.T) {
 	input := "func hello(x, y) { x + y; }"
 

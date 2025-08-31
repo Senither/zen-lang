@@ -113,6 +113,8 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		return evalAssignmentExpression(node.Left, right, env)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+	case *ast.WhileExpression:
+		return evalWhileExpression(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
@@ -209,6 +211,26 @@ func evalIfExpression(ie *ast.IfExpression, env *objects.Environment) objects.Ob
 
 	if ie.Alternative != nil {
 		return Eval(ie.Alternative, env)
+	}
+
+	return NULL
+}
+
+func evalWhileExpression(we *ast.WhileExpression, env *objects.Environment) objects.Object {
+	for {
+		condition := Eval(we.Condition, env)
+		if isError(condition) {
+			return condition
+		}
+
+		if !isTruthy(condition) {
+			break
+		}
+
+		body := Eval(we.Body, env)
+		if isError(body) {
+			return body
+		}
 	}
 
 	return NULL
@@ -461,7 +483,6 @@ func evalHashChainExpression(hash *objects.Hash, right ast.Expression, env *obje
 
 	default:
 		return newError("invalid chain expression for %s, got %s", hash.Type(), right.TokenLiteral())
-
 	}
 }
 

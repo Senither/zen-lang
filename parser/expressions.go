@@ -312,6 +312,31 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	return expression
 }
 
+func (p *Parser) parseWhileExpression() ast.Expression {
+	expression := &ast.WhileExpression{
+		Token: p.curToken,
+	}
+
+	if !p.expectPeek(tokens.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	expression.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(tokens.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(tokens.LBRACE) {
+		return nil
+	}
+
+	expression.Body = p.parseBlockStatement()
+
+	return expression
+}
+
 func (p *Parser) parseFunctionLiteral() ast.Expression {
 	funcLiteral := &ast.FunctionLiteral{
 		Token: p.curToken,

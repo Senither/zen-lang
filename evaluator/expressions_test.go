@@ -494,3 +494,25 @@ func TestIfElseIfElseExpressions(t *testing.T) {
 		}
 	}
 }
+func TestWhileExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"var mut i = 0; while (i < 5) { i++; } i;", 5},
+		{"var mut i = 0; while (i > 5) { i++; } i;", 0},
+		{"var mut i = 0; while (i < 5) { i = i + 2; } i;", 6},
+		{"var mut i = 0; while (i < 5) { i = i + 2; }", nil},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
