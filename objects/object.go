@@ -20,8 +20,9 @@ const (
 	FLOAT_OBJ   = "FLOAT"
 	BOOLEAN_OBJ = "BOOLEAN"
 
-	ARRAY_OBJ = "ARRAY"
-	HASH_OBJ  = "HASH"
+	ARRAY_OBJ          = "ARRAY"
+	HASH_OBJ           = "HASH"
+	IMMUTABLE_HASH_OBJ = "IMMUTABLE_HASH"
 
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 
@@ -141,6 +142,13 @@ func (h *Hash) Inspect() string {
 
 	return out.String()
 }
+
+type ImmutableHash struct {
+	Value Hash
+}
+
+func (h *ImmutableHash) Type() ObjectType { return IMMUTABLE_HASH_OBJ }
+func (h *ImmutableHash) Inspect() string  { return h.Value.Inspect() }
 
 type ReturnValue struct {
 	Value Object

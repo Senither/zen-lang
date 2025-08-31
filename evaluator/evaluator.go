@@ -163,6 +163,7 @@ func isError(obj objects.Object) bool {
 }
 
 func evalProgram(statements []ast.Statement, env *objects.Environment) objects.Object {
+	registerGlobals()
 	registerBuiltins()
 
 	var result objects.Object
@@ -243,6 +244,10 @@ func evalIdentifier(node *ast.Identifier, env *objects.Environment) objects.Obje
 
 	if builtin, ok := builtins[node.Value]; ok {
 		return builtin
+	}
+
+	if global, ok := globals[node.Value]; ok {
+		return global
 	}
 
 	return newError("%s: %s", "identifier not found", node.Value)
@@ -397,6 +402,10 @@ func evalIndexExpression(left, index objects.Object) objects.Object {
 		return evalArrayIndexExpression(left, index)
 	case left.Type() == objects.HASH_OBJ:
 		return evalHashIndexExpression(left, index)
+	case left.Type() == objects.IMMUTABLE_HASH_OBJ:
+		iHash := left.(*objects.ImmutableHash)
+
+		return evalHashIndexExpression(&iHash.Value, index)
 	default:
 		return newError("index operator not supported: %s", left.Type())
 	}
@@ -442,6 +451,8 @@ func evalChainExpression(left objects.Object, right ast.Expression, env *objects
 	switch left := left.(type) {
 	case *objects.Hash:
 		return evalHashChainExpression(left, right, env)
+	case *objects.ImmutableHash:
+		return evalHashChainExpression(&left.Value, right, env)
 	default:
 		return newError("invalid chain expression for %s", left.Type())
 	}
@@ -501,6 +512,8 @@ func evalAssignmentExpression(left ast.Expression, right objects.Object, env *ob
 			return evalArrayAssignmentExpression(leftObj, left.Index, right, env)
 		case *objects.Hash:
 			return evalHashAssignmentExpression(leftObj, left.Index, right, env)
+		case *objects.ImmutableHash:
+			return newError("cannot assign to immutable hash keys")
 		default:
 			return newError("left hand side of index assignment is not a valid indexable type: %s (%T)", leftObj, leftObj)
 		}

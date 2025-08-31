@@ -120,6 +120,7 @@ func (p *Parser) parseChainExpression(left ast.Expression) ast.Expression {
 	switch exp.(type) {
 	case *ast.Identifier, *ast.CallExpression, *ast.ChainExpression:
 		chain.Right = exp
+
 	default:
 		msg := fmt.Sprintf("unexpected chained expression, got %T", exp)
 		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
