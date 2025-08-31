@@ -42,6 +42,7 @@ func TestNextToken(t *testing.T) {
 
 		[1, 2];
 		{"foo": "bar"};
+		obj.foo(5);
 
 		@;
 	`
@@ -177,6 +178,14 @@ func TestNextToken(t *testing.T) {
 		{tokens.COLON, ":"},
 		{tokens.STRING, "bar"},
 		{tokens.RBRACE, "}"},
+		{tokens.SEMICOLON, ";"},
+		// Chained call expression on HashMap
+		{tokens.IDENT, "obj"},
+		{tokens.PERIOD, "."},
+		{tokens.IDENT, "foo"},
+		{tokens.LPAREN, "("},
+		{tokens.INT, "5"},
+		{tokens.RPAREN, ")"},
 		{tokens.SEMICOLON, ";"},
 		// Illegal
 		{tokens.ILLEGAL, "@"},

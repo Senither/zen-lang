@@ -320,6 +320,55 @@ func TestHashIndexExpressions(t *testing.T) {
 	}
 }
 
+func TestChainedHashIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`var x = {"foo": 5}; x.foo`,
+			5,
+		},
+		{
+			`var x = {"foo": 3.14}; x.foo`,
+			3.14,
+		},
+		{
+			`var x = {"foo": true}; x.foo`,
+			true,
+		},
+		{
+			`var x = {"foo": false}; x.foo`,
+			false,
+		},
+		{
+			`var x = {"foo": func (n) { return n + 1; }}; x.foo(5)`,
+			6,
+		},
+		{
+			`var x = {"foo": 5}; x.bar`,
+			"invalid chain expression for HASH, key not found: bar",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case float64:
+			testFloatObject(t, evaluated, expected)
+		case bool:
+			testBooleanObject(t, evaluated, expected, tt.input)
+		case string:
+			testErrorObject(t, evaluated, expected)
+		default:
+			t.Errorf("Unexpected type of object. got %T (%+v)", evaluated, evaluated)
+		}
+	}
+}
+
 func TestReassigningArrayIndexExpressions(t *testing.T) {
 	tests := []struct {
 		input    string

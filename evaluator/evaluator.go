@@ -97,6 +97,13 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		}
 
 		return evalIndexExpression(left, index)
+	case *ast.ChainExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+
+		return evalChainExpression(left, node.Right, env)
 	case *ast.AssignmentExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {
@@ -135,12 +142,7 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 			return function
 		}
 
-		args := evalExpressions(node.Arguments, env)
-		if len(args) == 1 && isError(args[0]) {
-			return args[0]
-		}
-
-		return applyFunction(function, args)
+		return evalCallExpression(node, function, env)
 	}
 
 	return nil
@@ -414,6 +416,55 @@ func evalHashIndexExpression(left, index objects.Object) objects.Object {
 	return pair.Value
 }
 
+func evalChainExpression(left objects.Object, right ast.Expression, env *objects.Environment) objects.Object {
+	switch left := left.(type) {
+	case *objects.Hash:
+		return evalHashChainExpression(left, right, env)
+	default:
+		return newError("invalid chain expression for %s", left.Type())
+	}
+}
+
+func evalHashChainExpression(hash *objects.Hash, right ast.Expression, env *objects.Environment) objects.Object {
+	switch right := right.(type) {
+	case *ast.Identifier:
+		pair, ok := hash.Pairs[(&objects.String{Value: right.Value}).HashKey()]
+		if !ok {
+			return newError("invalid chain expression for %s, key not found: %s", hash.Type(), right.Value)
+		}
+
+		return pair.Value
+	case *ast.CallExpression:
+		name, ok := right.Function.(*ast.Identifier)
+		if !ok {
+			return newError("invalid chain expression for %s, expected identifier, got %s", hash.Type(), right.Function.TokenLiteral())
+		}
+
+		pair, ok := hash.Pairs[(&objects.String{Value: name.Value}).HashKey()]
+		if !ok {
+			return newError("invalid chain expression for %s, key not found: %s", hash.Type(), name.Value)
+		}
+
+		return evalCallExpression(right, pair.Value, env)
+	case *ast.ChainExpression:
+		leftInner, ok := right.Left.(*ast.Identifier)
+		if !ok {
+			return newError("invalid chain expression for %s, expected identifier, got %s", hash.Type(), right.Left.TokenLiteral())
+		}
+
+		pair, ok := hash.Pairs[(&objects.String{Value: leftInner.Value}).HashKey()]
+		if !ok {
+			return newError("invalid chain expression for %s, key not found: %s", hash.Type(), leftInner.Value)
+		}
+
+		return evalChainExpression(pair.Value, right.Right, env)
+
+	default:
+		return newError("invalid chain expression for %s, got %s", hash.Type(), right.TokenLiteral())
+
+	}
+}
+
 func evalAssignmentExpression(left ast.Expression, right objects.Object, env *objects.Environment) objects.Object {
 	switch left := left.(type) {
 	case *ast.Identifier:
@@ -543,6 +594,15 @@ func evalExpressions(exps []ast.Expression, env *objects.Environment) []objects.
 	}
 
 	return result
+}
+
+func evalCallExpression(node *ast.CallExpression, function objects.Object, env *objects.Environment) objects.Object {
+	args := evalExpressions(node.Arguments, env)
+	if len(args) == 1 && isError(args[0]) {
+		return args[0]
+	}
+
+	return applyFunction(function, args)
 }
 
 func applyFunction(fn objects.Object, args []objects.Object) objects.Object {

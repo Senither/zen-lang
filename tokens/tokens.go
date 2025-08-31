@@ -48,8 +48,9 @@ const (
 	DECREMENT TokenType = "--"
 
 	// Delimiters
-	COMMA TokenType = ","
-	COLON TokenType = ":"
+	COMMA  TokenType = ","
+	COLON  TokenType = ":"
+	PERIOD TokenType = "."
 
 	LPAREN   TokenType = "("
 	RPAREN   TokenType = ")"

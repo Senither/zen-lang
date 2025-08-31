@@ -909,3 +909,138 @@ func TestCallExpressionParsing(t *testing.T) {
 		}
 	}
 }
+
+func TestChainExpressionParsing(t *testing.T) {
+	tests := []struct {
+		input string
+		left  string
+		right string
+	}{
+		{"foo.bar", "foo", "bar"},
+		{"baz.qux", "baz", "qux"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+		}
+
+		chainExp, ok := stmt.Expression.(*ast.ChainExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.ChainExpression. got %T", stmt.Expression)
+		}
+
+		testLiteralExpression(t, chainExp.Left, tt.left)
+		testLiteralExpression(t, chainExp.Right, tt.right)
+	}
+}
+
+func TestNestedChainExpressionParsing(t *testing.T) {
+	input := "a.b.c.d"
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+	}
+
+	chainAExp, ok := stmt.Expression.(*ast.ChainExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ChainExpression. got %T", stmt.Expression)
+	}
+
+	testLiteralExpression(t, chainAExp.Left, "a")
+
+	chainBExp, ok := chainAExp.Right.(*ast.ChainExpression)
+	if !ok {
+		t.Fatalf("chainAExp.Right is not ast.ChainExpression. got %T", chainAExp.Right)
+	}
+
+	testLiteralExpression(t, chainBExp.Left, "b")
+
+	chainCExp, ok := chainBExp.Right.(*ast.ChainExpression)
+	if !ok {
+		t.Fatalf("chainBExp.Right is not ast.ChainExpression. got %T", chainBExp.Right)
+	}
+
+	testLiteralExpression(t, chainCExp.Left, "c")
+
+	chainDExp, ok := chainCExp.Right.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("chainCExp.Right is not ast.Identifier. got %T", chainCExp.Right)
+	}
+
+	testLiteralExpression(t, chainDExp, "d")
+}
+
+func TestChainCallExpressionParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		left     string
+		function string
+		args     []string
+	}{
+		{"obj.foo(5)", "obj", "foo", []string{"5"}},
+		{"obj.bar(10, 20)", "obj", "bar", []string{"10", "20"}},
+		{"obj.baz(1 + 2, 3 * 4)", "obj", "baz", []string{"(1 + 2)", "(3 * 4)"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+		}
+
+		chainExp, ok := stmt.Expression.(*ast.ChainExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.ChainExpression. got %T", stmt.Expression)
+		}
+
+		callExp, ok := chainExp.Right.(*ast.CallExpression)
+		if !ok {
+			t.Fatalf("chainExp.Right is not ast.CallExpression. got %T", chainExp.Right)
+		}
+
+		testLiteralExpression(t, callExp.Function, tt.function)
+
+		if len(callExp.Arguments) != len(tt.args) {
+			t.Errorf("wrong number of arguments. want %d, got %d", len(tt.args), len(callExp.Arguments))
+		}
+
+		for i, arg := range tt.args {
+			if callExp.Arguments[i].String() != arg {
+				t.Errorf("argument %d is not %q. got %q", i, arg, callExp.Arguments[i].String())
+			}
+		}
+	}
+}

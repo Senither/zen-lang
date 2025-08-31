@@ -291,6 +291,26 @@ func (se *SuffixExpression) String() string {
 	return out.String()
 }
 
+type ChainExpression struct {
+	Token tokens.Token
+	Left  Expression
+	Right Expression
+}
+
+func (ce *ChainExpression) expressionNode()      {}
+func (ce *ChainExpression) TokenLiteral() string { return ce.Token.Literal }
+func (ce *ChainExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(ce.Left.String())
+	out.WriteString(".")
+	out.WriteString(ce.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
 type IfExpression struct {
 	Token        tokens.Token
 	Condition    Expression

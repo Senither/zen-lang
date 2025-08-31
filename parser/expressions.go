@@ -102,9 +102,32 @@ func (p *Parser) parseIdentifier() ast.Expression {
 		p.nextToken()
 
 		return p.parseSuffixExpression(ident)
+	} else if p.peekTokenIs(tokens.PERIOD) {
+		p.nextToken()
+
+		return p.parseChainExpression(ident)
 	}
 
 	return ident
+}
+
+func (p *Parser) parseChainExpression(left ast.Expression) ast.Expression {
+	chain := &ast.ChainExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+	exp := p.parseExpression(LOWEST)
+
+	switch exp.(type) {
+	case *ast.Identifier, *ast.CallExpression, *ast.ChainExpression:
+		chain.Right = exp
+	default:
+		msg := fmt.Sprintf("unexpected chained expression, got %T", exp)
+		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
+
+		return nil
+	}
+
+	return chain
 }
 
 func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
