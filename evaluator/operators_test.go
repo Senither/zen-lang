@@ -1,6 +1,10 @@
 package evaluator
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/senither/zen-lang/objects"
+)
 
 func TestBangOperator(t *testing.T) {
 	tests := []struct {
@@ -64,5 +68,69 @@ func TestVarReassignmentFailure(t *testing.T) {
 		if evaluated.Inspect() != tt.expected {
 			t.Fatalf("expected: %q, got: %q", tt.expected, evaluated.Inspect())
 		}
+	}
+}
+
+func TestArrayReassignmentStatements(t *testing.T) {
+	input := []struct {
+		input    string
+		expected []any
+	}{
+		{`var arr = [1, 2, 3]; arr[0] = 10; arr;`, []any{10, 2, 3}},
+		{`var mut arr = [1, 2, 3]; arr[0] = 10; arr;`, []any{10, 2, 3}},
+		{`var arr = [1, 2, 3]; arr[1] = 10; arr;`, []any{1, 10, 3}},
+		{`var mut arr = [1, 2, 3]; arr[1] = 10; arr;`, []any{1, 10, 3}},
+		{`var arr = ["foo", "bar"]; arr[1] = "baz"; arr;`, []any{"foo", "baz"}},
+		{`var mut arr = ["foo", "bar"]; arr[1] = "baz"; arr;`, []any{"foo", "baz"}},
+	}
+
+	for _, tt := range input {
+		evaluated := testEval(tt.input)
+
+		testArrayObject(t, evaluated, tt.expected, tt.input)
+	}
+}
+
+func TestHashReassignmentStatements(t *testing.T) {
+	input := []struct {
+		input    string
+		expected map[objects.HashKey]any
+	}{
+		{
+			`var mut hash = {"foo": 1, "bar": 2}; hash["foo"] = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 10,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+			},
+		},
+		{
+			`var hash = {"foo": 1, "bar": 2}; hash["foo"] = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 10,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+			},
+		},
+		{
+			`var mut hash = {"foo": 1, "bar": 2}; hash["baz"] = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 1,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+				(&objects.String{Value: "baz"}).HashKey(): 10,
+			},
+		},
+		{
+			`var hash = {"foo": 1, "bar": 2}; hash["baz"] = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 1,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+				(&objects.String{Value: "baz"}).HashKey(): 10,
+			},
+		},
+	}
+
+	for _, tt := range input {
+		evaluated := testEval(tt.input)
+
+		testHashObject(t, evaluated, tt.expected, tt.input)
 	}
 }

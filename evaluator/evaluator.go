@@ -55,6 +55,8 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		}
 
 		return &objects.Array{Elements: elements}
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, env)
 
 	// Expression operators
 	case *ast.PrefixExpression:
@@ -242,6 +244,32 @@ func isNumber(obj objects.ObjectType) bool {
 	}
 }
 
+func evalHashLiteral(node *ast.HashLiteral, env *objects.Environment) objects.Object {
+	pairs := make(map[objects.HashKey]objects.HashPair)
+
+	for key, value := range node.Pairs {
+		keyObj := Eval(key, env)
+		if isError(keyObj) {
+			return keyObj
+		}
+
+		hashKey, ok := keyObj.(objects.Hashable)
+		if !ok {
+			return newError("key is not hashable: %s", keyObj.Type())
+		}
+
+		valueObj := Eval(value, env)
+		if isError(valueObj) {
+			return valueObj
+		}
+
+		hashed := hashKey.HashKey()
+		pairs[hashed] = objects.HashPair{Key: keyObj, Value: valueObj}
+	}
+
+	return &objects.Hash{Pairs: pairs}
+}
+
 func evalPrefixExpression(operator string, right objects.Object) objects.Object {
 	switch operator {
 	case "!":
@@ -299,6 +327,8 @@ func evalIndexExpression(left, index objects.Object) objects.Object {
 	switch {
 	case left.Type() == objects.ARRAY_OBJ && index.Type() == objects.INTEGER_OBJ:
 		return evalArrayIndexExpression(left, index)
+	case left.Type() == objects.HASH_OBJ:
+		return evalHashIndexExpression(left, index)
 	default:
 		return newError("index operator not supported: %s", left.Type())
 	}
@@ -324,6 +354,22 @@ func evalArrayIndexExpression(left, index objects.Object) objects.Object {
 	return arrObj.Elements[idx]
 }
 
+func evalHashIndexExpression(left, index objects.Object) objects.Object {
+	hashObj := left.(*objects.Hash)
+
+	key, ok := index.(objects.Hashable)
+	if !ok {
+		return newError("invalid type given as hash key: %s", index.Type())
+	}
+
+	pair, ok := hashObj.Pairs[key.HashKey()]
+	if !ok {
+		return NULL
+	}
+
+	return pair.Value
+}
+
 func evalAssignmentExpression(left ast.Expression, right objects.Object, env *objects.Environment) objects.Object {
 	switch left := left.(type) {
 	case *ast.Identifier:
@@ -334,32 +380,64 @@ func evalAssignmentExpression(left ast.Expression, right objects.Object, env *ob
 			return leftObj
 		}
 
-		arr, ok := leftObj.(*objects.Array)
-		if !ok {
-			return newError("expected left hand side of index expression to be an array, got %T", leftObj)
-		}
-
-		idx := Eval(left.Index, env)
-		if isError(idx) {
-			return idx
-		}
-
-		switch idx := idx.(type) {
-		case *objects.Integer:
-			if idx.Value < 0 || idx.Value >= int64(len(arr.Elements)) {
-				return newError("array index out of bounds: %d", idx.Value)
-			}
-
-			arr.Elements[idx.Value] = right
+		switch leftObj := leftObj.(type) {
+		case *objects.Array:
+			return evalArrayAssignmentExpression(leftObj, left.Index, right, env)
+		case *objects.Hash:
+			return evalHashAssignmentExpression(leftObj, left.Index, right, env)
 		default:
-			return newError("index operator not supported: %s", idx.Type())
+			return newError("left hand side of index assignment is not a valid indexable type: %s (%T)", leftObj, leftObj)
 		}
-
-		return right
 
 	default:
 		return newError("left hand side of assignment is not a valid expression: %s (%T)", left, left)
 	}
+}
+
+func evalArrayAssignmentExpression(
+	arr *objects.Array,
+	index ast.Expression,
+	value objects.Object,
+	env *objects.Environment,
+) objects.Object {
+	idx := Eval(index, env)
+	if isError(idx) {
+		return idx
+	}
+
+	switch idx := idx.(type) {
+	case *objects.Integer:
+		if idx.Value < 0 || idx.Value >= int64(len(arr.Elements)) {
+			return newError("array index out of bounds: %d", idx.Value)
+		}
+
+		arr.Elements[idx.Value] = value
+	default:
+		return newError("index operator not supported: %s", idx.Type())
+	}
+
+	return value
+}
+
+func evalHashAssignmentExpression(
+	hash *objects.Hash,
+	index ast.Expression,
+	value objects.Object,
+	env *objects.Environment,
+) objects.Object {
+	idx := Eval(index, env)
+	if isError(idx) {
+		return idx
+	}
+
+	key, ok := idx.(objects.Hashable)
+	if !ok {
+		return newError("invalid type given as hash key: %s", idx.Type())
+	}
+
+	hash.Pairs[key.HashKey()] = objects.HashPair{Key: idx, Value: value}
+
+	return value
 }
 
 func evalNumberInfixExpression(operator string, left, right objects.Object) objects.Object {

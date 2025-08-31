@@ -58,6 +58,10 @@ if (10 > 1) {
 			"foobar",
 			"identifier not found: foobar",
 		},
+		{
+			`{"name": "value"}[func (x) { x }]`,
+			"invalid type given as hash key: FUNCTION",
+		},
 	}
 
 	for _, tt := range tests {
@@ -244,6 +248,8 @@ func testArrayObject(t *testing.T, obj objects.Object, expected []any, input str
 
 	for i, elem := range expected {
 		switch elem := elem.(type) {
+		case string:
+			testStringObject(t, array.Elements[i], elem)
 		case int:
 			testIntegerObject(t, array.Elements[i], int64(elem))
 		case int64:
@@ -252,6 +258,43 @@ func testArrayObject(t *testing.T, obj objects.Object, expected []any, input str
 			testBooleanObject(t, array.Elements[i], elem, input)
 		default:
 			t.Errorf("element type is not support for array testing objects. got %T (%+v)", elem, elem)
+			return false
+		}
+	}
+
+	return true
+}
+
+func testHashObject(t *testing.T, obj objects.Object, expected map[objects.HashKey]any, input string) bool {
+	hash, ok := obj.(*objects.Hash)
+	if !ok {
+		t.Errorf("object is not Hash. got %T (%+v)", obj, obj)
+		return false
+	}
+
+	if len(hash.Pairs) != len(expected) {
+		t.Errorf("hash has wrong number of pairs. got %d, expected %d", len(hash.Pairs), len(expected))
+		return false
+	}
+
+	for key, expectedValue := range expected {
+		pair, ok := hash.Pairs[key]
+		if !ok {
+			t.Errorf("hash is missing key %q", key)
+			return false
+		}
+
+		switch expectedValue := expectedValue.(type) {
+		case string:
+			testStringObject(t, pair.Value, expectedValue)
+		case int:
+			testIntegerObject(t, pair.Value, int64(expectedValue))
+		case int64:
+			testIntegerObject(t, pair.Value, expectedValue)
+		case bool:
+			testBooleanObject(t, pair.Value, expectedValue, input)
+		default:
+			t.Errorf("element type is not support for hash testing objects. got %T (%+v)", expectedValue, expectedValue)
 			return false
 		}
 	}
