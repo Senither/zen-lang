@@ -93,3 +93,86 @@ func TestArraysPopGlobalFunction(t *testing.T) {
 		}
 	}
 }
+
+func TestStringsContainsGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{`strings.contains("hello", "he")`, true},
+		{`strings.contains("hello", "lo")`, true},
+		{`strings.contains("hello", "world")`, false},
+		{`var x = "hello"; strings.contains(x, "he");`, true},
+		{`var x = "hello"; strings.contains(x, "lo");`, true},
+		{`var x = "hello"; strings.contains(x, "world");`, false},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case bool:
+			testBooleanObject(t, evaluated, expected, tt.input)
+		}
+	}
+}
+
+func TestStringsSplitGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{`strings.split("a,b,c", ",")`, []any{"a", "b", "c"}},
+		{`strings.split("a b c", " ")`, []any{"a", "b", "c"}},
+		{`strings.split("a b c", "-")`, []any{"a b c"}},
+		{`var x = "a,b,c"; strings.split(x, ",");`, []any{"a", "b", "c"}},
+		{`var x = "a b c"; strings.split(x, " ");`, []any{"a", "b", "c"}},
+		{`var x = "a b c"; strings.split(x, "-");`, []any{"a b c"}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testArrayObject(t, evaluated, tt.expected, tt.input)
+	}
+}
+
+func TestStringsJoinGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`strings.join([1, 2, 3, 4, 5], "")`, "12345"},
+		{`strings.join([1, 2, 3, 4, 5], ", ")`, "1, 2, 3, 4, 5"},
+		{`strings.join([], ", ")`, ""},
+		{`strings.join([1, 2.22, true, false, [5,6,7], {"key": "value"}], ", ")`, "1, 2.22, true, false, [5, 6, 7], {key: value}"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestStringsFormatGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`strings.format("%s", "hello")`, "hello"},
+		{`strings.format("%d", 5)`, "5"},
+		{`strings.format("%f", 3.14)`, "3.140000"},
+		{`strings.format("%v", 3.14)`, "3.14"},
+		{`strings.format("%t", true)`, "true"},
+		{`strings.format("%v", [1, 2, 3])`, "[1, 2, 3]"},
+		{`strings.format("%v", {"key": "value"})`, "{key: value}"},
+		{`strings.format("%#T", "test")`, "string"},
+		{`strings.format("%s %d %f %v", "hello", 5, 3.14, true)`, "hello 5 3.140000 true"},
+		{`strings.format("%s %s", "test")`, "test %!s(MISSING)"},
+		{`strings.format("%s", "test", 5)`, "test%!(EXTRA int64=5)"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
