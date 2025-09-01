@@ -1,0 +1,14 @@
+--TEST--
+Can evaluate imports
+--FILE--
+import 'example';
+
+println(example.functionOne);
+println(example.functionTwo);
+--EXPECT--
+functionOne() {
+return "This is function one";
+}
+functionTwo() {
+return "This is function two";
+}

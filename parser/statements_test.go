@@ -103,6 +103,86 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
+func TestImportStatements(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedFile  string
+		expectedAlias interface{}
+	}{
+		{"import 'file'", "file", nil},
+		{"import 'file' as f", "file", "f"},
+		{"import \"another_file\" as af", "another_file", "af"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+		}
+
+		stmt := program.Statements[0]
+		importStmt, ok := stmt.(*ast.ImportStatement)
+		if !ok {
+			t.Fatalf("stmt is not ast.ImportStatement. got %T", stmt)
+		}
+
+		if importStmt.TokenLiteral() != "import" {
+			t.Fatalf("importStmt.TokenLiteral is not 'import', got %q", importStmt.TokenLiteral())
+		}
+
+		if importStmt.Path != tt.expectedFile {
+			t.Errorf("importStmt.ImportPath is not %q. got %q", tt.expectedFile, importStmt.Path)
+		}
+
+		if importStmt.Aliased != nil && importStmt.Aliased.Value != tt.expectedAlias {
+			t.Errorf("importStmt.Aliased is not %q. got %q", tt.expectedAlias, importStmt.Aliased.Value)
+		}
+	}
+}
+
+func TestExportStatements(t *testing.T) {
+	tests := []struct {
+		input       string
+		expectedAst string
+	}{
+		{"export someValue", "someValue"},
+		{"export someValue;", "someValue"},
+		{"export func(x) {x}", "func (x) { x }"},
+		{"export func(x) {x};", "func (x) { x }"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+		}
+
+		stmt := program.Statements[0]
+		exportStmt, ok := stmt.(*ast.ExportStatement)
+		if !ok {
+			t.Fatalf("stmt is not ast.ExportStatement. got %T", stmt)
+		}
+
+		if exportStmt.TokenLiteral() != "export" {
+			t.Fatalf("exportStmt.TokenLiteral is not 'export', got %q", exportStmt.TokenLiteral())
+		}
+
+		if exportStmt.Value.String() != tt.expectedAst {
+			t.Errorf("exportStmt.ExportValue is not %q. got %q", tt.expectedAst, exportStmt.Value.String())
+		}
+	}
+}
+
 func TestCommentStatements(t *testing.T) {
 	input := `
 		// This is a comment

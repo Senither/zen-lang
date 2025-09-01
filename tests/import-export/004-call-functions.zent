@@ -1,0 +1,10 @@
+--TEST--
+Can call aliased imported functions
+--FILE--
+import 'example' as somethingElse;
+
+println(somethingElse.functionOne());
+println(somethingElse.functionTwo());
+--EXPECT--
+This is function one
+This is function two

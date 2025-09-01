@@ -110,6 +110,10 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseVariableStatement()
 	case tokens.RETURN:
 		return p.parseReturnStatement()
+	case tokens.IMPORT:
+		return p.parseImportStatement()
+	case tokens.EXPORT:
+		return p.parseExportStatement()
 	case tokens.COMMENT:
 		return p.parseCommentStatement()
 	case tokens.BLOCK_COMMENT_START:

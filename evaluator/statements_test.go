@@ -1,6 +1,12 @@
 package evaluator
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/senither/zen-lang/lexer"
+	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/parser"
+)
 
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
@@ -46,5 +52,59 @@ func TestVarStatements(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestExportStatement(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{
+			`export func name(x) {x};`,
+			[]string{"name"},
+		},
+		{
+			`
+				func name(x) {x};
+				export name;
+			`,
+			[]string{"name"},
+		},
+		{
+			`
+				export func functionOne() {}
+				func functionTwo(x) {x};
+				export func functionThree(x) {x};
+			`,
+			[]string{"functionOne", "functionThree"},
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := parser.New(l)
+
+		env := objects.NewEnvironment(nil)
+		evaluated := Eval(p.ParseProgram(), env)
+		if evaluated == nil {
+			t.Errorf("Failed to evaluate program, evaluation returned nil")
+		}
+
+		exports := env.GetExports()
+		exportKeys := []string{}
+		for k := range exports {
+			exportKeys = append(exportKeys, k)
+		}
+
+		if len(exportKeys) != len(tt.expected) {
+			t.Errorf("Expected %d exported keys, got %d", len(tt.expected), len(exportKeys))
+		}
+
+		for i, v := range tt.expected {
+			if exportKeys[i] != v {
+				t.Errorf("Expected exported key %q, got %q", v, exportKeys[i])
+			}
+		}
 	}
 }

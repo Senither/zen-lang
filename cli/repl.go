@@ -22,7 +22,7 @@ var replCommand = &cobra.Command{
 	Long:  "Creates an environment for evaluating Zen code.",
 	Run: func(cmd *cobra.Command, args []string) {
 		scanner := bufio.NewScanner(os.Stdin)
-		env := objects.NewEnvironment()
+		env := objects.NewEnvironment(nil)
 
 		fmt.Println("Welcome to the Zen REPL, type your code below to see the output.")
 		fmt.Println("Type 'exit' to exit the REPL or press Ctrl+C.")

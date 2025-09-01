@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/senither/zen-lang/ast"
+	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/parser"
 )
 
 var (
@@ -145,6 +149,12 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		}
 
 		return evalCallExpression(node, function, env)
+
+	// Import & Export statements
+	case *ast.ImportStatement:
+		return evalImportStatement(node, env)
+	case *ast.ExportStatement:
+		return evalExportStatement(node, env)
 	}
 
 	return nil
@@ -637,6 +647,78 @@ func evalCallExpression(node *ast.CallExpression, function objects.Object, env *
 	}
 
 	return applyFunction(function, args)
+}
+
+func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) objects.Object {
+	if env.GetFile() == nil {
+		return newError("import statements can only be used within a file")
+	}
+
+	filename := node.Path
+	if !strings.HasSuffix(filename, ".zen") {
+		filename += ".zen"
+	}
+
+	relativePath := filepath.Join(env.GetFile().Path, filename)
+	path, ok := filepath.Abs(relativePath)
+	if ok != nil {
+		return newError("invalid import path: %q", path)
+	}
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return newError("failed to read imported file: %q", path)
+	}
+
+	lexer := lexer.New(string(content))
+	parser := parser.New(lexer)
+
+	program := parser.ParseProgram()
+	if len(parser.Errors()) > 0 {
+		errors := []string{}
+		for _, err := range parser.Errors() {
+			errors = append(errors, err.String())
+		}
+
+		return newError("failed to parse imported file: %q\n%s", path, strings.Join(errors, "\n"))
+	}
+
+	newEnv := objects.NewEnvironment(path)
+	evaluated := Eval(program, newEnv)
+	if evaluated == nil {
+		return newError("failed to evaluate imported file: %q", path)
+	}
+
+	if isError(evaluated) {
+		return evaluated
+	}
+
+	hash := objects.CreateImmutableHashFromEnvExports(newEnv)
+
+	if node.Aliased != nil {
+		env.SetImmutableForcefully(node.Aliased.Value, hash)
+	} else {
+		cleanFilename := strings.TrimSuffix(path, ".zen")
+		cleanFilename = filepath.Base(cleanFilename)
+
+		env.SetImmutableForcefully(cleanFilename, hash)
+	}
+
+	return NULL
+}
+
+func evalExportStatement(node *ast.ExportStatement, env *objects.Environment) objects.Object {
+	exportedValue := Eval(node.Value, env)
+	if isError(exportedValue) {
+		return exportedValue
+	}
+
+	err := env.Export(exportedValue)
+	if err != nil {
+		return newError("failed to export value: %q", err)
+	}
+
+	return NULL
 }
 
 func applyFunction(fn objects.Object, args []objects.Object) objects.Object {

@@ -51,6 +51,46 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
+func (p *Parser) parseImportStatement() *ast.ImportStatement {
+	stmt := &ast.ImportStatement{Token: p.curToken}
+
+	if !p.expectPeek(tokens.STRING) {
+		return nil
+	}
+
+	stmt.Path = p.curToken.Literal
+
+	if p.peekTokenIs(tokens.IMPORT_ALIAS) {
+		p.nextToken()
+		p.nextToken()
+
+		stmt.Aliased = &ast.Identifier{
+			Token: p.curToken,
+			Value: p.curToken.Literal,
+		}
+	}
+
+	if p.peekTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseExportStatement() *ast.ExportStatement {
+	stmt := &ast.ExportStatement{Token: p.curToken}
+
+	p.nextToken()
+
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
 func (p *Parser) parseCommentStatement() *ast.EmptyStatement {
 	curLine := p.curToken.Line
 

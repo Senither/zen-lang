@@ -455,3 +455,43 @@ func (ae *AssignmentExpression) String() string {
 
 	return out.String()
 }
+
+type ImportStatement struct {
+	Token   tokens.Token
+	Path    string
+	Aliased *Identifier
+}
+
+func (is *ImportStatement) statementNode()       {}
+func (is *ImportStatement) TokenLiteral() string { return is.Token.Literal }
+func (is *ImportStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("import '")
+	out.WriteString(is.Path)
+	out.WriteString("'")
+
+	if is.Aliased != nil {
+		out.WriteString(" as ")
+		out.WriteString(is.Aliased.String())
+	}
+
+	return out.String()
+}
+
+type ExportStatement struct {
+	Token tokens.Token
+	Value Expression
+}
+
+func (es *ExportStatement) statementNode()       {}
+func (es *ExportStatement) TokenLiteral() string { return es.Token.Literal }
+func (es *ExportStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("export ")
+	out.WriteString(es.Value.String())
+	out.WriteString(";")
+
+	return out.String()
+}

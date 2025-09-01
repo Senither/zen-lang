@@ -1,10 +1,20 @@
 package objects
 
-import "fmt"
+import (
+	"fmt"
+	"path/filepath"
+)
 
 type Environment struct {
-	store map[string]EnvironmentStateItem
-	outer *Environment
+	store   map[string]EnvironmentStateItem
+	exports map[string]Object
+	outer   *Environment
+	file    *EnvironmentFile
+}
+
+type EnvironmentFile struct {
+	Name string
+	Path string
 }
 
 type EnvironmentStateItem struct {
@@ -12,15 +22,30 @@ type EnvironmentStateItem struct {
 	mutable bool
 }
 
-func NewEnvironment() *Environment {
-	return &Environment{
-		store: make(map[string]EnvironmentStateItem),
-		outer: nil,
+func NewEnvironment(fullFilePath interface{}) *Environment {
+	env := &Environment{
+		store:   make(map[string]EnvironmentStateItem),
+		exports: make(map[string]Object),
+		outer:   nil,
 	}
+
+	if _, ok := fullFilePath.(string); !ok {
+		return env
+	}
+
+	fullPath := fullFilePath.(string)
+	fileName := filepath.Base(fullPath)
+
+	env.file = &EnvironmentFile{
+		Name: fileName,
+		Path: fullPath[:len(fullPath)-len(fileName)-1],
+	}
+
+	return env
 }
 
 func NewEnclosedEnvironment(outer *Environment) *Environment {
-	env := NewEnvironment()
+	env := NewEnvironment(nil)
 	env.outer = outer
 
 	return env
@@ -65,4 +90,35 @@ func (e *Environment) SetImmutableForcefully(name string, val Object) Object {
 	}
 
 	return val
+}
+
+func (e *Environment) Export(val Object) error {
+	if e.outer != nil {
+		return e.outer.Export(val)
+	}
+
+	switch val := val.(type) {
+	case *Function:
+		if val.Name == nil {
+			return fmt.Errorf("cannot export unnamed function")
+		}
+
+		e.exports[val.Name.Value] = val
+	default:
+		return fmt.Errorf("cannot export object of type %s", val.Type())
+	}
+
+	return nil
+}
+
+func (e *Environment) GetExports() map[string]Object {
+	return e.exports
+}
+
+func (e *Environment) GetFile() *EnvironmentFile {
+	if e.file == nil && e.outer != nil {
+		return e.outer.GetFile()
+	}
+
+	return e.file
 }

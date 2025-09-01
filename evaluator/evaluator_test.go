@@ -162,7 +162,7 @@ func testEval(input string) objects.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 
-	return Eval(p.ParseProgram(), objects.NewEnvironment())
+	return Eval(p.ParseProgram(), objects.NewEnvironment(nil))
 }
 
 func testNullObject(t *testing.T, obj objects.Object) bool {

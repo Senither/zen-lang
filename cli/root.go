@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/lexer"
@@ -19,7 +20,13 @@ var rootCommand = &cobra.Command{
 	ArgAliases: []string{"file"},
 	ValidArgs:  []string{"file"},
 	Run: func(cmd *cobra.Command, args []string) {
-		content, err := loadFileContents(args[0])
+		path, err := filepath.Abs(args[0])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		content, err := loadFileContents(path)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -36,7 +43,7 @@ var rootCommand = &cobra.Command{
 			return
 		}
 
-		env := objects.NewEnvironment()
+		env := objects.NewEnvironment(path)
 		evaluated := evaluator.Eval(program, env)
 		if evaluated == nil {
 			fmt.Println("Failed to evaluate program, evaluation returned nil")

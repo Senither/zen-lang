@@ -179,7 +179,7 @@ func runTestFile(fullPath, file string) {
 	}
 
 	evaluated := evaluator.Stdout.Mute(func() objects.Object {
-		env := objects.NewEnvironment()
+		env := objects.NewEnvironment(file)
 		return evaluator.Eval(program, env)
 	})
 

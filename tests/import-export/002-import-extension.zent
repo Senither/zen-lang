@@ -1,0 +1,14 @@
+--TEST--
+Can import file with extension
+--FILE--
+import 'example.zen';
+
+println(example.functionOne);
+println(example.functionTwo);
+--EXPECT--
+functionOne() {
+return "This is function one";
+}
+functionTwo() {
+return "This is function two";
+}

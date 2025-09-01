@@ -65,14 +65,17 @@ const (
 	BLOCK_COMMENT_END   TokenType = "BLOCK_COMMENT_END"
 
 	// Keywords
-	FUNCTION TokenType = "FUNCTION"
-	TRUE     TokenType = "TRUE"
-	FALSE    TokenType = "FALSE"
-	IF       TokenType = "IF"
-	ELSE     TokenType = "ELSE"
-	ELSE_IF  TokenType = "ELSE_IF"
-	RETURN   TokenType = "RETURN"
-	WHILE    TokenType = "WHILE"
+	FUNCTION     TokenType = "FUNCTION"
+	TRUE         TokenType = "TRUE"
+	FALSE        TokenType = "FALSE"
+	IF           TokenType = "IF"
+	ELSE         TokenType = "ELSE"
+	ELSE_IF      TokenType = "ELSE_IF"
+	RETURN       TokenType = "RETURN"
+	WHILE        TokenType = "WHILE"
+	IMPORT       TokenType = "IMPORT"
+	IMPORT_ALIAS TokenType = "IMPORT_ALIAS"
+	EXPORT       TokenType = "EXPORT"
 )
 
 var keywords = map[string]TokenType{
@@ -87,6 +90,10 @@ var keywords = map[string]TokenType{
 	"else if": ELSE_IF,
 	"return":  RETURN,
 	"while":   WHILE,
+	"import":  IMPORT,
+	"export":  EXPORT,
+	"as":      IMPORT_ALIAS,
+	"AS":      IMPORT_ALIAS,
 }
 
 func LookupIdent(ident string) TokenType {

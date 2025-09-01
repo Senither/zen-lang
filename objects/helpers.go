@@ -1,5 +1,20 @@
 package objects
 
+func CreateImmutableHashFromEnvExports(env *Environment) *ImmutableHash {
+	hashPairs := []HashPair{}
+
+	for key, val := range env.GetExports() {
+		hashPairs = append(hashPairs, HashPair{
+			Key:   &String{Value: key},
+			Value: val,
+		})
+	}
+
+	hash := BuildImmutableHash(hashPairs...)
+
+	return hash
+}
+
 func BuildImmutableHash(args ...HashPair) *ImmutableHash {
 	pairs := make(map[HashKey]HashPair)
 

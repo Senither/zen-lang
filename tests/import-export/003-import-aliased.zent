@@ -1,0 +1,14 @@
+--TEST--
+Can evaluate aliased imports
+--FILE--
+import 'example' as somethingElse;
+
+println(somethingElse.functionOne);
+println(somethingElse.functionTwo);
+--EXPECT--
+functionOne() {
+return "This is function one";
+}
+functionTwo() {
+return "This is function two";
+}
