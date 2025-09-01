@@ -121,6 +121,13 @@ func (p *Parser) parseChainExpression(left ast.Expression) ast.Expression {
 	case *ast.Identifier, *ast.CallExpression, *ast.ChainExpression:
 		chain.Right = exp
 
+	case *ast.AssignmentExpression:
+		chain.Right = &ast.AssignmentExpression{
+			Token: p.curToken,
+			Left:  chain.Left,
+			Right: exp,
+		}
+
 	default:
 		msg := fmt.Sprintf("unexpected chained expression, got %T", exp)
 		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})

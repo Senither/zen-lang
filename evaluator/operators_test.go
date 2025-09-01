@@ -180,6 +180,36 @@ func TestHashReassignmentStatements(t *testing.T) {
 				(&objects.String{Value: "baz"}).HashKey(): 10,
 			},
 		},
+		{
+			`var mut hash = {"foo": 1, "bar": 2}; hash.foo = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 10,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+			},
+		},
+		{
+			`var hash = {"foo": 1, "bar": 2}; hash.foo = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 10,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+			},
+		},
+		{
+			`var mut hash = {"foo": 1, "bar": 2}; hash.baz = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 1,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+				(&objects.String{Value: "baz"}).HashKey(): 10,
+			},
+		},
+		{
+			`var hash = {"foo": 1, "bar": 2}; hash.baz = 10; hash;`,
+			map[objects.HashKey]any{
+				(&objects.String{Value: "foo"}).HashKey(): 1,
+				(&objects.String{Value: "bar"}).HashKey(): 2,
+				(&objects.String{Value: "baz"}).HashKey(): 10,
+			},
+		},
 	}
 
 	for _, tt := range input {

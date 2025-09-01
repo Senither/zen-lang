@@ -462,7 +462,12 @@ func evalChainExpression(left objects.Object, right ast.Expression, env *objects
 	case *objects.Hash:
 		return evalHashChainExpression(left, right, env)
 	case *objects.ImmutableHash:
-		return evalHashChainExpression(&left.Value, right, env)
+		switch right := right.(type) {
+		case *ast.AssignmentExpression:
+			return newError("cannot assign to immutable hash keys")
+		default:
+			return evalHashChainExpression(&left.Value, right, env)
+		}
 	default:
 		return newError("invalid chain expression for %s", left.Type())
 	}
@@ -501,6 +506,22 @@ func evalHashChainExpression(hash *objects.Hash, right ast.Expression, env *obje
 		}
 
 		return evalChainExpression(pair.Value, right.Right, env)
+	case *ast.AssignmentExpression:
+		assign := right.Right.(*ast.AssignmentExpression)
+		leftKey, ok := assign.Left.(*ast.Identifier)
+		if !ok {
+			return newError("invalid assignment expression for %s, expected identifier, got %s", hash.Type(), assign.Left.TokenLiteral())
+		}
+
+		obj := Eval(assign.Right, env)
+		if isError(obj) {
+			return obj
+		}
+
+		hashKey := (&objects.String{Value: leftKey.Value}).HashKey()
+		hash.Pairs[hashKey] = objects.HashPair{Key: &objects.String{Value: leftKey.Value}, Value: obj}
+
+		return obj
 
 	default:
 		return newError("invalid chain expression for %s, got %s", hash.Type(), right.TokenLiteral())
