@@ -1,0 +1,9 @@
+export func functionOne() {
+    return "This is function one";
+}
+
+func functionTwo() {
+    return "This is function two";
+}
+
+export functionTwo;

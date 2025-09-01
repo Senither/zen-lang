@@ -3,3 +3,7 @@ tmp/
 *.exe
 *.log
 *.zen
+
+# Unignore .zen files within the /tests directory
+!tests/**/*.zen
+!tests/*.zen
