@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/senither/zen-lang/lexer"
@@ -101,9 +102,9 @@ func TestExportStatement(t *testing.T) {
 			t.Errorf("Expected %d exported keys, got %d", len(tt.expected), len(exportKeys))
 		}
 
-		for i, v := range tt.expected {
-			if exportKeys[i] != v {
-				t.Errorf("Expected exported key %q, got %q", v, exportKeys[i])
+		for _, v := range tt.expected {
+			if !slices.Contains(exportKeys, v) {
+				t.Errorf("Expected exported key %q to be in %v", v, exportKeys)
 			}
 		}
 	}
