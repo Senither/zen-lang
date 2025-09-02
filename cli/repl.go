@@ -41,7 +41,7 @@ var replCommand = &cobra.Command{
 			}
 
 			lexer := lexer.New(line)
-			parser := parser.New(lexer)
+			parser := parser.New(lexer, nil)
 
 			program := parser.ParseProgram()
 			if len(parser.Errors()) > 0 {

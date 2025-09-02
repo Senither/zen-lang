@@ -33,7 +33,7 @@ var rootCommand = &cobra.Command{
 		}
 
 		lexer := lexer.New(string(content))
-		parser := parser.New(lexer)
+		parser := parser.New(lexer, path)
 
 		program := parser.ParseProgram()
 		if len(parser.Errors()) > 0 {
@@ -61,6 +61,7 @@ func loadFileContents(file string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read file %q: %w", file, err)
 	}
+
 	return string(content), nil
 }
 

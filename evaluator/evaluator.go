@@ -692,7 +692,7 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 	}
 
 	lexer := lexer.New(string(content))
-	parser := parser.New(lexer)
+	parser := parser.New(lexer, path)
 
 	program := parser.ParseProgram()
 	if len(parser.Errors()) > 0 {

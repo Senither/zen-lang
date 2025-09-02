@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/parser"
@@ -26,7 +27,9 @@ var astCommand = &cobra.Command{
 				return
 			}
 
-			runAndEvalAST(content)
+			path, _ := filepath.Abs(args[0])
+			runAndEvalAST(content, path)
+
 			return
 		}
 
@@ -50,14 +53,14 @@ var astCommand = &cobra.Command{
 				return
 			}
 
-			runAndEvalAST(line)
+			runAndEvalAST(line, nil)
 		}
 	},
 }
 
-func runAndEvalAST(input string) {
+func runAndEvalAST(input string, filePath interface{}) {
 	lexer := lexer.New(input)
-	parser := parser.New(lexer)
+	parser := parser.New(lexer, filePath)
 
 	program := parser.ParseProgram()
 

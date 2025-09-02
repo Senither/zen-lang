@@ -15,7 +15,7 @@ func TestVarStatements(t *testing.T) {
 	`
 
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, nil)
 
 	program := p.ParseProgram()
 	if program == nil {
@@ -78,7 +78,7 @@ func TestReturnStatements(t *testing.T) {
 
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
-		p := New(l)
+		p := New(l, nil)
 
 		program := p.ParseProgram()
 		checkParserErrors(t, p)
@@ -116,7 +116,7 @@ func TestImportStatements(t *testing.T) {
 
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
-		p := New(l)
+		p := New(l, nil)
 
 		program := p.ParseProgram()
 		checkParserErrors(t, p)
@@ -158,7 +158,7 @@ func TestExportStatements(t *testing.T) {
 
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
-		p := New(l)
+		p := New(l, nil)
 
 		program := p.ParseProgram()
 		checkParserErrors(t, p)
@@ -192,7 +192,7 @@ func TestCommentStatements(t *testing.T) {
 	`
 
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, nil)
 
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
@@ -232,7 +232,7 @@ func TestBlockCommentStatements(t *testing.T) {
 	`
 
 	l := lexer.New(input)
-	p := New(l)
+	p := New(l, nil)
 
 	program := p.ParseProgram()
 	checkParserErrors(t, p)

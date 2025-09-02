@@ -130,7 +130,11 @@ func (p *Parser) parseChainExpression(left ast.Expression) ast.Expression {
 
 	default:
 		msg := fmt.Sprintf("unexpected chained expression, got %T", exp)
-		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
+		p.errors = append(p.errors, ParserError{
+			Message:  msg,
+			FilePath: p.filePath,
+			Token:    p.curToken,
+		})
 
 		return nil
 	}
@@ -156,7 +160,11 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 	if err != nil {
 		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
-		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
+		p.errors = append(p.errors, ParserError{
+			Message:  msg,
+			FilePath: p.filePath,
+			Token:    p.curToken,
+		})
 		return nil
 	}
 
@@ -171,7 +179,11 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 	value, err := strconv.ParseFloat(p.curToken.Literal, 64)
 	if err != nil {
 		msg := fmt.Sprintf("could not parse %q as float", p.curToken.Literal)
-		p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
+		p.errors = append(p.errors, ParserError{
+			Message:  msg,
+			FilePath: p.filePath,
+			Token:    p.curToken,
+		})
 		return nil
 	}
 
@@ -251,7 +263,11 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 
 func (p *Parser) noPrefixParseFnError(t tokens.TokenType) {
 	msg := fmt.Sprintf("no prefix parse function for %s found", t)
-	p.errors = append(p.errors, ParserError{Message: msg, Token: p.curToken})
+	p.errors = append(p.errors, ParserError{
+		Message:  msg,
+		FilePath: p.filePath,
+		Token:    p.curToken,
+	})
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {

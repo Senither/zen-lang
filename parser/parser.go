@@ -12,6 +12,8 @@ type Parser struct {
 	lexer  *lexer.Lexer
 	errors []ParserError
 
+	filePath string
+
 	curToken  tokens.Token
 	peekToken tokens.Token
 
@@ -20,21 +22,31 @@ type Parser struct {
 }
 
 type ParserError struct {
-	Message string
-	Token   tokens.Token
+	Message  string
+	FilePath string
+	Token    tokens.Token
 }
 
 func (e *ParserError) String() string {
+	path := ""
+	if e.FilePath != "" {
+		path = e.FilePath + ":"
+	}
+
 	return fmt.Sprintf(
-		"Parser error: %s\n  Token: %q\n  File:  %d:%d",
-		e.Message, e.Token.Literal, e.Token.Line, e.Token.Column,
+		"Parser error: %s\n  Token: %q\n  File:  %s%d:%d",
+		e.Message, e.Token.Literal, path, e.Token.Line, e.Token.Column,
 	)
 }
 
-func New(lexer *lexer.Lexer) *Parser {
+func New(lexer *lexer.Lexer, filePath interface{}) *Parser {
 	p := &Parser{
 		lexer:  lexer,
 		errors: []ParserError{},
+	}
+
+	if path, ok := filePath.(string); ok {
+		p.filePath = path
 	}
 
 	p.prefixParseFns = make(map[tokens.TokenType]prefixParseFn)
@@ -148,5 +160,9 @@ func (p *Parser) expectPeek(t tokens.TokenType) bool {
 
 func (p *Parser) peekError(t tokens.TokenType) {
 	msg := fmt.Sprintf("expected next token to be %q, got %q instead", t, p.peekToken.Type)
-	p.errors = append(p.errors, ParserError{Message: msg, Token: p.peekToken})
+	p.errors = append(p.errors, ParserError{
+		Message:  msg,
+		FilePath: p.filePath,
+		Token:    p.peekToken,
+	})
 }

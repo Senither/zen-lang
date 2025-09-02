@@ -84,7 +84,7 @@ func TestExportStatement(t *testing.T) {
 
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
-		p := parser.New(l)
+		p := parser.New(l, nil)
 
 		env := objects.NewEnvironment(nil)
 		evaluated := Eval(p.ParseProgram(), env)

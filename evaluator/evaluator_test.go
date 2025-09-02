@@ -160,7 +160,7 @@ func TestFunctionApplication(t *testing.T) {
 
 func testEval(input string) objects.Object {
 	l := lexer.New(input)
-	p := parser.New(l)
+	p := parser.New(l, nil)
 
 	return Eval(p.ParseProgram(), objects.NewEnvironment(nil))
 }

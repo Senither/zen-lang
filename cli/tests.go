@@ -166,7 +166,7 @@ func runTestFile(fullPath, file string) {
 	test.expect = cleanString(test.expect)
 
 	l := lexer.New(test.file)
-	p := parser.New(l)
+	p := parser.New(l, file)
 
 	program := p.ParseProgram()
 	if len(p.Errors()) > 0 {
