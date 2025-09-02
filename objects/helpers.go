@@ -22,6 +22,13 @@ func NewError(token tokens.Token, env *Environment, format string, a ...interfac
 	return &err
 }
 
+func NewEmptyErrorWithParent(parent *Error, token tokens.Token, env *Environment) *Error {
+	err := NewError(token, env, "")
+	err.Parent = parent
+
+	return err
+}
+
 func IsError(obj Object) bool {
 	if obj == nil {
 		return false

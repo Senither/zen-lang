@@ -53,12 +53,12 @@ func TestVarReassignmentFailure(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{`var x = 5; x = 10; x;`, "Cannot modify immutable variable 'x' (at <unknown>:1:14)"},
-		{`var x = 3.14; x = 4.14; x;`, "Cannot modify immutable variable 'x' (at <unknown>:1:17)"},
-		{`var x = "hello"; x = "world"; x;`, "Cannot modify immutable variable 'x' (at <unknown>:1:20)"},
-		{`var name = "Senither"; name = "test"; name;`, "Cannot modify immutable variable 'name' (at <unknown>:1:29)"},
-		{`var arr = [1,2,3]; arr = ['another', 'array']; arr;`, "Cannot modify immutable variable 'arr' (at <unknown>:1:24)"},
-		{`var obj = {"key": "value"}; obj = {"key": "new value"}; obj;`, "Cannot modify immutable variable 'obj' (at <unknown>:1:33)"},
+		{`var x = 5; x = 10; x;`, "Cannot modify immutable variable 'x'\n    at <unknown>:1:14"},
+		{`var x = 3.14; x = 4.14; x;`, "Cannot modify immutable variable 'x'\n    at <unknown>:1:17"},
+		{`var x = "hello"; x = "world"; x;`, "Cannot modify immutable variable 'x'\n    at <unknown>:1:20"},
+		{`var name = "Senither"; name = "test"; name;`, "Cannot modify immutable variable 'name'\n    at <unknown>:1:29"},
+		{`var arr = [1,2,3]; arr = ['another', 'array']; arr;`, "Cannot modify immutable variable 'arr'\n    at <unknown>:1:24"},
+		{`var obj = {"key": "value"}; obj = {"key": "new value"}; obj;`, "Cannot modify immutable variable 'obj'\n    at <unknown>:1:33"},
 	}
 
 	for _, tt := range input {
@@ -83,8 +83,8 @@ func TestVarIncrementingStatements(t *testing.T) {
 		{`var mut x = 5; x++; x;`, 6},
 		{`var x = 3.14; x++; x;`, float64(4.14)},
 		{`var mut x = 3.14; x++; x;`, float64(4.14)},
-		{`var x = "hello"; x++; x;`, "unknown operator: ++STRING"},
-		{`var mut x = "hello"; x++; x;`, "unknown operator: ++STRING"},
+		{`var x = "hello"; x++; x;`, "unknown operator: ++STRING\n    at <unknown>:1:18"},
+		{`var mut x = "hello"; x++; x;`, "unknown operator: ++STRING\n    at <unknown>:1:22"},
 	}
 
 	for _, tt := range input {
@@ -110,8 +110,8 @@ func TestVarDecrementingStatements(t *testing.T) {
 		{`var mut x = 5; x--; x;`, 4},
 		{`var x = 3.14; x--; x;`, float64(2.14)},
 		{`var mut x = 3.14; x--; x;`, float64(2.14)},
-		{`var x = "hello"; x--; x;`, "unknown operator: --STRING"},
-		{`var mut x = "hello"; x--; x;`, "unknown operator: --STRING"},
+		{`var x = "hello"; x--; x;`, "unknown operator: --STRING\n    at <unknown>:1:18"},
+		{`var mut x = "hello"; x--; x;`, "unknown operator: --STRING\n    at <unknown>:1:22"},
 	}
 
 	for _, tt := range input {

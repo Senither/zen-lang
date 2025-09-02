@@ -210,11 +210,11 @@ func TestArrayIndexExpressions(t *testing.T) {
 		},
 		{
 			"[1, 2, 3][3]",
-			"array index out of bounds: 3",
+			"array index out of bounds: 3\n    at <unknown>:1:10",
 		},
 		{
 			"[1, 2, 3][-4]",
-			"array index out of bounds: -4",
+			"array index out of bounds: -4\n    at <unknown>:1:10",
 		},
 	}
 
@@ -347,7 +347,7 @@ func TestChainedHashIndexExpressions(t *testing.T) {
 		},
 		{
 			`var x = {"foo": 5}; x.bar`,
-			"invalid chain expression for HASH, key not found: bar",
+			"invalid chain expression for HASH, key not found: bar\n    at <unknown>:1:22",
 		},
 	}
 
@@ -430,11 +430,11 @@ func TestReassigningArrayIndexExpressionsErrors(t *testing.T) {
 	}{
 		{
 			"var x = [1, 2, 3]; x[3] = 99;",
-			"array index out of bounds: 3",
+			"array index out of bounds: 3\n    at <unknown>:1:25",
 		},
 		{
 			"var x = [1, 2, 3]; x[-4] = 99;",
-			"array index out of bounds: -4",
+			"array index out of bounds: -4\n    at <unknown>:1:26",
 		},
 	}
 

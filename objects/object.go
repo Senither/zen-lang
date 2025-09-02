@@ -164,16 +164,40 @@ type Error struct {
 	File    string
 	Line    int
 	Column  int
+	Parent  *Error
 }
 
 func (e *Error) Type() ObjectType { return ERROR_OBJ }
 func (e *Error) Inspect() string {
+	var out bytes.Buffer
+
+	if e.Parent != nil {
+		out.WriteString(e.Parent.Inspect())
+	}
+
 	file := "<unknown>"
 	if e.Path != "" && e.File != "" {
 		file = e.Path + string(os.PathSeparator) + e.File
 	}
 
-	return fmt.Sprintf("%s (at %s:%d:%d)", e.Message, file, e.Line, e.Column)
+	if e.Parent == nil {
+		out.WriteString(fmt.Sprintf("%s\n    at %s:%d:%d", e.Message, file, e.Line, e.Column))
+	} else {
+		out.WriteString(fmt.Sprintf("\n    at %s:%d:%d", file, e.Line, e.Column))
+	}
+
+	seen := make(map[string]struct{})
+	unique := []string{}
+
+	lines := strings.Split(out.String(), "\n")
+	for _, line := range lines {
+		if _, exists := seen[line]; !exists {
+			seen[line] = struct{}{}
+			unique = append(unique, line)
+		}
+	}
+
+	return strings.Join(unique, "\n")
 }
 
 type Function struct {

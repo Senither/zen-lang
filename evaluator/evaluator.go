@@ -723,11 +723,17 @@ func evalExpressions(exps []ast.Expression, env *objects.Environment) []objects.
 
 func evalCallExpression(node *ast.CallExpression, function objects.Object, env *objects.Environment) objects.Object {
 	args := evalExpressions(node.Arguments, env)
+
 	if len(args) == 1 && objects.IsError(args[0]) {
-		return args[0]
+		return objects.NewEmptyErrorWithParent(args[0].(*objects.Error), node.GetToken(), env)
 	}
 
-	return applyFunction(node, function, args, env)
+	result := applyFunction(node, function, args, env)
+	if objects.IsError(result) {
+		return objects.NewEmptyErrorWithParent(result.(*objects.Error), node.GetToken(), env)
+	}
+
+	return result
 }
 
 func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) objects.Object {

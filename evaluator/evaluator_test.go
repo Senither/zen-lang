@@ -16,51 +16,69 @@ func TestErrorHandling(t *testing.T) {
 	}{
 		{
 			"5 + true;",
-			"type mismatch: INTEGER + BOOLEAN",
+			"type mismatch: INTEGER + BOOLEAN\n    at <unknown>:1:3",
 		},
 		{
 			"5 + true; 5;",
-			"type mismatch: INTEGER + BOOLEAN",
+			"type mismatch: INTEGER + BOOLEAN\n    at <unknown>:1:3",
 		},
 		{
 			"-true",
-			"unknown operator: -BOOLEAN",
+			"unknown operator: -BOOLEAN\n    at <unknown>:1:1",
 		},
 		{
 			"true + false;",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"unknown operator: BOOLEAN + BOOLEAN\n    at <unknown>:1:6",
 		},
 		{
 			"true + false + true + false;",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"unknown operator: BOOLEAN + BOOLEAN\n    at <unknown>:1:6",
 		},
 		{
 			"5; true + false; 5",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"unknown operator: BOOLEAN + BOOLEAN\n    at <unknown>:1:9",
 		},
 		{
 			"if (10 > 1) { true + false; }",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"unknown operator: BOOLEAN + BOOLEAN\n    at <unknown>:1:20",
 		},
 		{
 			`
-if (10 > 1) {
-  if (10 > 1) {
-    return true + false;
-  }
+			if (10 > 1) {
+				if (10 > 1) {
+					return true + false;
+				}
 
-  return 1;
-}
-`,
-			"unknown operator: BOOLEAN + BOOLEAN",
+				return 1;
+			}
+		`,
+			"unknown operator: BOOLEAN + BOOLEAN\n    at <unknown>:4:18",
 		},
 		{
 			"foobar",
-			"identifier not found: foobar",
+			"identifier not found: foobar\n    at <unknown>:1:1",
 		},
 		{
 			`{"name": "value"}[func (x) { x }]`,
-			"invalid type given as hash key: FUNCTION",
+			"invalid type given as hash key: FUNCTION\n    at <unknown>:1:18",
+		},
+		{
+			`
+			func a(x) {
+				return x();
+			}
+			func b(y) {
+				return y(a);
+			}
+			func c(z) {
+				return z(b);
+			}
+
+			println(c(func () {
+				return true + false;
+			}));
+			`,
+			"unknown operator: BOOLEAN + BOOLEAN\n    at <unknown>:13:17\n    at <unknown>:9:13\n    at <unknown>:12:13\n    at <unknown>:12:11",
 		},
 	}
 
@@ -73,8 +91,8 @@ if (10 > 1) {
 			continue
 		}
 
-		if errObj.Message != tt.expectedMessage {
-			t.Errorf("wrong error message. expected %q, got %q", tt.expectedMessage, errObj.Message)
+		if errObj.Inspect() != tt.expectedMessage {
+			t.Errorf("wrong error message. expected %q, got %q", tt.expectedMessage, errObj.Inspect())
 		}
 	}
 }
@@ -309,8 +327,8 @@ func testErrorObject(t *testing.T, obj objects.Object, expected string) bool {
 		return false
 	}
 
-	if err.Message != expected {
-		t.Errorf("object has wrong message. got %q, expected %q", err.Message, expected)
+	if err.Inspect() != expected {
+		t.Errorf("object has wrong message. got %q, expected %q", err.Inspect(), expected)
 		return false
 	}
 
