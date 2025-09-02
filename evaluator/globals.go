@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/objects"
 )
 
@@ -12,28 +13,36 @@ var globals = map[string]*objects.ImmutableHash{}
 func registerGlobals() {
 	globals = map[string]*objects.ImmutableHash{
 		"arrays": objects.BuildImmutableHash(
-			objects.WrapBuiltinFunctionInMap("push", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("push", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) != 2 {
-					return newError("wrong number of arguments. got %d, want 2", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 2", len(args))
 				}
 
 				array, ok := args[0].(*objects.Array)
 				if !ok {
-					return newError("argument to `push` must be an array, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `push` must be an array, got %s", args[0].Type())
 				}
 
 				array.Elements = append(array.Elements, args[1])
 
 				return array
 			}),
-			objects.WrapBuiltinFunctionInMap("shift", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("shift", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) != 1 {
-					return newError("wrong number of arguments. got %d, want 1", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 1", len(args))
 				}
 
 				array, ok := args[0].(*objects.Array)
 				if !ok {
-					return newError("argument to `shift` must be an array, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `shift` must be an array, got %s", args[0].Type())
 				}
 
 				if len(array.Elements) == 0 {
@@ -45,14 +54,18 @@ func registerGlobals() {
 
 				return first
 			}),
-			objects.WrapBuiltinFunctionInMap("pop", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("pop", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) != 1 {
-					return newError("wrong number of arguments. got %d, want 1", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 1", len(args))
 				}
 
 				array, ok := args[0].(*objects.Array)
 				if !ok {
-					return newError("argument to `pop` must be an array, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `pop` must be an array, got %s", args[0].Type())
 				}
 
 				if len(array.Elements) == 0 {
@@ -64,23 +77,27 @@ func registerGlobals() {
 
 				return last
 			}),
-			objects.WrapBuiltinFunctionInMap("filter", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("filter", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) != 2 {
-					return newError("wrong number of arguments. got %d, want 2", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 2", len(args))
 				}
 
 				array, ok := args[0].(*objects.Array)
 				if !ok {
-					return newError("argument to `filter` must be an array, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `filter` must be an array, got %s", args[0].Type())
 				}
 
 				callback, ok := args[1].(*objects.Function)
 				if !ok {
-					return newError("second argument to `filter` must be a function, got %s", args[1].Type())
+					return objects.NewError(node.Token, env, "second argument to `filter` must be a function, got %s", args[1].Type())
 				}
 
 				if callback.Parameters == nil || len(callback.Parameters) != 1 {
-					return newError("function passed to `filter` must take exactly one argument")
+					return objects.NewError(node.Token, env, "function passed to `filter` must take exactly one argument")
 				}
 
 				filtered := make([]objects.Object, 0)
@@ -96,7 +113,7 @@ func registerGlobals() {
 							filtered = append(filtered, elem)
 						}
 					default:
-						return newError("function passed to `filter` must return a boolean, got %s", rs.Type())
+						return objects.NewError(node.Token, env, "function passed to `filter` must return a boolean, got %s", rs.Type())
 					}
 				}
 
@@ -105,19 +122,23 @@ func registerGlobals() {
 		),
 
 		"strings": objects.BuildImmutableHash(
-			objects.WrapBuiltinFunctionInMap("contains", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("contains", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) != 2 {
-					return newError("wrong number of arguments. got %d, want 2", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 2", len(args))
 				}
 
 				str, ok := args[0].(*objects.String)
 				if !ok {
-					return newError("argument to `contains` must be a string, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `contains` must be a string, got %s", args[0].Type())
 				}
 
 				substr, ok := args[1].(*objects.String)
 				if !ok {
-					return newError("second argument to `contains` must be a string, got %s", args[1].Type())
+					return objects.NewError(node.Token, env, "second argument to `contains` must be a string, got %s", args[1].Type())
 				}
 
 				if strings.Contains(str.Value, substr.Value) {
@@ -126,19 +147,23 @@ func registerGlobals() {
 
 				return FALSE
 			}),
-			objects.WrapBuiltinFunctionInMap("split", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("split", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) != 2 {
-					return newError("wrong number of arguments. got %d, want 2", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 2", len(args))
 				}
 
 				str, ok := args[0].(*objects.String)
 				if !ok {
-					return newError("argument to `contains` must be a string, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `contains` must be a string, got %s", args[0].Type())
 				}
 
 				substr, ok := args[1].(*objects.String)
 				if !ok {
-					return newError("second argument to `contains` must be a string, got %s", args[1].Type())
+					return objects.NewError(node.Token, env, "second argument to `contains` must be a string, got %s", args[1].Type())
 				}
 
 				arr := strings.Split(str.Value, substr.Value)
@@ -150,19 +175,23 @@ func registerGlobals() {
 
 				return &objects.Array{Elements: elements}
 			}),
-			objects.WrapBuiltinFunctionInMap("join", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("join", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) != 2 {
-					return newError("wrong number of arguments. got %d, want 2", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 2", len(args))
 				}
 
 				arr, ok := args[0].(*objects.Array)
 				if !ok {
-					return newError("argument to `join` must be an array, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `join` must be an array, got %s", args[0].Type())
 				}
 
 				sep, ok := args[1].(*objects.String)
 				if !ok {
-					return newError("second argument to `join` must be a string, got %s", args[1].Type())
+					return objects.NewError(node.Token, env, "second argument to `join` must be a string, got %s", args[1].Type())
 				}
 
 				var elements []string
@@ -177,14 +206,18 @@ func registerGlobals() {
 
 				return &objects.String{Value: strings.Join(elements, sep.Value)}
 			}),
-			objects.WrapBuiltinFunctionInMap("format", func(args ...objects.Object) objects.Object {
+			objects.WrapBuiltinFunctionInMap("format", func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
 				if len(args) < 2 {
-					return newError("wrong number of arguments. got %d, want at least 2", len(args))
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want at least 2", len(args))
 				}
 
 				str, ok := args[0].(*objects.String)
 				if !ok {
-					return newError("argument to `contains` must be a string, got %s", args[0].Type())
+					return objects.NewError(node.Token, env, "argument to `contains` must be a string, got %s", args[0].Type())
 				}
 
 				var values []any

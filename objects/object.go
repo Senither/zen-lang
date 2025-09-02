@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
+	"os"
 	"strings"
 
 	"github.com/senither/zen-lang/ast"
@@ -159,10 +160,21 @@ func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
 
 type Error struct {
 	Message string
+	Path    string
+	File    string
+	Line    int
+	Column  int
 }
 
 func (e *Error) Type() ObjectType { return ERROR_OBJ }
-func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
+func (e *Error) Inspect() string {
+	file := "<unknown>"
+	if e.Path != "" && e.File != "" {
+		file = e.Path + string(os.PathSeparator) + e.File
+	}
+
+	return fmt.Sprintf("%s (at %s:%d:%d)", e.Message, file, e.Line, e.Column)
+}
 
 type Function struct {
 	Name       *ast.Identifier
@@ -193,7 +205,7 @@ func (f *Function) Inspect() string {
 	return out.String()
 }
 
-type BuiltinFunction func(args ...Object) Object
+type BuiltinFunction func(node *ast.CallExpression, env *Environment, args ...Object) Object
 
 type Builtin struct {
 	Fn BuiltinFunction

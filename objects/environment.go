@@ -3,6 +3,8 @@ package objects
 import (
 	"fmt"
 	"path/filepath"
+
+	"github.com/senither/zen-lang/ast"
 )
 
 type Environment struct {
@@ -65,11 +67,11 @@ func (e *Environment) GetStateItem(name string) (EnvironmentStateItem, bool) {
 	return val, ok
 }
 
-func (e *Environment) Set(name string, val Object, mutable bool) Object {
+func (e *Environment) Set(node ast.Node, name string, val Object, mutable bool) Object {
 	item, ok := e.GetStateItem(name)
 	if ok {
 		if !item.mutable {
-			return &Error{Message: fmt.Sprintf("Cannot modify immutable variable '%s'", name)}
+			return NewError(node.GetToken(), e, "Cannot modify immutable variable '%s'", name)
 		}
 
 		mutable = item.mutable
