@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"bytes"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -667,6 +668,8 @@ func evalNumberInfixExpression(
 		return wrapNumberValue(leftVal-rightVal, left, right)
 	case "*":
 		return wrapNumberValue(leftVal*rightVal, left, right)
+	case "%":
+		return wrapNumberValue(math.Mod(leftVal, rightVal), left, right)
 	case "/":
 		return wrapNumberValue(leftVal/rightVal, left, right)
 	case "<":

@@ -14,7 +14,7 @@ const (
 	EQUALS      // == or !=
 	LESSGREATER // < or >
 	SUM         // + -
-	PRODUCT     // *
+	PRODUCT     // * / %
 	PREFIX      //-x or !y
 	CALL        // myFunction(x)
 	INDEX       // array[index]
@@ -31,6 +31,7 @@ var precedences = map[tokens.TokenType]int{
 	tokens.MINUS:    SUM,
 	tokens.SLASH:    PRODUCT,
 	tokens.ASTERISK: PRODUCT,
+	tokens.MOD:      PRODUCT,
 	tokens.LPAREN:   CALL,
 	tokens.LBRACKET: INDEX,
 }
