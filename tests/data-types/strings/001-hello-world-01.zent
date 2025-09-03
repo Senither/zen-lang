@@ -1,5 +1,5 @@
 --TEST--
-Can evaluate string expressions
+Can evaluate string expressions with double quotes
 --FILE--
 println("hello");
 println("world");

@@ -1,0 +1,6 @@
+--TEST--
+Subtractions with long numbers and parentheses
+--FILE--
+(123456789.987654321 - 987654321.123456789) - 123456789.55564
+--EXPECT--
+-987654320.691442

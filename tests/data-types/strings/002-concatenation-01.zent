@@ -1,5 +1,5 @@
 --TEST--
-Can concatenate strings
+Can concatenate strings with double quotes
 --FILE--
 println("Hello" + " " + "World!");
 --EXPECT--

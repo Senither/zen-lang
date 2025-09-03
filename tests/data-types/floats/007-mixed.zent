@@ -1,0 +1,6 @@
+--TEST--
+Mixed math operations with floats
+--FILE--
+(12345.678 * (4.25 / 2.8 - 19.87)) % 12.3 + 4.646324
+--EXPECT--
+1.000000

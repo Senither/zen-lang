@@ -1,0 +1,8 @@
+--TEST--
+Can use mixed quotes inside strings
+--FILE--
+println('He"llo" W"orl"d!');
+println("He'llo' W'orl'd!");
+--EXPECT--
+He"llo" W"orl"d!
+He'llo' W'orl'd!

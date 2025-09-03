@@ -1,0 +1,6 @@
+--TEST--
+Multiply with negative numbers
+--FILE--
+-2.25 * -11.11
+--EXPECT--
+24.997500

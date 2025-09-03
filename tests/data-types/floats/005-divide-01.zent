@@ -1,0 +1,6 @@
+--TEST--
+Divide with two numbers
+--FILE--
+10.01 / 5.5
+--EXPECT--
+1.820000

@@ -1,0 +1,6 @@
+--TEST--
+Subtractions with negative numbers
+--FILE--
+-5.25 - -10.75
+--EXPECT--
+5.500000

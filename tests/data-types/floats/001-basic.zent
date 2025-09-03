@@ -1,0 +1,6 @@
+--TEST--
+Defines a float
+--FILE--
+3.14
+--EXPECT--
+3.140000

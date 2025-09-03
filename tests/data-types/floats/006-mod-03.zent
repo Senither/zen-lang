@@ -1,0 +1,6 @@
+--TEST--
+Modulo with zero remainder
+--FILE--
+10.5 % 5.25
+--EXPECT--
+0.000000

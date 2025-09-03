@@ -1,0 +1,6 @@
+--TEST--
+Subtractions with two numbers
+--FILE--
+10.5 - 4.5
+--EXPECT--
+6.000000

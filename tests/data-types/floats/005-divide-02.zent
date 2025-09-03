@@ -1,0 +1,6 @@
+--TEST--
+Divide with negative numbers
+--FILE--
+975 / -13.57
+--EXPECT--
+-71.849668

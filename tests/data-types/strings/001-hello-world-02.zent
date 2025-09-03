@@ -1,0 +1,10 @@
+--TEST--
+Can evaluate string expressions with single quotes
+--FILE--
+println('hello');
+println('world');
+println('Hello, world!');
+--EXPECT--
+hello
+world
+Hello, world!

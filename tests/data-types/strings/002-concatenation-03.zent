@@ -1,0 +1,6 @@
+--TEST--
+Can concatenate strings with mixed quotes
+--FILE--
+println('Hello' + " " + 'World!');
+--EXPECT--
+Hello World!

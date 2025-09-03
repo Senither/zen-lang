@@ -1,0 +1,6 @@
+--TEST--
+Divide with long numbers and parentheses
+--FILE--
+(1234567.89 / -3.25) / (9876543.21 / -5.75)
+--EXPECT--
+0.221154
