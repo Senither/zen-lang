@@ -30,6 +30,11 @@ var (
 	exitStatusCode  = 0
 )
 
+var (
+	totalTimeTakenForParsing    = time.Duration(0)
+	totalTimeTakenForEvaluation = time.Duration(0)
+)
+
 func init() {
 	rootCommand.AddCommand(testCommand)
 }
@@ -96,7 +101,14 @@ var testCommand = &cobra.Command{
 			fmt.Println()
 		}
 
-		fmt.Printf("Finished running the test suite in %s\nTime taken %s\n\n", absolutePath, time.Since(start))
+		timeTaken := time.Since(start)
+
+		fmt.Printf("Finished running the test suite in %s\n\n", absolutePath)
+		fmt.Printf("   Reading files: %s\n", timeTaken-totalTimeTakenForParsing-totalTimeTakenForEvaluation)
+		fmt.Printf("  Lexer + Parser: %s\n", totalTimeTakenForParsing)
+		fmt.Printf("      Evaluation: %s\n", totalTimeTakenForEvaluation)
+		fmt.Printf("           Total: %s\n", timeTaken)
+		fmt.Printf("\n")
 
 		os.Exit(exitStatusCode)
 	},
@@ -173,10 +185,13 @@ func runTestFile(fullPath, file string) {
 	test.expect = cleanString(test.expect)
 	test.errors = cleanString(test.errors)
 
+	startParserTimer := time.Now()
 	l := lexer.New(test.file)
 	p := parser.New(l, file)
 
 	program := p.ParseProgram()
+	totalTimeTakenForParsing += time.Since(startParserTimer)
+
 	if len(p.Errors()) > 0 {
 		msg := []string{"Parser errors found"}
 		for _, err := range p.Errors() {
@@ -186,7 +201,9 @@ func runTestFile(fullPath, file string) {
 		return
 	}
 
+	startEvaluatorTimer := time.Now()
 	runTestWithEvaluator(test, fullPath, file, program)
+	totalTimeTakenForEvaluation += time.Since(startEvaluatorTimer)
 }
 
 func runTestWithEvaluator(test TestInstance, fullPath, file string, program *ast.Program) {
