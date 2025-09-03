@@ -777,7 +777,7 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 	}
 
 	if objects.IsError(evaluated) {
-		return evaluated
+		return objects.NewEmptyErrorWithParent(evaluated.(*objects.Error), node.GetToken(), env)
 	}
 
 	hash := objects.CreateImmutableHashFromEnvExports(newEnv)
