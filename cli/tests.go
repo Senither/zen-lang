@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/objects"
@@ -18,6 +19,7 @@ type TestInstance struct {
 	message string
 	file    string
 	expect  string
+	errors  string
 }
 
 var (
@@ -137,6 +139,7 @@ func runTestFile(fullPath, file string) {
 		message: "",
 		file:    "",
 		expect:  "",
+		errors:  "",
 	}
 
 	for line := range strings.SplitSeq(string(content), "\n") {
@@ -146,6 +149,8 @@ func runTestFile(fullPath, file string) {
 			key = "file"
 		} else if strings.HasPrefix(line, "--EXPECT--") || strings.HasPrefix(line, "---EXPECT---") {
 			key = "expect"
+		} else if strings.HasPrefix(line, "--ERROR--") || strings.HasPrefix(line, "---ERROR---") {
+			key = "errors"
 		}
 
 		if strings.HasPrefix(line, "--") {
@@ -159,11 +164,14 @@ func runTestFile(fullPath, file string) {
 			test.file += line + "\n"
 		case "expect":
 			test.expect += line + "\n"
+		case "errors":
+			test.errors += line + "\n"
 		}
 	}
 
 	test.file = cleanString(test.file)
 	test.expect = cleanString(test.expect)
+	test.errors = cleanString(test.errors)
 
 	l := lexer.New(test.file)
 	p := parser.New(l, file)
@@ -178,6 +186,10 @@ func runTestFile(fullPath, file string) {
 		return
 	}
 
+	runTestWithEvaluator(test, fullPath, file, program)
+}
+
+func runTestWithEvaluator(test TestInstance, fullPath, file string, program *ast.Program) {
 	evaluated := evaluator.Stdout.Mute(func() objects.Object {
 		env := objects.NewEnvironment(file)
 		return evaluator.Eval(program, env)
@@ -188,16 +200,9 @@ func runTestFile(fullPath, file string) {
 		return
 	}
 
-	if evaluated.Type() == objects.ERROR_OBJ {
-		printErrorStatusMessage(
-			test,
-			fullPath,
-			fmt.Sprintf("%s    %s", "Evaluator returned an error", evaluated.Inspect()),
-		)
-		return
-	}
-
-	if evaluated.Type() != objects.NULL_OBJ {
+	if objects.IsError(evaluated) {
+		reevaluateThenCompareWithErrors(test, fullPath, program)
+	} else if evaluated.Type() != objects.NULL_OBJ {
 		compareEvaluatedWithExpected(test, fullPath, evaluated)
 	} else {
 		compareStandardOutputWithExpected(test, fullPath)
@@ -210,10 +215,36 @@ func compareEvaluatedWithExpected(test TestInstance, fullPath string, evaluated 
 			test,
 			fullPath,
 			fmt.Sprintf(
-				"%s\n     Got: %s\n     Want: %s",
+				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
 				"Test expectation does not match the evaluated result",
 				strings.Trim(evaluated.Inspect(), "\n"),
 				test.expect,
+			),
+		)
+		return
+	}
+
+	printSuccessStatusMessage(test)
+}
+
+func reevaluateThenCompareWithErrors(test TestInstance, fullPath string, program *ast.Program) {
+	evaluated := evaluator.Stdout.Mute(func() objects.Object {
+		env := objects.NewEnvironment(nil)
+		return evaluator.Eval(program, env)
+	})
+
+	if strings.Trim(evaluated.Inspect(), "\n") != test.errors {
+		var message = "Test expectation does not match the evaluated result"
+		if len(test.errors) == 0 {
+			message = "No error expectation were provided, despite the result being *objects.Error"
+		}
+
+		printErrorStatusMessage(
+			test,
+			fullPath,
+			fmt.Sprintf(
+				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
+				message, strings.Trim(evaluated.Inspect(), "\n"), test.errors,
 			),
 		)
 		return
@@ -235,7 +266,7 @@ func compareStandardOutputWithExpected(test TestInstance, fullPath string) {
 			test,
 			fullPath,
 			fmt.Sprintf(
-				"%s\n     Got: %s\n     Want: %s\n",
+				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
 				"Test expectation does not match the standard output",
 				out,
 				test.expect,
