@@ -33,8 +33,6 @@ var astCommand = &cobra.Command{
 			return
 		}
 
-		fmt.Printf("Args: %v\n", args)
-
 		scanner := bufio.NewScanner(os.Stdin)
 
 		fmt.Println("Welcome to the Zen AST generator, type your code below to see the AST output.")
