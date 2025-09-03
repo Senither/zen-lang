@@ -1,0 +1,8 @@
+--TEST--
+Println integers
+--FILE--
+println(123456789);
+println(987654321);
+--EXPECT--
+123456789
+987654321

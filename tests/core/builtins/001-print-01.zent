@@ -1,0 +1,9 @@
+--TEST--
+Print "Hello World"
+--FILE--
+print("Hello");
+print(",");
+print(" ");
+print("World");
+--EXPECT--
+Hello, World

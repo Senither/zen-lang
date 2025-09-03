@@ -1,0 +1,6 @@
+--TEST--
+Modulo with negative numbers
+--FILE--
+10 % -5
+--EXPECT--
+0

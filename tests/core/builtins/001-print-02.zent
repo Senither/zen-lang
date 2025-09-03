@@ -1,0 +1,7 @@
+--TEST--
+Print integers
+--FILE--
+print(123456789);
+print(987654321);
+--EXPECT--
+123456789987654321

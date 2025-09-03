@@ -1,0 +1,10 @@
+--TEST--
+Println "Hello World" with new lines
+--FILE--
+println("Hello");
+println(",");
+println("World");
+--EXPECT--
+Hello
+,
+World

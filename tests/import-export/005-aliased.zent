@@ -1,7 +1,7 @@
 --TEST--
-Can evaluate aliased imports
+Can rename exported namespaces
 --FILE--
-import 'example' as somethingElse;
+import './files/functions' as somethingElse;
 
 println(somethingElse.functionOne);
 println(somethingElse.functionTwo);

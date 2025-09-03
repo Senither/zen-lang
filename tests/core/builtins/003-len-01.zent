@@ -1,0 +1,6 @@
+--TEST--
+Check length of string
+--FILE--
+len("Hello, World");
+--EXPECT--
+12

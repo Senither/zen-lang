@@ -1,0 +1,6 @@
+--TEST--
+Multiply with negative result
+--FILE--
+10 * -5
+--EXPECT--
+-50

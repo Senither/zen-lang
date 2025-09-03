@@ -1,0 +1,6 @@
+--TEST--
+Can import file with extension
+--FILE--
+import './files/print.zen';
+--EXPECT--
+Hello, World!

@@ -1,0 +1,8 @@
+--TEST--
+Println arrays
+--FILE--
+println([1, 2, 3, 4]);
+println([678, 912, 345]);
+--EXPECT--
+[1, 2, 3, 4]
+[678, 912, 345]

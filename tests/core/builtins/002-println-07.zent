@@ -1,0 +1,8 @@
+--TEST--
+Println builtins
+--FILE--
+println(println);
+println(len);
+--EXPECT--
+builtin function
+builtin function

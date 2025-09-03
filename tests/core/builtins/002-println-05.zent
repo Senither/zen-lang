@@ -1,0 +1,8 @@
+--TEST--
+Println hashes
+--FILE--
+println({"key1": "value1"});
+println({"key2": "value2"});
+--EXPECT--
+{key1: value1}
+{key2: value2}

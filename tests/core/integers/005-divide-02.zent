@@ -1,0 +1,6 @@
+--TEST--
+Divide with float result
+--FILE--
+10 / 3
+--EXPECT--
+3.333333

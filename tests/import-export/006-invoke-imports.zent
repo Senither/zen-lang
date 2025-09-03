@@ -1,0 +1,10 @@
+--TEST--
+Can invoke imported functions
+--FILE--
+import './files/functions' as fn;
+
+println(fn.functionOne());
+println(fn.functionTwo());
+--EXPECT--
+This is function one
+This is function two

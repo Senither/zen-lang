@@ -1,10 +1,10 @@
 --TEST--
-Can import file with extension
+Can import functions
 --FILE--
-import 'example.zen';
+import './files/functions'
 
-println(example.functionOne);
-println(example.functionTwo);
+println(functions.functionOne);
+println(functions.functionTwo);
 --EXPECT--
 functionOne() {
 return "This is function one";

@@ -1,0 +1,12 @@
+--TEST--
+Print multiple values
+--FILE--
+var str = "Hello, World!";
+var num = 42;
+var bool = true;
+var arr = [1, 2, 3];
+var obj = { "key": "value" };
+
+print(str, num, bool, arr, obj, print);
+--EXPECT--
+Hello, World!42true[1, 2, 3]{key: value}builtin function

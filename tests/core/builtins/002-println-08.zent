@@ -1,0 +1,17 @@
+--TEST--
+Println multiple values
+--FILE--
+var str = "Hello, World!";
+var num = 42;
+var bool = true;
+var arr = [1, 2, 3];
+var obj = { "key": "value" };
+
+println(str, num, bool, arr, obj, println);
+--EXPECT--
+Hello, World!
+42
+true
+[1, 2, 3]
+{key: value}
+builtin function

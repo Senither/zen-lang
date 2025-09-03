@@ -1,0 +1,7 @@
+--TEST--
+Print floats
+--FILE--
+print(1234.56789);
+print(987.654321);
+--EXPECT--
+1234.567890987.654321

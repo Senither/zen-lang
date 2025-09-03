@@ -1,0 +1,7 @@
+--TEST--
+Print builtins
+--FILE--
+print(print);
+print(len);
+--EXPECT--
+builtin functionbuiltin function

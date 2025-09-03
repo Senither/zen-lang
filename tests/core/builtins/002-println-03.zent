@@ -1,0 +1,8 @@
+--TEST--
+Println floats
+--FILE--
+println(1234.56789);
+println(987.654321);
+--EXPECT--
+1234.567890
+987.654321

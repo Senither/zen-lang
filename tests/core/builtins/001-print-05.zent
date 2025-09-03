@@ -1,0 +1,7 @@
+--TEST--
+Print hashes
+--FILE--
+print({"key1": "value1"});
+print({"key2": "value2"});
+--EXPECT--
+{key1: value1}{key2: value2}

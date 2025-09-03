@@ -1,0 +1,6 @@
+--TEST--
+Multiply with long numbers and parentheses
+--FILE--
+(123456 * 98765) * -(225 * 99) * -12345
+--EXPECT--
+3352926834880920064

@@ -1,0 +1,6 @@
+--TEST--
+Modulo with long numbers and parentheses
+--FILE--
+(100 % 3) + (123456789 % 2)
+--EXPECT--
+2

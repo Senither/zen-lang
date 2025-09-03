@@ -1,0 +1,7 @@
+--TEST--
+Can chain imports
+--FILE--
+import './files/another-import';
+--EXPECT--
+Hello, World!
+Another import

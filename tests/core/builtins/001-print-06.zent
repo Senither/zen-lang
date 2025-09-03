@@ -1,0 +1,19 @@
+--TEST--
+Print functions
+--FILE--
+func example() {
+    return 42;
+}
+
+func example2() {
+    return 43;
+}
+
+print(example);
+print(example2);
+--EXPECT--
+example() {
+return 42;
+}example2() {
+return 43;
+}
