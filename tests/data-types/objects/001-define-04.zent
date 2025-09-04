@@ -1,0 +1,11 @@
+--TEST--
+Can define an object with object values
+--FILE--
+var obj = {
+    "first": "some value",
+    "obj": {
+        "inner": "value",
+    },
+};
+--EXPECT--
+{obj: {inner: value}, first: some value}

@@ -1,0 +1,11 @@
+--TEST--
+Can define an object with mixed keys
+--FILE--
+var obj = {
+    "string": "string key",
+    123: "integer key",
+    3.14: "float key",
+    true: "boolean key"
+};
+--EXPECT--
+{true: boolean key, 3.140000: float key, 123: integer key, string: string key}

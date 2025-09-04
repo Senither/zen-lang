@@ -1,0 +1,22 @@
+--TEST--
+Can reassign values in an inner object
+--FILE--
+var obj = {
+    "string": "string key",
+    "inner": {
+        "a": 1,
+        "b": 2
+    }
+};
+
+obj.string = "new value";
+obj.newKey = "completely new value";
+obj.inner.a = 42;
+obj.anotherInner = {
+    "x": 100,
+    "y": 200
+};
+
+println(obj);
+--EXPECT--
+{inner: {a: 42, b: 2}, string: new value, anotherInner: {y: 200, x: 100}, newKey: completely new value}

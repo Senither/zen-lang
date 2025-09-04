@@ -1,0 +1,20 @@
+--TEST--
+Can reassign values in an object using indexing
+--FILE--
+var obj = {
+    "string": "string key",
+    123: "integer key",
+    3.14: "float key",
+    true: "boolean key"
+};
+
+obj["string"] = "new value";
+obj[123] = 13579;
+obj[3.14] = "pi";
+obj[true] = "truthy key";
+
+obj["newKey"] = "completely new value";
+
+println(obj);
+--EXPECT--
+{true: truthy key, 3.140000: pi, 123: 13579, string: new value, newKey: completely new value}

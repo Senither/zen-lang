@@ -1,0 +1,7 @@
+--TEST--
+Can define an object with expression keys
+--FILE--
+var key = "someKey";
+var obj = {key: "some value"};
+--EXPECT--
+{someKey: some value}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/senither/zen-lang/ast"
@@ -132,8 +133,21 @@ func (h *Hash) Type() ObjectType { return HASH_OBJ }
 func (h *Hash) Inspect() string {
 	var out bytes.Buffer
 
+	keys := make([]HashKey, 0, len(h.Pairs))
+	for k := range h.Pairs {
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].Type == keys[j].Type {
+			return keys[i].Value < keys[j].Value
+		}
+		return keys[i].Type < keys[j].Type
+	})
+
 	pairs := []string{}
-	for _, pair := range h.Pairs {
+	for _, k := range keys {
+		pair := h.Pairs[k]
 		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.Inspect(), pair.Value.Inspect()))
 	}
 

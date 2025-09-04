@@ -1,0 +1,10 @@
+--TEST--
+Can get values using chained expressions
+--FILE--
+var obj = {
+    "string": "string key",
+};
+
+println(obj.string)
+--EXPECT--
+string key

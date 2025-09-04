@@ -1,0 +1,6 @@
+--TEST--
+Can define an object
+--FILE--
+{"key": "value", "anotherKey": "another value"};
+--EXPECT--
+{key: value, anotherKey: another value}

@@ -1,0 +1,13 @@
+--TEST--
+Can reassign values in an object using chained expressions
+--FILE--
+var obj = {
+    "string": "string key",
+};
+
+obj.string = "new value";
+obj.newKey = "completely new value";
+
+println(obj);
+--EXPECT--
+{string: new value, newKey: completely new value}

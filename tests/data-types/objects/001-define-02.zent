@@ -1,0 +1,6 @@
+--TEST--
+Can define an object to a variable
+--FILE--
+var obj = {"key": "value", "anotherKey": "another value"};
+--EXPECT--
+{key: value, anotherKey: another value}

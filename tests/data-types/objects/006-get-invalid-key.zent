@@ -1,0 +1,11 @@
+--TEST--
+It returns null for invalid keys
+--FILE--
+var obj = {
+    "string": "string key",
+};
+
+
+println(obj["invalid-key"])
+--EXPECT--
+null

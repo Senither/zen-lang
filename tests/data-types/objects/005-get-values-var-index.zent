@@ -1,0 +1,20 @@
+--TEST--
+Can get values using variable as index
+--FILE--
+var obj = {
+    "string": "string key",
+    2: "integer key",
+    true: "boolean key",
+};
+
+var str = "str" + "ing";
+var num = 5 - 3;
+var bol = !false;
+
+println(obj[str])
+println(obj[num])
+println(obj[bol])
+--EXPECT--
+string key
+integer key
+boolean key

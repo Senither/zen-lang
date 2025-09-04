@@ -1,0 +1,24 @@
+--TEST--
+Can get values using indexing
+--FILE--
+var obj = {
+    "string": "string key",
+    123: "integer key",
+    3.14: "float key",
+    true: "boolean key",
+    "inner": {
+        "someKey": "another inner value",
+    }
+};
+
+println(obj["string"])
+println(obj[123])
+println(obj[3.14])
+println(obj[true])
+println(obj['inner']['someKey'])
+--EXPECT--
+string key
+integer key
+float key
+boolean key
+another inner value

@@ -1,0 +1,16 @@
+--TEST--
+Can get values using expressions as indices
+--FILE--
+var obj = {
+    "string": "string key",
+    2: "integer key",
+    true: "boolean key",
+};
+
+println(obj["str" + "ing"])
+println(obj[1 + 1])
+println(obj[!false])
+--EXPECT--
+string key
+integer key
+boolean key

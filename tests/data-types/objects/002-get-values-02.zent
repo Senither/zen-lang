@@ -1,0 +1,15 @@
+--TEST--
+Can get values using chained expressions
+--FILE--
+var obj = {
+    "string": "string key",
+    "inner": {
+        "someKey": "another inner value",
+    }
+};
+
+println(obj.string)
+println(obj.inner.someKey)
+--EXPECT--
+string key
+another inner value
