@@ -731,6 +731,11 @@ func evalCallExpression(node *ast.CallExpression, function objects.Object, env *
 		return objects.NewEmptyErrorWithParent(args[0].(*objects.Error), node.GetToken(), env)
 	}
 
+	functionObj, ok := function.(*objects.Function)
+	if ok && len(args) < len(functionObj.Parameters) {
+		return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want %d", len(args), len(functionObj.Parameters))
+	}
+
 	result := applyFunction(node, function, args, env)
 	if objects.IsError(result) {
 		return objects.NewEmptyErrorWithParent(result.(*objects.Error), node.GetToken(), env)

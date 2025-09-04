@@ -1,0 +1,14 @@
+--TEST--
+Can invoke recursive functions
+--FILE--
+func fibonacci(x) {
+    if (x < 2) {
+        x;
+    } else {
+        fibonacci(x - 1) + fibonacci(x - 2);
+    }
+};
+
+fibonacci(10);
+--EXPECT--
+55

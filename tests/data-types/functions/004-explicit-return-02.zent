@@ -1,0 +1,20 @@
+--TEST--
+Can return values from a function with nested explicit returns
+--FILE--
+func add(a, b) {
+    var result = a + b;
+
+    if (result > 0) {
+        return result;
+    } else {
+        return 0;
+    }
+}
+
+println(add(1, 2));
+println(add(5, 5));
+println(add(-5, 2));
+--EXPECT--
+3
+10
+0

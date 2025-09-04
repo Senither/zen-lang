@@ -1,0 +1,12 @@
+--TEST--
+Can take closures as arguments
+--FILE--
+func greetUser(greetingFunc, userName) {
+    println(greetingFunc(userName));
+}
+
+greetUser(func(name) {
+    return "Hello, " + name + "!";
+}, "Zen");
+--EXPECT--
+Hello, Zen!

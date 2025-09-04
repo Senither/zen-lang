@@ -1,0 +1,14 @@
+--TEST--
+Can return closures
+--FILE--
+func greeting(greet) {
+    return func(name) {
+        return greet + ", " + name + "!";
+    };
+}
+
+var greet = greeting("Hello")
+
+println(greet("Zen"));
+--EXPECT--
+Hello, Zen!

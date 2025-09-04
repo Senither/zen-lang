@@ -1,0 +1,10 @@
+--TEST--
+Can return values from a function with an implied return
+--FILE--
+func add(a, b) {
+    a + b;
+}
+
+add(1, 2);
+--EXPECT--
+3
