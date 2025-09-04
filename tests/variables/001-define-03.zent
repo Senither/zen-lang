@@ -1,0 +1,6 @@
+--TEST--
+Can define immutable variable without var keyword
+--FILE--
+num = 1;
+--EXPECT--
+1

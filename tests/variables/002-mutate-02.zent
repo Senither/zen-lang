@@ -1,0 +1,8 @@
+--TEST--
+It fails to assign new value to immutable variable (with var keyword)
+--FILE--
+var num = 1;
+num = 2;
+--ERROR--
+Cannot modify immutable variable 'num'
+    at <unknown>:2:5

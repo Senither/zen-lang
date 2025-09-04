@@ -1,0 +1,7 @@
+--TEST--
+Can assign new value to mutable variable
+--FILE--
+var mut num = 1;
+num = 2;
+--EXPECT--
+2

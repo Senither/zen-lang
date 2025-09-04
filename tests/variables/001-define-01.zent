@@ -1,0 +1,6 @@
+--TEST--
+Can define variable
+--FILE--
+var num = 1;
+--EXPECT--
+1
