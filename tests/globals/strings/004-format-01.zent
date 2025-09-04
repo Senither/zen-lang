@@ -1,0 +1,12 @@
+--TEST--
+Can format strings with different object types
+--FILE--
+println(strings.format("Hello, %s!", "World"));
+println(strings.format("Integer: %d", 42));
+println(strings.format("Float: %f", 3.14));
+println(strings.format("Boolean: %v", true));
+--EXPECT--
+Hello, World!
+Integer: 42
+Float: 3.140000
+Boolean: true

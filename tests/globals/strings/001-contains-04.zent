@@ -1,0 +1,8 @@
+--TEST--
+It fails when given non-strings as arguments
+--FILE--
+println(strings.contains(5, "World"));
+--ERROR--
+argument to `contains` must be a string, got INTEGER
+    at <unknown>:1:25
+    at <unknown>:1:8

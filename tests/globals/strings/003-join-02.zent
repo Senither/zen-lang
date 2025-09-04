@@ -1,0 +1,6 @@
+--TEST--
+Can join strings using empty delimiter
+--FILE--
+println(strings.join(["Hello", "World!"], ""));
+--EXPECT--
+HelloWorld!

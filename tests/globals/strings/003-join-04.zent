@@ -1,0 +1,8 @@
+--TEST--
+It fails when called with wrong number of arguments
+--FILE--
+println(strings.join(5, "test"));
+--ERROR--
+argument to `join` must be an array, got INTEGER
+    at <unknown>:1:21
+    at <unknown>:1:8

@@ -1,0 +1,8 @@
+--TEST--
+Can check if a string contains a substring
+--FILE--
+println(strings.contains("Hello, World!", "!"));
+println(strings.contains("Hello, World!", "Zen"));
+--EXPECT--
+true
+false

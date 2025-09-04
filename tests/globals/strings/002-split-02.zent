@@ -1,0 +1,6 @@
+--TEST--
+Can split string using empty delimiter
+--FILE--
+println(strings.split("Hello, World!", ""));
+--EXPECT--
+[H, e, l, l, o, ,,  , W, o, r, l, d, !]

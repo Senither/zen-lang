@@ -1,0 +1,8 @@
+--TEST--
+It fails when called with wrong number of arguments
+--FILE--
+println(strings.format());
+--ERROR--
+wrong number of arguments. got 0, want at least 2
+    at <unknown>:1:23
+    at <unknown>:1:8

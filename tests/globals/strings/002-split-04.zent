@@ -1,0 +1,8 @@
+--TEST--
+It fails when called with wrong number of arguments
+--FILE--
+println(strings.split());
+--ERROR--
+wrong number of arguments. got 0, want 2
+    at <unknown>:1:22
+    at <unknown>:1:8

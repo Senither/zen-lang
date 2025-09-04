@@ -1,0 +1,8 @@
+--TEST--
+Can join strings with different separators
+--FILE--
+println(strings.join(["Hello", "World!"], ", "));
+println(strings.join(["Hello", "World!"], "-"));
+--EXPECT--
+Hello, World!
+Hello-World!

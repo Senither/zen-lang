@@ -1,0 +1,6 @@
+--TEST--
+Can split into single element array if delimiter not found
+--FILE--
+println(strings.split("Hello, World!", "-"));
+--EXPECT--
+[Hello, World!]

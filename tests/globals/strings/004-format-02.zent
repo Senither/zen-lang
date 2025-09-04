@@ -1,0 +1,6 @@
+--TEST--
+Can format strings with multiple arguments
+--FILE--
+println(strings.format("1:%s, 2:%d, 3:%f, 4:%v", "World", 42, 3.14, true));
+--EXPECT--
+1:World, 2:42, 3:3.140000, 4:true

@@ -1,0 +1,6 @@
+--TEST--
+It can format invalid replacement types
+--FILE--
+println(strings.format("%s %d", 5, "test", true, 3.14));
+--EXPECT--
+%!s(int64=5) %!d(string=test)%!(EXTRA bool=true, float64=3.14)

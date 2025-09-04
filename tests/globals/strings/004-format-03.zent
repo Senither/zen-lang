@@ -1,0 +1,12 @@
+--TEST--
+Can format objects into their type representations
+--FILE--
+println(strings.format("%#T", "World"));
+println(strings.format("%#T", 42));
+println(strings.format("%#T", 3.14));
+println(strings.format("%#T", true));
+--EXPECT--
+string
+int64
+float64
+bool
