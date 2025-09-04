@@ -1,0 +1,6 @@
+--TEST--
+Can push new values to an array
+--FILE--
+arrays.push([1,2,3,4], 5);
+--EXPECT--
+[1, 2, 3, 4, 5]

@@ -1,0 +1,6 @@
+--TEST--
+Can shift values from an array
+--FILE--
+arrays.shift([1,2,3,4]);
+--EXPECT--
+1

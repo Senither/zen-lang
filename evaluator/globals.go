@@ -112,6 +112,9 @@ func registerGlobals() {
 						if rs == TRUE {
 							filtered = append(filtered, elem)
 						}
+					case *objects.Error:
+						return objects.NewEmptyErrorWithParent(rs, node.Token, env)
+
 					default:
 						return objects.NewError(node.Token, env, "function passed to `filter` must return a boolean, got %s", rs.Type())
 					}

@@ -1,0 +1,8 @@
+--TEST--
+It fails when given non-arrays as the first argument
+--FILE--
+println(arrays.shift(5));
+--ERROR--
+argument to `shift` must be an array, got INTEGER
+    at <unknown>:1:21
+    at <unknown>:1:8

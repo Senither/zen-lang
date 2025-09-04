@@ -1,0 +1,10 @@
+--TEST--
+Can push new values to a variable array
+--FILE--
+var arr = [1,2,3,4];
+
+arrays.push(arr, 5);
+
+arr;
+--EXPECT--
+[1, 2, 3, 4, 5]

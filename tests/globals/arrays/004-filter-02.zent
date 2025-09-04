@@ -1,0 +1,11 @@
+--TEST--
+Can filter values from a variable array
+--FILE--
+var arr = [1,2,3,4];
+var result = arrays.filter(arr, func(x) { return x > 2; });
+
+println(result);
+println(arr);
+--EXPECT--
+[3, 4]
+[1, 2, 3, 4]

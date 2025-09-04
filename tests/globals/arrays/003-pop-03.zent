@@ -1,0 +1,16 @@
+--TEST--
+Can continuously pop values from an array
+--FILE--
+var arr = [1,2,3,4];
+
+println(arrays.pop(arr));
+println(arrays.pop(arr));
+println(arrays.pop(arr));
+println(arrays.pop(arr));
+println(arrays.pop(arr));
+--EXPECT--
+4
+3
+2
+1
+null

@@ -1,0 +1,10 @@
+--TEST--
+Can shift values from a variable array
+--FILE--
+var arr = [1,2,3,4];
+
+println(arrays.shift(arr));
+println(arr);
+--EXPECT--
+1
+[2, 3, 4]

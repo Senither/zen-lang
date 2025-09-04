@@ -1,0 +1,6 @@
+--TEST--
+Can pop values from an array
+--FILE--
+arrays.pop([1,2,3,4]);
+--EXPECT--
+4

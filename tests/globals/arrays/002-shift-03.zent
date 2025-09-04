@@ -1,0 +1,16 @@
+--TEST--
+Can continuously shift values from an array
+--FILE--
+var arr = [1,2,3,4];
+
+println(arrays.shift(arr));
+println(arrays.shift(arr));
+println(arrays.shift(arr));
+println(arrays.shift(arr));
+println(arrays.shift(arr));
+--EXPECT--
+1
+2
+3
+4
+null

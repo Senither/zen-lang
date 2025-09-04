@@ -1,0 +1,10 @@
+--TEST--
+Can pop values from a variable array
+--FILE--
+var arr = [1,2,3,4];
+
+println(arrays.pop(arr));
+println(arr);
+--EXPECT--
+4
+[1, 2, 3]
