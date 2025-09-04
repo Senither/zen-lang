@@ -71,8 +71,7 @@ var testCommand = &cobra.Command{
 		for dir, files := range groupedTestFiles {
 			messages = []string{}
 
-			dirPath := strings.TrimLeft(filepath.Join(absolutePath, dir), absolutePath)
-			fullPath := fmt.Sprintf("%s%s%s", testDirectory, string(os.PathSeparator), dirPath)
+			fullPath := fmt.Sprintf("%s%s%s", testDirectory, string(os.PathSeparator), dir[len(absolutePath)+1:])
 
 			errorsCount := len(collectedErrors)
 			for _, file := range files {
