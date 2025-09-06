@@ -1,0 +1,42 @@
+--TEST--
+Can break out of a while loop
+--FILE--
+var num = 0;
+
+while (num < 100) {
+    num++;
+
+    println("Comparing " + string(num) + " < 100");
+    if (num == 25) {
+        break;
+    }
+}
+
+println("Done");
+--EXPECT--
+Comparing 1 < 100
+Comparing 2 < 100
+Comparing 3 < 100
+Comparing 4 < 100
+Comparing 5 < 100
+Comparing 6 < 100
+Comparing 7 < 100
+Comparing 8 < 100
+Comparing 9 < 100
+Comparing 10 < 100
+Comparing 11 < 100
+Comparing 12 < 100
+Comparing 13 < 100
+Comparing 14 < 100
+Comparing 15 < 100
+Comparing 16 < 100
+Comparing 17 < 100
+Comparing 18 < 100
+Comparing 19 < 100
+Comparing 20 < 100
+Comparing 21 < 100
+Comparing 22 < 100
+Comparing 23 < 100
+Comparing 24 < 100
+Comparing 25 < 100
+Done

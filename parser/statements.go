@@ -91,6 +91,16 @@ func (p *Parser) parseExportStatement() *ast.ExportStatement {
 	return stmt
 }
 
+func (p *Parser) parseBreakStatement() *ast.BreakStatement {
+	stmt := &ast.BreakStatement{Token: p.curToken}
+
+	if !p.expectPeek(tokens.SEMICOLON) {
+		return nil
+	}
+
+	return stmt
+}
+
 func (p *Parser) parseCommentStatement() *ast.EmptyStatement {
 	curLine := p.curToken.Line
 

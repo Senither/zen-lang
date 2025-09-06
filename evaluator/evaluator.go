@@ -17,6 +17,7 @@ var (
 	NULL  = &objects.Null{}
 	TRUE  = &objects.Boolean{Value: true}
 	FALSE = &objects.Boolean{Value: false}
+	BREAK = &objects.Break{}
 )
 
 func Eval(node ast.Node, env *objects.Environment) objects.Object {
@@ -42,6 +43,10 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		}
 
 		return env.Set(node, node.Name.Value, val, node.Mutable)
+
+	// Loop controls
+	case *ast.BreakStatement:
+		return &objects.ReturnValue{Value: BREAK}
 
 	// Expression types
 	case *ast.StringLiteral:
@@ -226,9 +231,13 @@ func evalWhileExpression(we *ast.WhileExpression, env *objects.Environment) obje
 			break
 		}
 
-		body := Eval(we.Body, env)
+		body := unwrapReturnValue(Eval(we.Body, env))
 		if objects.IsError(body) {
 			return body
+		}
+
+		if body == BREAK {
+			break
 		}
 	}
 

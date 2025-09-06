@@ -56,6 +56,22 @@ func TestVarStatements(t *testing.T) {
 	}
 }
 
+func TestWhileBreakStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"var mut i = 0; while (true) { if (i > 10) { break; } i = i + 1; } i;", 11},
+		{"var mut i = 0; while (true) { if (i > 10) { break; } i = i + 2; } i;", 12},
+		{"var mut i = 0; while (true) { if (i >= 10) { break; } i = i + 2; } i;", 10},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestExportStatement(t *testing.T) {
 	tests := []struct {
 		input    string

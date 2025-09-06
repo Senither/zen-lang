@@ -31,6 +31,7 @@ func TestNextToken(t *testing.T) {
 
 		while (i < 10) {
 			i++;
+			break;
 		}
 
 		"one-word";
@@ -150,6 +151,8 @@ func TestNextToken(t *testing.T) {
 		{tokens.LBRACE, "{"},
 		{tokens.IDENT, "i"},
 		{tokens.INCREMENT, "++"},
+		{tokens.SEMICOLON, ";"},
+		{tokens.BREAK_LOOP, "break"},
 		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},
 		// String literals

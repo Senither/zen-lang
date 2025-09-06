@@ -28,6 +28,8 @@ const (
 
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 
+	BREAK_OBJ = "BREAK"
+
 	FUNCTION_OBJ = "FUNCTION"
 	BUILTIN_OBJ  = "BUILTIN"
 )
@@ -213,6 +215,11 @@ func (e *Error) Inspect() string {
 
 	return strings.Join(unique, "\n")
 }
+
+type Break struct{}
+
+func (b *Break) Type() ObjectType { return BREAK_OBJ }
+func (b *Break) Inspect() string  { return "break" }
 
 type Function struct {
 	Name       *ast.Identifier

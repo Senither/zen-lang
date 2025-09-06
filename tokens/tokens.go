@@ -76,6 +76,7 @@ const (
 	IMPORT       TokenType = "IMPORT"
 	IMPORT_ALIAS TokenType = "IMPORT_ALIAS"
 	EXPORT       TokenType = "EXPORT"
+	BREAK_LOOP   TokenType = "BREAK_LOOP"
 )
 
 var keywords = map[string]TokenType{
@@ -94,6 +95,7 @@ var keywords = map[string]TokenType{
 	"export":  EXPORT,
 	"as":      IMPORT_ALIAS,
 	"AS":      IMPORT_ALIAS,
+	"break":   BREAK_LOOP,
 }
 
 func LookupIdent(ident string) TokenType {
