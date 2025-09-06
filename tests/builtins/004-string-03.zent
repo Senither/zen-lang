@@ -1,0 +1,10 @@
+--TEST--
+Can evaluate expressions inside string()
+--FILE--
+println(string(1 + 2));
+println(string(3.14 * 2));
+println(string(!false));
+--EXPECT--
+3
+6.280000
+true

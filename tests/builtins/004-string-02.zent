@@ -1,0 +1,16 @@
+--TEST--
+Can concatenate different object types as strings
+--FILE--
+println(string(12) + " is the answer.");
+println(string(3.14) + " is pi.");
+println(string(true) + " is true.");
+println(string("Hello, World!") + " is a greeting.");
+println(string([1,2,3,4,5]) + " is an array.");
+println(string({"key": "value", "number": 42}) + " is a map.");
+--EXPECT--
+12 is the answer.
+3.140000 is pi.
+true is true.
+Hello, World! is a greeting.
+[1, 2, 3, 4, 5] is an array.
+{key: value, number: 42} is a map.

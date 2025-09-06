@@ -1,0 +1,16 @@
+--TEST--
+Can convert different object types to strings
+--FILE--
+println(string(12));
+println(string(3.14));
+println(string(true));
+println(string("Hello, World!"));
+println(string([1,2,3,4,5]));
+println(string({"key": "value", "number": 42}));
+--EXPECT--
+12
+3.140000
+true
+Hello, World!
+[1, 2, 3, 4, 5]
+{key: value, number: 42}

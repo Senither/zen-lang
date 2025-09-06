@@ -58,5 +58,18 @@ func registerBuiltins() {
 				}
 			},
 		},
+		"string": {
+			Fn: func(
+				node *ast.CallExpression,
+				env *objects.Environment,
+				args ...objects.Object,
+			) objects.Object {
+				if len(args) != 1 {
+					return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want 1", len(args))
+				}
+
+				return &objects.String{Value: args[0].Inspect()}
+			},
+		},
 	}
 }

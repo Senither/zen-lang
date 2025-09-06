@@ -98,3 +98,28 @@ func TestLenBuiltinFunction(t *testing.T) {
 		}
 	}
 }
+
+func TestStringBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`string(123)`, "123"},
+		{`string(45.67)`, "45.670000"},
+		{`string(true)`, "true"},
+		{`string(false)`, "false"},
+		{`string("hello")`, "hello"},
+		{`string("world")`, "world"},
+		{`string(1 + 2)`, "3"},
+		{`string(3.14 * 2)`, "6.280000"},
+		{`string(!true)`, "false"},
+		{`string("foo" + "bar")`, "foobar"},
+		{`string("foo" + " " + "bar")`, "foo bar"},
+		{`string("foo" + " " + "bar" + "!")`, "foo bar!"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
