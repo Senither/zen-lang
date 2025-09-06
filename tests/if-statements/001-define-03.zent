@@ -1,0 +1,17 @@
+--TEST--
+Can define an if-elseif statement
+--FILE--
+if (false) {
+    println("You don't see this");
+} elseif (true) {
+    println("Inside elseif-statement");
+}
+
+if (false) {
+    println("You don't see this");
+} else if (true) {
+    println("Inside else-if-statement");
+}
+--EXPECT--
+Inside elseif-statement
+Inside else-if-statement

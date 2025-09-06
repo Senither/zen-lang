@@ -1,0 +1,19 @@
+--TEST--
+It can define conditional statements with comparisons
+--FILE--
+if (5 > 10) {
+    println("You don't see this");
+} elseif (5 < 10) {
+    println("Inside elseif-statement");
+} else {
+    println("You don't see this");
+}
+
+if (1 >= 5) {
+    println("You don't see this");
+} elseif (5 >= 5) {
+    println("Inside elseif-statement");
+}
+--EXPECT--
+Inside elseif-statement
+Inside elseif-statement

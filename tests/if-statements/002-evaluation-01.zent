@@ -1,0 +1,26 @@
+--TEST--
+It only evals the first truthy block
+--FILE--
+if (true) {
+    println("Inside if-statement");
+} elseif (true) {
+    println("You don't see this");
+} else {
+    println("You don't see this");
+}
+
+if (false) {
+    println("You don't see this");
+} elseif (true) {
+    println("Inside elseif-statement");
+}  elseif (true) {
+    println("You don't see this");
+}  elseif (true) {
+    println("You don't see this");
+} else {
+    println("You don't see this");
+}
+
+--EXPECT--
+Inside if-statement
+Inside elseif-statement

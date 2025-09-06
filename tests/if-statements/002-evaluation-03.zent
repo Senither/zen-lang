@@ -1,0 +1,12 @@
+--TEST--
+It can define conditional statements with closures
+--FILE--
+if (func () { false; }()) {
+    println("You don't see this");
+} elseif (func () { true; }()) {
+    println("Inside elseif-statement");
+} else {
+    println("You don't see this");
+}
+--EXPECT--
+Inside elseif-statement

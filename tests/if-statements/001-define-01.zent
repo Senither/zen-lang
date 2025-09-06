@@ -1,0 +1,8 @@
+--TEST--
+Can define an if statement
+--FILE--
+if (true) {
+    println("Inside if-statement");
+}
+--EXPECT--
+Inside if-statement
