@@ -1,0 +1,20 @@
+--TEST--
+Can compare numbers using LT and GT operators
+--FILE--
+println(5 < 10);
+println(15 < 10);
+println(5 > 10);
+println(15 > 10);
+println(3.13 > 3.13001);
+println(3.13 > 3.12999);
+println(3.13 < 3.13001);
+println(3.13 < 3.12999);
+--EXPECT--
+true
+false
+false
+true
+false
+true
+true
+false

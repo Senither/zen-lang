@@ -1,0 +1,16 @@
+--TEST--
+Can compare numbers using EQ and NEQ operators
+--FILE--
+println(5 == 10);
+println(10 == 10);
+println(10 != 10);
+println(5 != 10);
+println(3.14 == 3.14);
+println(3.14 != 3.13);
+--EXPECT--
+false
+true
+false
+true
+true
+true

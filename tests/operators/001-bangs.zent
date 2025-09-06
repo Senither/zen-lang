@@ -1,0 +1,20 @@
+--TEST--
+Can flip a boolean with bangs
+--FILE--
+println(!true);
+println(!false);
+println(!!true);
+println(!!false);
+println(!!!true);
+println(!!!false);
+println(!5);
+println(!!5);
+--EXPECT--
+false
+true
+true
+false
+false
+true
+false
+true
