@@ -1,0 +1,37 @@
+--TEST--
+Can loop using function call in condition
+--FILE--
+var num = 1;
+
+func compare() {
+    println("Comparing " + string(num) + " < 10");
+    return num < 10;
+}
+
+while (compare()) {
+    println(num);
+    num++;
+}
+
+println("Done");
+--EXPECT--
+Comparing 1 < 10
+1
+Comparing 2 < 10
+2
+Comparing 3 < 10
+3
+Comparing 4 < 10
+4
+Comparing 5 < 10
+5
+Comparing 6 < 10
+6
+Comparing 7 < 10
+7
+Comparing 8 < 10
+8
+Comparing 9 < 10
+9
+Comparing 10 < 10
+Done

@@ -1,0 +1,14 @@
+--TEST--
+Variables with number values can be incremented
+--FILE--
+num1 = 1;
+num2 = 2.34;
+
+num1++;
+num2++;
+
+println(num1);
+println(num2);
+--EXPECT--
+2
+3.340000

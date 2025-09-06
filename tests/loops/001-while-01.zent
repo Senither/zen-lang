@@ -1,0 +1,14 @@
+--TEST--
+Can loop a single time
+--FILE--
+var num = 1;
+
+while (num < 2) {
+    println(num);
+    num++;
+}
+
+println("Done");
+--EXPECT--
+1
+Done

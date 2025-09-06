@@ -1,0 +1,13 @@
+--TEST--
+Can skip while loop if condition is false
+--FILE--
+var num = 1;
+
+while (num > 10) {
+    println(num);
+    num++;
+}
+
+println("Done");
+--EXPECT--
+Done
