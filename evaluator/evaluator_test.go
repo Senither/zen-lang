@@ -103,7 +103,7 @@ func TestFunctionObject(t *testing.T) {
 	evaluated := testEval(input)
 	fn, ok := evaluated.(*objects.Function)
 	if !ok {
-		t.Fatalf("object is not Function. got %T (%+v)", evaluated, evaluated)
+		t.Fatalf("object is not Function. got %T (%+v)\n%s", evaluated, evaluated, evaluated.Inspect())
 	}
 
 	if fn.Name != nil {
@@ -131,7 +131,7 @@ func TestNamedFunctionObject(t *testing.T) {
 	evaluated := testEval(input)
 	fn, ok := evaluated.(*objects.Function)
 	if !ok {
-		t.Fatalf("object is not Function. got %T (%+v)", evaluated, evaluated)
+		t.Fatalf("object is not Function. got %T (%+v)\n%s", evaluated, evaluated, evaluated.Inspect())
 	}
 
 	if fn.Name == nil || fn.Name.String() != "hello" {
@@ -188,14 +188,14 @@ func testNullObject(t *testing.T, obj objects.Object) bool {
 		return true
 	}
 
-	t.Errorf("object is not NULL. got %T (%+v)", obj, obj)
+	t.Errorf("object is not NULL. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 	return false
 }
 
 func testStringObject(t *testing.T, obj objects.Object, expected string) bool {
 	result, ok := obj.(*objects.String)
 	if !ok {
-		t.Errorf("object is not String. got %T (%+v)", obj, obj)
+		t.Errorf("object is not String. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 		return false
 	}
 
@@ -210,7 +210,7 @@ func testStringObject(t *testing.T, obj objects.Object, expected string) bool {
 func testIntegerObject(t *testing.T, obj objects.Object, expected int64) bool {
 	result, ok := obj.(*objects.Integer)
 	if !ok {
-		t.Errorf("object is not Integer. got %T (%+v)", obj, obj)
+		t.Errorf("object is not Integer. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 		return false
 	}
 
@@ -225,7 +225,7 @@ func testIntegerObject(t *testing.T, obj objects.Object, expected int64) bool {
 func testFloatObject(t *testing.T, obj objects.Object, expected float64) bool {
 	result, ok := obj.(*objects.Float)
 	if !ok {
-		t.Errorf("object is not Float. got %T (%+v)", obj, obj)
+		t.Errorf("object is not Float. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 		return false
 	}
 
@@ -240,7 +240,7 @@ func testFloatObject(t *testing.T, obj objects.Object, expected float64) bool {
 func testBooleanObject(t *testing.T, obj objects.Object, expected bool, input string) bool {
 	boolean, ok := obj.(*objects.Boolean)
 	if !ok {
-		t.Errorf("object is not Boolean. got %T (%+v)", obj, obj)
+		t.Errorf("object is not Boolean. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 		return false
 	}
 
@@ -255,7 +255,7 @@ func testBooleanObject(t *testing.T, obj objects.Object, expected bool, input st
 func testArrayObject(t *testing.T, obj objects.Object, expected []any, input string) bool {
 	array, ok := obj.(*objects.Array)
 	if !ok {
-		t.Errorf("object is not Array. got %T (%+v)", obj, obj)
+		t.Errorf("object is not Array. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 		return false
 	}
 
@@ -275,7 +275,7 @@ func testArrayObject(t *testing.T, obj objects.Object, expected []any, input str
 		case bool:
 			testBooleanObject(t, array.Elements[i], elem, input)
 		default:
-			t.Errorf("element type is not support for array testing objects. got %T (%+v)", elem, elem)
+			t.Errorf("element type is not support for array testing objects. got %T (%+v)\n%s", elem, elem, obj.Inspect())
 			return false
 		}
 	}
@@ -286,7 +286,7 @@ func testArrayObject(t *testing.T, obj objects.Object, expected []any, input str
 func testHashObject(t *testing.T, obj objects.Object, expected map[objects.HashKey]any, input string) bool {
 	hash, ok := obj.(*objects.Hash)
 	if !ok {
-		t.Errorf("object is not Hash. got %T (%+v)", obj, obj)
+		t.Errorf("object is not Hash. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 		return false
 	}
 
@@ -312,7 +312,7 @@ func testHashObject(t *testing.T, obj objects.Object, expected map[objects.HashK
 		case bool:
 			testBooleanObject(t, pair.Value, expectedValue, input)
 		default:
-			t.Errorf("element type is not support for hash testing objects. got %T (%+v)", expectedValue, expectedValue)
+			t.Errorf("element type is not support for hash testing objects. got %T (%+v)\n%s", expectedValue, expectedValue, obj.Inspect())
 			return false
 		}
 	}
@@ -323,7 +323,7 @@ func testHashObject(t *testing.T, obj objects.Object, expected map[objects.HashK
 func testErrorObject(t *testing.T, obj objects.Object, expected string) bool {
 	err, ok := obj.(*objects.Error)
 	if !ok {
-		t.Errorf("object is not Error. got %T (%+v)", obj, obj)
+		t.Errorf("object is not Error. got %T (%+v)\n%s", obj, obj, obj.Inspect())
 		return false
 	}
 
