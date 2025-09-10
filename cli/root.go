@@ -65,6 +65,12 @@ func loadFileContents(file string) (string, error) {
 	return string(content), nil
 }
 
+func printParseErrors(errors []parser.ParserError) {
+	for _, err := range errors {
+		fmt.Println(err.String())
+	}
+}
+
 func Execute() {
 	if err := rootCommand.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error executing command: %s\n", err)

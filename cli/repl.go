@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/senither/zen-lang/evaluator"
+	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/lexer"
-	"github.com/senither/zen-lang/objects"
 	"github.com/senither/zen-lang/parser"
+	"github.com/senither/zen-lang/vm"
 	"github.com/spf13/cobra"
 )
 
@@ -18,11 +18,10 @@ func init() {
 
 var replCommand = &cobra.Command{
 	Use:   "repl",
-	Short: "Start a Read, Eval, Print, Loop",
-	Long:  "Creates an environment for evaluating Zen code.",
+	Short: "Run code and get the JIT-compiled output",
+	Long:  "Runs the code provided and outputs the JIT-compiled result.",
 	Run: func(cmd *cobra.Command, args []string) {
 		scanner := bufio.NewScanner(os.Stdin)
-		env := objects.NewEnvironment(nil)
 
 		fmt.Println("Welcome to the Zen REPL, type your code below to see the output.")
 		fmt.Println("Type 'exit' to exit the REPL or press Ctrl+C.")
@@ -45,15 +44,27 @@ var replCommand = &cobra.Command{
 
 			program := parser.ParseProgram()
 			if len(parser.Errors()) > 0 {
-				for _, err := range parser.Errors() {
-					fmt.Println(err.String())
-				}
+				printParseErrors(parser.Errors())
 				continue
 			}
 
-			evaluated := evaluator.Eval(program, env)
-			if evaluated != nil {
-				fmt.Printf("%s\n", evaluated.Inspect())
+			compiler := compiler.New()
+			err := compiler.Compile(program)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			vm := vm.New(compiler.Bytecode())
+			err = vm.Run()
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			stackTop := vm.StackTop()
+			if stackTop != nil {
+				fmt.Printf("%s\n", stackTop.Inspect())
 			}
 		}
 	},

@@ -6,19 +6,21 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/lexer"
+	"github.com/senither/zen-lang/objects"
 	"github.com/senither/zen-lang/parser"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	rootCommand.AddCommand(astCommand)
+	rootCommand.AddCommand(evalCommand)
 }
 
-var astCommand = &cobra.Command{
-	Use:   "ast",
-	Short: "Run code and get the AST output",
-	Long:  "Runs the code provided and outputs the AST it generates.",
+var evalCommand = &cobra.Command{
+	Use:   "eval",
+	Short: "Run code and get the evaluated output",
+	Long:  "Runs the code provided and outputs the evaluated result.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {
 			content, err := loadFileContents(args[0])
@@ -28,15 +30,16 @@ var astCommand = &cobra.Command{
 			}
 
 			path, _ := filepath.Abs(args[0])
-			runAndEvalAST(content, path)
+			runAndEval(content, path, nil)
 
 			return
 		}
 
+		env := objects.NewEnvironment(nil)
 		scanner := bufio.NewScanner(os.Stdin)
 
-		fmt.Println("Welcome to the Zen AST generator, type your code below to see the AST output.")
-		fmt.Println("Type 'exit' to exit the AST generator or press Ctrl+C.")
+		fmt.Println("Welcome to the Zen REPL, type your code below to see the evaluated output.")
+		fmt.Println("Type 'exit' to exit the REPL or press Ctrl+C.")
 
 		for {
 			fmt.Printf(">>> ")
@@ -51,23 +54,27 @@ var astCommand = &cobra.Command{
 				return
 			}
 
-			runAndEvalAST(line, nil)
+			runAndEval(line, nil, env)
 		}
 	},
 }
 
-func runAndEvalAST(input string, filePath interface{}) {
+func runAndEval(input string, filePath interface{}, env *objects.Environment) {
 	lexer := lexer.New(input)
 	parser := parser.New(lexer, filePath)
 
 	program := parser.ParseProgram()
-
 	if len(parser.Errors()) > 0 {
 		printParseErrors(parser.Errors())
 		return
 	}
 
-	for _, statement := range program.Statements {
-		fmt.Printf("%s\n", statement.String())
+	if env == nil {
+		env = objects.NewEnvironment(filePath)
+	}
+
+	evaluated := evaluator.Eval(program, env)
+	if evaluated != nil {
+		fmt.Printf("%s\n", evaluated.Inspect())
 	}
 }
