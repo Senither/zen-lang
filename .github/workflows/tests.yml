@@ -4,11 +4,14 @@ on:
   push:
     branches:
       - main
+      - 'feature/**'
+      - 'tests/**'
+      - 'fix/**'
 
 jobs:
-  interpreter_tests:
+  integration_tests:
     runs-on: ubuntu-latest
-    name: Interpreter Test Suite
+    name: Integration Test Suite
 
     steps:
       - name: Checkout repository
@@ -32,7 +35,11 @@ jobs:
 
   zen_tests:
     runs-on: ubuntu-latest
-    name: Zen Internal Test Suite
+    strategy:
+      matrix:
+        engine: [eval, vm]
+
+    name: Zen Language Tests Suite (${{ matrix.engine }})
 
     steps:
       - name: Checkout repository
@@ -55,4 +62,4 @@ jobs:
         run: go build -o zen-lang
 
       - name: Run Zen tests
-        run: ./zen-lang test
+        run: ./zen-lang test --engine=${{ matrix.engine }}
