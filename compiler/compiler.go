@@ -36,21 +36,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		c.emit(code.OpPop)
 	case *ast.InfixExpression:
-		err := c.Compile(n.Left)
+		err := c.compileInfixExpression(n)
 		if err != nil {
 			return err
-		}
-
-		err = c.Compile(n.Right)
-		if err != nil {
-			return err
-		}
-
-		switch n.Operator {
-		case "+":
-			c.emit(code.OpAdd)
-		default:
-			return fmt.Errorf("unknown operator %s", n.Operator)
 		}
 
 	case *ast.IntegerLiteral:
@@ -77,6 +65,35 @@ func (c *Compiler) addInstruction(ins []byte) int {
 	c.instructions = append(c.instructions, ins...)
 
 	return posNewInstruction
+}
+
+func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
+	err := c.Compile(node.Left)
+	if err != nil {
+		return err
+	}
+
+	err = c.Compile(node.Right)
+	if err != nil {
+		return err
+	}
+
+	switch node.Operator {
+	case "+":
+		c.emit(code.OpAdd)
+	case "-":
+		c.emit(code.OpSub)
+	case "*":
+		c.emit(code.OpMul)
+	case "/":
+		c.emit(code.OpDiv)
+	case "%":
+		c.emit(code.OpMod)
+	default:
+		return fmt.Errorf("unknown operator %s", node.Operator)
+	}
+
+	return nil
 }
 
 type Bytecode struct {

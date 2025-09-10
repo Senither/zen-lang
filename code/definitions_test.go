@@ -11,7 +11,13 @@ func TestMake(t *testing.T) {
 		expected []byte
 	}{
 		{OpConstant, []int{65534}, []byte{byte(OpConstant), 255, 254}},
+		{OpPop, []int{}, []byte{byte(OpPop)}},
+		// Arithmetic
 		{OpAdd, []int{}, []byte{byte(OpAdd)}},
+		{OpSub, []int{}, []byte{byte(OpSub)}},
+		{OpMul, []int{}, []byte{byte(OpMul)}},
+		{OpDiv, []int{}, []byte{byte(OpDiv)}},
+		{OpMod, []int{}, []byte{byte(OpMod)}},
 	}
 
 	for _, tt := range tests {

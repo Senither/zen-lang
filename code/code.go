@@ -13,6 +13,10 @@ const (
 
 	// Arithmetic
 	OpAdd
+	OpSub
+	OpMul
+	OpDiv
+	OpMod
 )
 
 type Instructions []byte

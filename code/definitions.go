@@ -15,6 +15,10 @@ var definitions = map[Opcode]*Definition{
 	OpPop:      {"OpPop", []int{}},
 	// Arithmetic
 	OpAdd: {"OpAdd", []int{}},
+	OpSub: {"OpSub", []int{}},
+	OpMul: {"OpMul", []int{}},
+	OpDiv: {"OpDiv", []int{}},
+	OpMod: {"OpMod", []int{}},
 }
 
 func Make(op Opcode, operands ...int) []byte {

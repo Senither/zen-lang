@@ -49,14 +49,8 @@ func (vm *VM) Run() error {
 		case code.OpPop:
 			vm.pop()
 
-		case code.OpAdd:
-			right := vm.pop()
-			left := vm.pop()
-			leftValue := left.(*objects.Integer).Value
-			rightValue := right.(*objects.Integer).Value
-			result := leftValue + rightValue
-
-			err := vm.push(&objects.Integer{Value: result})
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpMod:
+			err := vm.executeBinaryOperation(op)
 			if err != nil {
 				return err
 			}
@@ -82,4 +76,42 @@ func (vm *VM) pop() objects.Object {
 	vm.sp--
 
 	return obj
+}
+
+func (vm *VM) executeBinaryOperation(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+
+	rightType := right.Type()
+	leftType := left.Type()
+
+	if leftType == objects.INTEGER_OBJ && rightType == objects.INTEGER_OBJ {
+		return vm.executeBinaryIntegerOperation(op, left, right)
+	}
+
+	return nil
+}
+
+func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right objects.Object) error {
+	leftValue := left.(*objects.Integer).Value
+	rightValue := right.(*objects.Integer).Value
+
+	var result int64
+
+	switch op {
+	case code.OpAdd:
+		result = leftValue + rightValue
+	case code.OpSub:
+		result = leftValue - rightValue
+	case code.OpMul:
+		result = leftValue * rightValue
+	case code.OpDiv:
+		result = leftValue / rightValue
+	case code.OpMod:
+		result = leftValue % rightValue
+	default:
+		return fmt.Errorf("unknown integer operator: %d", op)
+	}
+
+	return vm.push(&objects.Integer{Value: result})
 }
