@@ -23,6 +23,14 @@ const (
 	VirtualMachineTest TestRunner = Magenta + "VM"
 )
 
+type RunnerMode int
+
+const (
+	ModeAll RunnerMode = iota
+	ModeEvaluation
+	ModeVirtualMachine
+)
+
 type TestInstance struct {
 	message string
 	file    string
@@ -32,6 +40,7 @@ type TestInstance struct {
 }
 
 var (
+	runnerMode      = ModeAll
 	PASSED          = BgGreen + Gray + " PASS " + Reset
 	FAILED          = BgRed + Gray + " FAIL " + Reset
 	messages        = []string{}
@@ -47,6 +56,8 @@ var (
 )
 
 func init() {
+	testCommand.Flags().StringP("engine", "e", "all", "Specify which engine to use for running the tests. Options: all, eval, vm")
+
 	rootCommand.AddCommand(testCommand)
 }
 
@@ -56,6 +67,21 @@ var testCommand = &cobra.Command{
 	Long:       "Runs the tests for the Zen language",
 	ArgAliases: []string{"directory"},
 	ValidArgs:  []string{"directory"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		engine, err := cmd.Flags().GetString("engine")
+		if err != nil {
+			return
+		}
+
+		switch engine {
+		case "eval":
+			runnerMode = ModeEvaluation
+		case "vm":
+			runnerMode = ModeVirtualMachine
+		default:
+			runnerMode = ModeAll
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println()
 
@@ -116,11 +142,18 @@ var testCommand = &cobra.Command{
 		fmt.Printf("Finished running the test suite in %s\n\n", absolutePath)
 		fmt.Printf("       Reading files: %s\n", timeTaken-totalTimeTakenForParsing-totalTimeTakenForEvaluation)
 		fmt.Printf("      Lexer + Parser: %s\n", totalTimeTakenForParsing)
-		fmt.Printf(" -----------------------------------\n")
-		fmt.Printf("          Evaluation: %s\n", totalTimeTakenForEvaluation)
-		fmt.Printf(" -----------------------------------\n")
-		fmt.Printf("  Compile + Optimize: %s\n", totalTimeTakenForCompilation)
-		fmt.Printf("          VM Runtime: %s\n", totalTimeTakenForVM)
+
+		if runnerMode == ModeAll || runnerMode == ModeEvaluation {
+			fmt.Printf(" -----------------------------------\n")
+			fmt.Printf("          Evaluation: %s\n", totalTimeTakenForEvaluation)
+		}
+
+		if runnerMode == ModeAll || runnerMode == ModeVirtualMachine {
+			fmt.Printf(" -----------------------------------\n")
+			fmt.Printf("  Compile + Optimize: %s\n", totalTimeTakenForCompilation)
+			fmt.Printf("          VM Runtime: %s\n", totalTimeTakenForVM)
+		}
+
 		fmt.Printf(" -----------------------------------\n")
 		fmt.Printf("               Total: %s\n", timeTaken)
 		fmt.Printf("\n")
@@ -214,11 +247,15 @@ func runTestFile(fullPath, file string) {
 		return
 	}
 
-	runTestWithCompilationAndVM(test, fullPath, file, program)
+	if runnerMode == ModeAll || runnerMode == ModeVirtualMachine {
+		runTestWithCompilationAndVM(test, fullPath, file, program)
+	}
 
-	startEvaluatorTimer := time.Now()
-	runTestWithEvaluator(test, fullPath, file, program)
-	totalTimeTakenForEvaluation += time.Since(startEvaluatorTimer)
+	if runnerMode == ModeAll || runnerMode == ModeEvaluation {
+		startEvaluatorTimer := time.Now()
+		runTestWithEvaluator(test, fullPath, file, program)
+		totalTimeTakenForEvaluation += time.Since(startEvaluatorTimer)
+	}
 }
 
 func runTestWithCompilationAndVM(test TestInstance, fullPath, file string, program *ast.Program) {
