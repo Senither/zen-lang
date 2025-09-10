@@ -217,7 +217,7 @@ func runTestWithEvaluator(test TestInstance, fullPath, file string, program *ast
 	}
 
 	if objects.IsError(evaluated) {
-		reevaluateThenCompareWithErrors(test, fullPath, program)
+		stripFileLocationsAndPrintError(test, fullPath, evaluated)
 	} else if evaluated.Type() != objects.NULL_OBJ {
 		compareEvaluatedWithExpected(test, fullPath, evaluated)
 	} else {
@@ -243,13 +243,20 @@ func compareEvaluatedWithExpected(test TestInstance, fullPath string, evaluated 
 	printSuccessStatusMessage(test)
 }
 
-func reevaluateThenCompareWithErrors(test TestInstance, fullPath string, program *ast.Program) {
-	evaluated := evaluator.Stdout.Mute(func() objects.Object {
-		env := objects.NewEnvironment(nil)
-		return evaluator.Eval(program, env)
-	})
+func stripFileLocationsAndPrintError(test TestInstance, fullPath string, evaluated objects.Object) {
+	err := evaluated.Inspect()
+	lines := strings.Split(err, "\n")
 
-	if strings.Trim(evaluated.Inspect(), "\n") != test.errors {
+	for i, line := range lines {
+		if strings.Contains(line, "at ") && strings.Contains(line, ".zent:") {
+			fileInfo := strings.Split(line, ".zent:")[1]
+
+			lines[i] = fmt.Sprintf("    at <unknown>:%s", fileInfo)
+		}
+	}
+
+	err = strings.Trim(strings.Join(lines, "\n"), "\n")
+	if err != test.errors {
 		var message = "Test expectation does not match the evaluated result"
 		if len(test.errors) == 0 {
 			message = "No error expectation were provided, despite the result being *objects.Error"
@@ -260,7 +267,7 @@ func reevaluateThenCompareWithErrors(test TestInstance, fullPath string, program
 			fullPath,
 			fmt.Sprintf(
 				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
-				message, strings.Trim(evaluated.Inspect(), "\n"), test.errors,
+				message, err, test.errors,
 			),
 		)
 		return
