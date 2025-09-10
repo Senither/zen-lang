@@ -81,6 +81,13 @@ func testConstants(t *testing.T, expected []interface{}, actual []objects.Object
 			if err != nil {
 				return fmt.Errorf("constant %d - testIntegerObject failed: %s", i, err)
 			}
+		case float64:
+			err := testFloatObject(constant, actual[i])
+			if err != nil {
+				return fmt.Errorf("constant %d - testFloatObject failed: %s", i, err)
+			}
+		default:
+			return fmt.Errorf("unknown constant type %T", constant)
 		}
 	}
 
@@ -95,6 +102,19 @@ func testIntegerObject(expected int64, actual objects.Object) error {
 
 	if result.Value != expected {
 		return fmt.Errorf("object has wrong value. got %d, want %d", result.Value, expected)
+	}
+
+	return nil
+}
+
+func testFloatObject(expected float64, actual objects.Object) error {
+	result, ok := actual.(*objects.Float)
+	if !ok {
+		return fmt.Errorf("object is not Float. got %T (%+v)", actual, actual)
+	}
+
+	if result.Inspect() != fmt.Sprintf("%f", expected) {
+		return fmt.Errorf("object has wrong value. got %f, expected %f", result.Value, expected)
 	}
 
 	return nil

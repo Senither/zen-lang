@@ -43,6 +43,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 	case *ast.IntegerLiteral:
 		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: n.Value}))
+	case *ast.FloatLiteral:
+		c.emit(code.OpConstant, c.addConstant(&objects.Float{Value: n.Value}))
 	}
 
 	return nil

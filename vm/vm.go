@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/compiler"
@@ -85,18 +86,18 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	rightType := right.Type()
 	leftType := left.Type()
 
-	if leftType == objects.INTEGER_OBJ && rightType == objects.INTEGER_OBJ {
-		return vm.executeBinaryIntegerOperation(op, left, right)
+	if isNumber(leftType) && isNumber(rightType) {
+		return vm.executeBinaryNumberOperation(op, left, right)
 	}
 
 	return nil
 }
 
-func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right objects.Object) error {
-	leftValue := left.(*objects.Integer).Value
-	rightValue := right.(*objects.Integer).Value
+func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.Object) error {
+	leftValue := unwrapNumberValue(left)
+	rightValue := unwrapNumberValue(right)
 
-	var result int64
+	var result float64
 
 	switch op {
 	case code.OpAdd:
@@ -108,10 +109,42 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right objects.
 	case code.OpDiv:
 		result = leftValue / rightValue
 	case code.OpMod:
-		result = leftValue % rightValue
+		result = math.Mod(leftValue, rightValue)
 	default:
-		return fmt.Errorf("unknown integer operator: %d", op)
+		return fmt.Errorf("unknown number operator: %d", op)
 	}
 
-	return vm.push(&objects.Integer{Value: result})
+	return vm.push(wrapNumberValue(result, left, right))
+}
+
+func isNumber(obj objects.ObjectType) bool {
+	switch obj {
+	case objects.INTEGER_OBJ, objects.FLOAT_OBJ:
+		return true
+	default:
+		return false
+	}
+}
+
+func wrapNumberValue(value float64, left, right objects.Object) objects.Object {
+	if left.Type() == objects.FLOAT_OBJ || right.Type() == objects.FLOAT_OBJ {
+		return &objects.Float{Value: value}
+	}
+
+	if float64(int64(value)) == value {
+		return &objects.Integer{Value: int64(value)}
+	}
+
+	return &objects.Float{Value: value}
+}
+
+func unwrapNumberValue(obj objects.Object) float64 {
+	switch n := obj.(type) {
+	case *objects.Integer:
+		return float64(n.Value)
+	case *objects.Float:
+		return n.Value
+	default:
+		return 0
+	}
 }
