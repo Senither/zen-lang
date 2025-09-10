@@ -1,6 +1,8 @@
 package compiler
 
 import (
+	"fmt"
+
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
@@ -40,6 +42,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 		err = c.Compile(n.Right)
 		if err != nil {
 			return err
+		}
+
+		switch n.Operator {
+		case "+":
+			c.emit(code.OpAdd)
+		default:
+			return fmt.Errorf("unknown operator %s", n.Operator)
 		}
 
 	case *ast.IntegerLiteral:
