@@ -1,0 +1,15 @@
+--TEST--
+Ignores code within block comments
+--FILE--
+println("Unending block comment");
+
+/*
+ This is a comment
+ println("This should not be printed");
+ if (true) {
+     println("Done");
+ }
+
+println("Done");
+--EXPECT--
+Unending block comment

@@ -1,0 +1,11 @@
+--TEST--
+Ignores code within single-line comments
+--FILE--
+// This is a comment
+// println("This should not be printed");
+// if (true) {
+//     println("Done");
+// }
+println("Done");
+--EXPECT--
+Done
