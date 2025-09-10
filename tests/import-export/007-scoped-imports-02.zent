@@ -1,0 +1,14 @@
+--TEST--
+Imports in scoped environments does not leak to the global scope
+--FILE--
+func test() {
+    import './files/functions' as fn;
+}
+
+test();
+
+println(fn);
+--ERROR--
+identifier not found: fn
+    at <unknown>:7:9
+    at <unknown>:7:8

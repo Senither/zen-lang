@@ -1,0 +1,16 @@
+--TEST--
+Can import files within a scoped environment
+--FILE--
+func test() {
+    import './files/functions' as fn;
+
+    println(fn)
+}
+
+test();
+--EXPECT--
+{functionTwo: functionTwo() {
+return "This is function two";
+}, functionOne: functionOne() {
+return "This is function one";
+}}
