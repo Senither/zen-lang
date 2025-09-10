@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/senither/zen-lang/ast"
+	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/objects"
@@ -15,11 +16,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type TestRunner string
+
+const (
+	EvaluationTest     TestRunner = Cyan + "Eval"
+	VirtualMachineTest TestRunner = Magenta + "VM"
+)
+
 type TestInstance struct {
 	message string
 	file    string
 	expect  string
 	errors  string
+	runner  TestRunner
 }
 
 var (
@@ -31,8 +40,10 @@ var (
 )
 
 var (
-	totalTimeTakenForParsing    = time.Duration(0)
-	totalTimeTakenForEvaluation = time.Duration(0)
+	totalTimeTakenForParsing     = time.Duration(0)
+	totalTimeTakenForEvaluation  = time.Duration(0)
+	totalTimeTakenForCompilation = time.Duration(0)
+	totalTimeTakenForVM          = time.Duration(0)
 )
 
 func init() {
@@ -103,10 +114,15 @@ var testCommand = &cobra.Command{
 		timeTaken := time.Since(start)
 
 		fmt.Printf("Finished running the test suite in %s\n\n", absolutePath)
-		fmt.Printf("   Reading files: %s\n", timeTaken-totalTimeTakenForParsing-totalTimeTakenForEvaluation)
-		fmt.Printf("  Lexer + Parser: %s\n", totalTimeTakenForParsing)
-		fmt.Printf("      Evaluation: %s\n", totalTimeTakenForEvaluation)
-		fmt.Printf("           Total: %s\n", timeTaken)
+		fmt.Printf("       Reading files: %s\n", timeTaken-totalTimeTakenForParsing-totalTimeTakenForEvaluation)
+		fmt.Printf("      Lexer + Parser: %s\n", totalTimeTakenForParsing)
+		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf("          Evaluation: %s\n", totalTimeTakenForEvaluation)
+		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf("  Compile + Optimize: %s\n", totalTimeTakenForCompilation)
+		fmt.Printf("          VM Runtime: %s\n", totalTimeTakenForVM)
+		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf("               Total: %s\n", timeTaken)
 		fmt.Printf("\n")
 
 		os.Exit(exitStatusCode)
@@ -137,8 +153,6 @@ func discoverTestFiles(directory string) []string {
 }
 
 func runTestFile(fullPath, file string) {
-	evaluator.Stdout.Clear()
-
 	content, err := os.ReadFile(file)
 	if err != nil {
 		messages = append(messages, fmt.Sprintf("Error reading test file %s: %s\n", file, err))
@@ -200,12 +214,49 @@ func runTestFile(fullPath, file string) {
 		return
 	}
 
+	runTestWithCompilationAndVM(test, fullPath, file, program)
+
 	startEvaluatorTimer := time.Now()
 	runTestWithEvaluator(test, fullPath, file, program)
 	totalTimeTakenForEvaluation += time.Since(startEvaluatorTimer)
 }
 
+func runTestWithCompilationAndVM(test TestInstance, fullPath, file string, program *ast.Program) {
+	test.runner = VirtualMachineTest
+
+	startCompilationTimer := time.Now()
+	compiler := compiler.New()
+	err := compiler.Compile(program)
+	totalTimeTakenForCompilation += time.Since(startCompilationTimer)
+
+	if err != nil {
+		printErrorStatusMessage(test, fullPath, fmt.Sprintf("Compilation error: %s", err))
+		return
+	}
+
+	startVMTimer := time.Now()
+	// Running the VM while it's still doesn't support the majority of
+	// the language features is pointless as it just crashes, so for
+	// now we'll skip it
+	//
+	// vm := vm.New(compiler.Bytecode())
+	// err = vm.Run()
+	totalTimeTakenForVM += time.Since(startVMTimer)
+
+	if err != nil {
+		printErrorStatusMessage(test, fullPath, fmt.Sprintf("VM error: %s", err))
+		return
+	}
+
+	// TODO: Compare the result of the VM with the expected result
+	// For now, we just check if the VM executed without errors
+	printSuccessStatusMessage(test)
+}
+
 func runTestWithEvaluator(test TestInstance, fullPath, file string, program *ast.Program) {
+	evaluator.Stdout.Clear()
+	test.runner = EvaluationTest
+
 	evaluated := evaluator.Stdout.Mute(func() objects.Object {
 		env := objects.NewEnvironment(file)
 		return evaluator.Eval(program, env)
@@ -309,14 +360,21 @@ func cleanString(str string) string {
 }
 
 func printSuccessStatusMessage(test TestInstance) {
-	messages = append(messages, fmt.Sprintf("  %s✔%s %s\n", Green, Reset, cleanString(test.message)))
+	messages = append(messages, fmt.Sprintf("  %s✔%s %s %s[%s%s]%s\n",
+		Green, Reset, cleanString(test.message),
+		Gray, test.runner, Gray, Reset,
+	))
 }
 
 func printErrorStatusMessage(test TestInstance, fullPath, message string) {
 	exitStatusCode = 1
 
-	errorMessage := fmt.Sprintf("%s\n     %s", cleanString(test.message), message)
-	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
+	errorMessage := fmt.Sprintf("%s %s[%s%s]%s\n     %s",
+		cleanString(test.message),
+		Gray, test.runner, Gray, Reset,
+		message,
+	)
 
+	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
 	messages = append(messages, fmt.Sprintf("  %s✖%s %s\n", Red, Reset, errorMessage))
 }
