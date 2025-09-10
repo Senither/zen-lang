@@ -9,6 +9,9 @@ type Opcode byte
 
 const (
 	OpConstant Opcode = iota
+	OpPop
+
+	// Arithmetic
 	OpAdd
 )
 

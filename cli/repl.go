@@ -62,7 +62,7 @@ var replCommand = &cobra.Command{
 				continue
 			}
 
-			stackTop := vm.StackTop()
+			stackTop := vm.LastPoppedStackElem()
 			if stackTop != nil {
 				fmt.Printf("%s\n", stackTop.Inspect())
 			}
