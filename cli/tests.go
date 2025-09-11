@@ -200,16 +200,16 @@ func runTestFile(fullPath, file string) {
 		return
 	}
 
-	startEvaluatorTimer := time.Now()
 	runTestWithEvaluator(test, fullPath, file, program)
-	totalTimeTakenForEvaluation += time.Since(startEvaluatorTimer)
 }
 
 func runTestWithEvaluator(test TestInstance, fullPath, file string, program *ast.Program) {
+	startEvaluatorTimer := time.Now()
 	evaluated := evaluator.Stdout.Mute(func() objects.Object {
 		env := objects.NewEnvironment(file)
 		return evaluator.Eval(program, env)
 	})
+	totalTimeTakenForEvaluation += time.Since(startEvaluatorTimer)
 
 	if evaluated == nil {
 		printErrorStatusMessage(test, fullPath, "Evaluator returned nil, failed to evaluate the test input")
