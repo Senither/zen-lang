@@ -18,6 +18,9 @@ func TestMake(t *testing.T) {
 		{OpMul, []int{}, []byte{byte(OpMul)}},
 		{OpDiv, []int{}, []byte{byte(OpDiv)}},
 		{OpMod, []int{}, []byte{byte(OpMod)}},
+		// Booleans
+		{OpTrue, []int{}, []byte{byte(OpTrue)}},
+		{OpFalse, []int{}, []byte{byte(OpFalse)}},
 	}
 
 	for _, tt := range tests {

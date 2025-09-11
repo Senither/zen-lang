@@ -19,6 +19,9 @@ var definitions = map[Opcode]*Definition{
 	OpMul: {"OpMul", []int{}},
 	OpDiv: {"OpDiv", []int{}},
 	OpMod: {"OpMod", []int{}},
+	// Booleans
+	OpTrue:  {"OpTrue", []int{}},
+	OpFalse: {"OpFalse", []int{}},
 }
 
 func Make(op Opcode, operands ...int) []byte {

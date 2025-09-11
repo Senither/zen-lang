@@ -17,6 +17,10 @@ const (
 	OpMul
 	OpDiv
 	OpMod
+
+	// Booleans
+	OpTrue
+	OpFalse
 )
 
 type Instructions []byte

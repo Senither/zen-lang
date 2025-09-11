@@ -41,10 +41,17 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
+	// Expression types
 	case *ast.IntegerLiteral:
 		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: n.Value}))
 	case *ast.FloatLiteral:
 		c.emit(code.OpConstant, c.addConstant(&objects.Float{Value: n.Value}))
+	case *ast.BooleanLiteral:
+		if n.Value {
+			c.emit(code.OpTrue)
+		} else {
+			c.emit(code.OpFalse)
+		}
 	}
 
 	return nil
