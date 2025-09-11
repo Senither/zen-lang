@@ -22,6 +22,11 @@ var definitions = map[Opcode]*Definition{
 	// Booleans
 	OpTrue:  {"OpTrue", []int{}},
 	OpFalse: {"OpFalse", []int{}},
+	// Comparisons
+	OpEqual:              {"OpEqual", []int{}},
+	OpNotEqual:           {"OpNotEqual", []int{}},
+	OpGreaterThan:        {"OpGreaterThan", []int{}},
+	OpGreaterThanOrEqual: {"OpGreaterThanOrEqual", []int{}},
 }
 
 func Make(op Opcode, operands ...int) []byte {

@@ -21,6 +21,12 @@ const (
 	// Booleans
 	OpTrue
 	OpFalse
+
+	// Comparisons
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
+	OpGreaterThanOrEqual
 )
 
 type Instructions []byte

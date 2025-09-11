@@ -77,12 +77,7 @@ func (c *Compiler) addInstruction(ins []byte) int {
 }
 
 func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
-	err := c.Compile(node.Left)
-	if err != nil {
-		return err
-	}
-
-	err = c.Compile(node.Right)
+	err := c.compileInfixExpressionOperands(node)
 	if err != nil {
 		return err
 	}
@@ -98,8 +93,46 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
 		c.emit(code.OpDiv)
 	case "%":
 		c.emit(code.OpMod)
+	case "==":
+		c.emit(code.OpEqual)
+	case "!=":
+		c.emit(code.OpNotEqual)
+	case ">", "<":
+		c.emit(code.OpGreaterThan)
+	case ">=", "<=":
+		c.emit(code.OpGreaterThanOrEqual)
 	default:
 		return fmt.Errorf("unknown operator %s", node.Operator)
+	}
+
+	return nil
+}
+
+func (c *Compiler) compileInfixExpressionOperands(node *ast.InfixExpression) error {
+	// Reverse order for < and <= to so we're able to
+	// treat them as > and >= during evaluation
+	if node.Operator == "<" || node.Operator == "<=" {
+		err := c.Compile(node.Right)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(node.Left)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err := c.Compile(node.Left)
+	if err != nil {
+		return err
+	}
+
+	err = c.Compile(node.Right)
+	if err != nil {
+		return err
 	}
 
 	return nil
