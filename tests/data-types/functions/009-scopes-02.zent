@@ -1,0 +1,12 @@
+--TEST--
+Shared names in inner scopes takes precedence
+--FILE--
+var a = 99999;
+
+func add(a, b) {
+    a + b;
+};
+
+add(10, 5);
+--EXPECT--
+15

@@ -1,0 +1,12 @@
+--TEST--
+It can access variables from the outer scope
+--FILE--
+var a = 5;
+
+func add(b) {
+    a + b;
+};
+
+add(10);
+--EXPECT--
+15

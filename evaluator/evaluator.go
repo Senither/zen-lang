@@ -853,7 +853,7 @@ func extendFunctionEnv(
 	env := objects.NewEnclosedEnvironment(fn.Env)
 
 	for paramIdx, param := range fn.Parameters {
-		env.Set(node, param.Value, args[paramIdx], false)
+		env.SetImmutableForcefully(param.Value, args[paramIdx])
 	}
 
 	return env
