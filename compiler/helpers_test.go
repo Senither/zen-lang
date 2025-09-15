@@ -52,7 +52,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 
 	for i, ins := range combined {
 		if actual[i] != ins {
-			return fmt.Errorf("wrong instruction at %d.\n\twant:\n%q\n\tgot: %q", i, ins, actual[i])
+			return fmt.Errorf("wrong instruction at %d.\n\tinstruction: %d\n\twant:\n%s\n\tgot:\n%s", i, ins, combined, actual)
 		}
 	}
 

@@ -11,12 +11,32 @@ const (
 	OpConstant Opcode = iota
 	OpPop
 
+	OpNull
+
+	// Jumps
+	OpJump
+	OpJumpNotTruthy
+
 	// Arithmetic
 	OpAdd
 	OpSub
 	OpMul
 	OpDiv
 	OpMod
+
+	// Booleans
+	OpTrue
+	OpFalse
+
+	// Comparisons
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
+	OpGreaterThanOrEqual
+
+	// Prefixes
+	OpMinus
+	OpBang
 )
 
 type Instructions []byte

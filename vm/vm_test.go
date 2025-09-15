@@ -29,6 +29,74 @@ func TestIntegerArithmetic(t *testing.T) {
 		{"5 + 2.125 * 10", 26.25},
 		{"5 * (2 + 10)", 60},
 		{"5 * (2.125 + 10)", 60.625},
+		{"-5", -5},
+		{"-5.5", -5.5},
+		{"-10 + 5", -5},
+		{"-10.5 + 5.5", -5.0},
+		{"-(5 + 5)", -10},
+		{"-(5.5 + 4.5)", -10.0},
+		{"-50 + 100 + -50", 0},
+		{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestBooleanExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"true", true},
+		{"false", false},
+		{"1 < 2", true},
+		{"1 > 2", false},
+		{"1 < 1", false},
+		{"1 > 1", false},
+		{"1 == 1", true},
+		{"1 != 1", false},
+		{"1 == 2", false},
+		{"1 != 2", true},
+		{"1 <= 2", true},
+		{"1 >= 2", false},
+		{"1 <= 1", true},
+		{"1 >= 1", true},
+		{"2 <= 1", false},
+		{"2 >= 1", true},
+		{"true == true", true},
+		{"false == false", true},
+		{"true == false", false},
+		{"true != false", true},
+		{"false != true", true},
+		{"(1 < 2) == true", true},
+		{"(1 < 2) == false", false},
+		{"(1 > 2) == true", false},
+		{"(1 > 2) == false", true},
+		{"!true", false},
+		{"!false", true},
+		{"!5", false},
+		{"!!true", true},
+		{"!!false", false},
+		{"!!5", true},
+		{"!(if (false) { 5; })", true},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestConditionals(t *testing.T) {
+	tests := []vmTestCase{
+		{"if (true) { 10 }", 10},
+		{"if (true) { 10 } else { 20 }", 10},
+		{"if (false) { 10 } else { 20 }", 20},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (false) { 10 }", nil},
+		{"if (1 > 2) { 10 }", nil},
+		{"if ((if (false) { 10 })) { 10 } else { 20 }", 20},
+		{"if (true) { 10 } else if (false) { 20 } else { 30 }", 10},
+		{"if (false) { 10 } else if (true) { 20 } else { 30 }", 20},
+		{"if (false) { 10 } else if (false) { 20 } else { 30 }", 30},
+		{"if (false) { 10 } else if (if (true) { 15}) { 20 } else { 30 }", 20},
 	}
 
 	runVmTests(t, tests)
