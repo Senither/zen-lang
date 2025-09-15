@@ -265,6 +265,36 @@ func TestConditionals(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input:             "if (false) { 10 } else if (true) { 20 } else { 30 }; 5;",
+			expectedConstants: []any{10, 20, 30, 5},
+			expectedInstructions: []code.Instructions{
+				// 0000
+				code.Make(code.OpFalse),
+				// 0001
+				code.Make(code.OpJumpNotTruthy, 10),
+				// 0004
+				code.Make(code.OpConstant, 0),
+				// 0007
+				code.Make(code.OpJump, 23),
+				// 0010
+				code.Make(code.OpTrue),
+				// 0011
+				code.Make(code.OpJumpNotTruthy, 20),
+				// 0014
+				code.Make(code.OpConstant, 1),
+				// 0017
+				code.Make(code.OpJump, 23),
+				// 0020
+				code.Make(code.OpConstant, 2),
+				// 0023
+				code.Make(code.OpPop),
+				// 0024
+				code.Make(code.OpConstant, 3),
+				// 0027
+				code.Make(code.OpPop),
+			},
+		},
 	}
 
 	runCompilationTests(t, tests)

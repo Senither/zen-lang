@@ -237,7 +237,12 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 	afterConsequencePos := len(c.instructions)
 	c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
 
-	if node.Alternative == nil {
+	if node.Intermediary != nil {
+		err := c.compileConditionalIfExpression(node.Intermediary)
+		if err != nil {
+			return err
+		}
+	} else if node.Alternative == nil {
 		c.emit(code.OpNull)
 	} else {
 		err := c.Compile(node.Alternative)
