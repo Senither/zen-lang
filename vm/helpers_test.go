@@ -58,6 +58,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 			t.Errorf("testBooleanObject failed: %s", err)
 		}
 
+	case nil:
+		if actual != NULL {
+			t.Errorf("object is not NULL. got %T (%+v)", actual, actual)
+		}
+
 	default:
 		t.Errorf("unsupported type %T", expected)
 	}

@@ -11,6 +11,8 @@ const (
 	OpConstant Opcode = iota
 	OpPop
 
+	OpNull
+
 	// Jumps
 	OpJump
 	OpJumpNotTruthy

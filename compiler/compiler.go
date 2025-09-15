@@ -232,15 +232,14 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 		c.removeLastPop()
 	}
 
+	jumpPos := c.emit(code.OpJump, 9999)
+
+	afterConsequencePos := len(c.instructions)
+	c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
+
 	if node.Alternative == nil {
-		afterConsequencePos := len(c.instructions)
-		c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
+		c.emit(code.OpNull)
 	} else {
-		jumpPos := c.emit(code.OpJump, 9999)
-
-		afterConsequencePos := len(c.instructions)
-		c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
-
 		err := c.Compile(node.Alternative)
 		if err != nil {
 			return err
@@ -249,10 +248,10 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 		if c.lastInstructionIs(code.OpPop) {
 			c.removeLastPop()
 		}
-
-		afterAlternativePos := len(c.instructions)
-		c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
 	}
+
+	afterAlternativePos := len(c.instructions)
+	c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
 
 	return nil
 }
