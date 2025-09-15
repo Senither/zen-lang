@@ -27,6 +27,9 @@ var definitions = map[Opcode]*Definition{
 	OpNotEqual:           {"OpNotEqual", []int{}},
 	OpGreaterThan:        {"OpGreaterThan", []int{}},
 	OpGreaterThanOrEqual: {"OpGreaterThanOrEqual", []int{}},
+	// Prefixes
+	OpMinus: {"OpMinus", []int{}},
+	OpBang:  {"OpBang", []int{}},
 }
 
 func Make(op Opcode, operands ...int) []byte {

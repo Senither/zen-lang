@@ -27,6 +27,10 @@ const (
 	OpNotEqual
 	OpGreaterThan
 	OpGreaterThanOrEqual
+
+	// Prefixes
+	OpMinus
+	OpBang
 )
 
 type Instructions []byte

@@ -77,6 +77,17 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
+		case code.OpBang:
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
+			}
+		case code.OpMinus:
+			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -176,6 +187,29 @@ func (vm *VM) executeComparisonNumberOperation(op code.Opcode, left, right objec
 	default:
 		return fmt.Errorf("unknown number operator: %d", op)
 	}
+}
+
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+
+	switch operand {
+	case TRUE:
+		return vm.push(FALSE)
+	case FALSE:
+		return vm.push(TRUE)
+	default:
+		return vm.push(FALSE)
+	}
+}
+
+func (vm *VM) executeMinusOperator() error {
+	operand := vm.pop()
+
+	if !isNumber(operand.Type()) {
+		return fmt.Errorf("unknown operator: -%s", operand.Type())
+	}
+
+	return vm.push(wrapNumberValue(-unwrapNumberValue(operand), operand, operand))
 }
 
 func nativeBoolToBooleanObject(input bool) *objects.Boolean {
