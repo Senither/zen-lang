@@ -11,18 +11,35 @@ import (
 type Compiler struct {
 	instructions code.Instructions
 	constants    []objects.Object
+
+	lastInstruction     EmittedInstruction
+	previousInstruction EmittedInstruction
+}
+
+type EmittedInstruction struct {
+	Opcode   code.Opcode
+	Position int
 }
 
 func New() *Compiler {
 	return &Compiler{
 		instructions: code.Instructions{},
 		constants:    []objects.Object{},
+
+		lastInstruction:     EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
 	}
 }
 
 func (c *Compiler) Compile(node ast.Node) error {
 	switch n := node.(type) {
 	case *ast.Program:
+		for _, statement := range n.Statements {
+			if err := c.Compile(statement); err != nil {
+				return err
+			}
+		}
+	case *ast.BlockStatement:
 		for _, statement := range n.Statements {
 			if err := c.Compile(statement); err != nil {
 				return err
@@ -57,6 +74,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		} else {
 			c.emit(code.OpFalse)
 		}
+
+	case *ast.IfExpression:
+		err := c.compileConditionalIfExpression(n)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -71,6 +94,8 @@ func (c *Compiler) emit(op code.Opcode, operands ...int) int {
 	ins := code.Make(op, operands...)
 	pos := c.addInstruction(ins)
 
+	c.setLastInstruction(op, pos)
+
 	return pos
 }
 
@@ -79,6 +104,33 @@ func (c *Compiler) addInstruction(ins []byte) int {
 	c.instructions = append(c.instructions, ins...)
 
 	return posNewInstruction
+}
+
+func (c *Compiler) setLastInstruction(op code.Opcode, pos int) {
+	c.previousInstruction = c.lastInstruction
+	c.lastInstruction = EmittedInstruction{Opcode: op, Position: pos}
+}
+
+func (c *Compiler) replaceInstruction(pos int, newInstructions []byte) {
+	for i := range newInstructions {
+		c.instructions[pos+i] = newInstructions[i]
+	}
+}
+
+func (c *Compiler) changeInstructionOperandAt(opPos int, operand int) {
+	op := code.Opcode(c.instructions[opPos])
+	newInstruction := code.Make(op, operand)
+
+	c.replaceInstruction(opPos, newInstruction)
+}
+
+func (c *Compiler) lastInstructionIs(op code.Opcode) bool {
+	return c.lastInstruction.Opcode == op
+}
+
+func (c *Compiler) removeLastPop() {
+	c.instructions = c.instructions[:c.lastInstruction.Position]
+	c.lastInstruction = c.previousInstruction
 }
 
 func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) error {
@@ -156,6 +208,50 @@ func (c *Compiler) compileInfixExpressionOperands(node *ast.InfixExpression) err
 	err = c.Compile(node.Right)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error {
+	err := c.Compile(node.Condition)
+	if err != nil {
+		return err
+	}
+
+	// Emits a jump instruction with an invalid operand that we'll change
+	// later on when we know where in the stack to jump to.
+	jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+	err = c.Compile(node.Consequence)
+	if err != nil {
+		return err
+	}
+
+	if c.lastInstructionIs(code.OpPop) {
+		c.removeLastPop()
+	}
+
+	if node.Alternative == nil {
+		afterConsequencePos := len(c.instructions)
+		c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
+	} else {
+		jumpPos := c.emit(code.OpJump, 9999)
+
+		afterConsequencePos := len(c.instructions)
+		c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
+
+		err := c.Compile(node.Alternative)
+		if err != nil {
+			return err
+		}
+
+		if c.lastInstructionIs(code.OpPop) {
+			c.removeLastPop()
+		}
+
+		afterAlternativePos := len(c.instructions)
+		c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
 	}
 
 	return nil

@@ -12,6 +12,9 @@ func TestMake(t *testing.T) {
 	}{
 		{OpConstant, []int{65534}, []byte{byte(OpConstant), 255, 254}},
 		{OpPop, []int{}, []byte{byte(OpPop)}},
+		// Jumps
+		{OpJump, []int{1024}, []byte{byte(OpJump), 4, 0}},
+		{OpJumpNotTruthy, []int{1024}, []byte{byte(OpJumpNotTruthy), 4, 0}},
 		// Arithmetic
 		{OpAdd, []int{}, []byte{byte(OpAdd)}},
 		{OpSub, []int{}, []byte{byte(OpSub)}},

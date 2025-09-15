@@ -88,6 +88,18 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
+		case code.OpJump:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip = pos - 1
+		case code.OpJumpNotTruthy:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+
+			condition := vm.pop()
+			if !isTruthy(condition) {
+				ip = pos - 1
+			}
 		}
 	}
 
@@ -219,13 +231,18 @@ func nativeBoolToBooleanObject(input bool) *objects.Boolean {
 	return FALSE
 }
 
-func isNumber(obj objects.ObjectType) bool {
-	switch obj {
-	case objects.INTEGER_OBJ, objects.FLOAT_OBJ:
-		return true
+func isTruthy(obj objects.Object) bool {
+	switch obj := obj.(type) {
+	case *objects.Boolean:
+		return obj.Value
+
 	default:
-		return false
+		return true
 	}
+}
+
+func isNumber(t objects.ObjectType) bool {
+	return t == objects.INTEGER_OBJ || t == objects.FLOAT_OBJ
 }
 
 func wrapNumberValue(value float64, left, right objects.Object) objects.Object {
