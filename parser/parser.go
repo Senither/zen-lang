@@ -129,6 +129,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseExportStatement()
 	case tokens.BREAK_LOOP:
 		return p.parseBreakStatement()
+	case tokens.CONTINUE_LOOP:
+		return p.parseContinueStatement()
 	case tokens.COMMENT:
 		return p.parseCommentStatement()
 	case tokens.BLOCK_COMMENT_START:

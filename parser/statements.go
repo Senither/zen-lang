@@ -101,6 +101,16 @@ func (p *Parser) parseBreakStatement() *ast.BreakStatement {
 	return stmt
 }
 
+func (p *Parser) parseContinueStatement() *ast.ContinueStatement {
+	stmt := &ast.ContinueStatement{Token: p.curToken}
+
+	if !p.expectPeek(tokens.SEMICOLON) {
+		return nil
+	}
+
+	return stmt
+}
+
 func (p *Parser) parseCommentStatement() *ast.EmptyStatement {
 	curLine := p.curToken.Line
 

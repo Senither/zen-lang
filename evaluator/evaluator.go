@@ -17,7 +17,9 @@ var (
 	NULL  = &objects.Null{}
 	TRUE  = &objects.Boolean{Value: true}
 	FALSE = &objects.Boolean{Value: false}
-	BREAK = &objects.Break{}
+
+	BREAK    = &objects.Break{}
+	CONTINUE = &objects.Continue{}
 )
 
 func Eval(node ast.Node, env *objects.Environment) objects.Object {
@@ -47,6 +49,8 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 	// Loop controls
 	case *ast.BreakStatement:
 		return &objects.ReturnValue{Value: BREAK}
+	case *ast.ContinueStatement:
+		return &objects.ReturnValue{Value: CONTINUE}
 
 	// Expression types
 	case *ast.StringLiteral:

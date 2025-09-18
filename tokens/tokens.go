@@ -65,37 +65,39 @@ const (
 	BLOCK_COMMENT_END   TokenType = "BLOCK_COMMENT_END"
 
 	// Keywords
-	FUNCTION     TokenType = "FUNCTION"
-	TRUE         TokenType = "TRUE"
-	FALSE        TokenType = "FALSE"
-	IF           TokenType = "IF"
-	ELSE         TokenType = "ELSE"
-	ELSE_IF      TokenType = "ELSE_IF"
-	RETURN       TokenType = "RETURN"
-	WHILE        TokenType = "WHILE"
-	IMPORT       TokenType = "IMPORT"
-	IMPORT_ALIAS TokenType = "IMPORT_ALIAS"
-	EXPORT       TokenType = "EXPORT"
-	BREAK_LOOP   TokenType = "BREAK_LOOP"
+	FUNCTION      TokenType = "FUNCTION"
+	TRUE          TokenType = "TRUE"
+	FALSE         TokenType = "FALSE"
+	IF            TokenType = "IF"
+	ELSE          TokenType = "ELSE"
+	ELSE_IF       TokenType = "ELSE_IF"
+	RETURN        TokenType = "RETURN"
+	WHILE         TokenType = "WHILE"
+	IMPORT        TokenType = "IMPORT"
+	IMPORT_ALIAS  TokenType = "IMPORT_ALIAS"
+	EXPORT        TokenType = "EXPORT"
+	BREAK_LOOP    TokenType = "BREAK_LOOP"
+	CONTINUE_LOOP TokenType = "CONTINUE_LOOP"
 )
 
 var keywords = map[string]TokenType{
-	"var":     VARIABLE,
-	"mut":     MUTABLE,
-	"func":    FUNCTION,
-	"true":    TRUE,
-	"false":   FALSE,
-	"if":      IF,
-	"else":    ELSE,
-	"elseif":  ELSE_IF,
-	"else if": ELSE_IF,
-	"return":  RETURN,
-	"while":   WHILE,
-	"import":  IMPORT,
-	"export":  EXPORT,
-	"as":      IMPORT_ALIAS,
-	"AS":      IMPORT_ALIAS,
-	"break":   BREAK_LOOP,
+	"var":      VARIABLE,
+	"mut":      MUTABLE,
+	"func":     FUNCTION,
+	"true":     TRUE,
+	"false":    FALSE,
+	"if":       IF,
+	"else":     ELSE,
+	"elseif":   ELSE_IF,
+	"else if":  ELSE_IF,
+	"return":   RETURN,
+	"while":    WHILE,
+	"import":   IMPORT,
+	"export":   EXPORT,
+	"as":       IMPORT_ALIAS,
+	"AS":       IMPORT_ALIAS,
+	"break":    BREAK_LOOP,
+	"continue": CONTINUE_LOOP,
 }
 
 func LookupIdent(ident string) TokenType {
