@@ -20,6 +20,7 @@ func TestMake(t *testing.T) {
 		{OpSub, []int{}, []byte{byte(OpSub)}},
 		{OpMul, []int{}, []byte{byte(OpMul)}},
 		{OpDiv, []int{}, []byte{byte(OpDiv)}},
+		{OpPow, []int{}, []byte{byte(OpPow)}},
 		{OpMod, []int{}, []byte{byte(OpMod)}},
 		// Booleans
 		{OpTrue, []int{}, []byte{byte(OpTrue)}},

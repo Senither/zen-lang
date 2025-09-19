@@ -56,7 +56,7 @@ func (vm *VM) Run() error {
 		case code.OpPop:
 			vm.pop()
 
-		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpMod:
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpPow, code.OpMod:
 			err := vm.executeBinaryOperation(op)
 			if err != nil {
 				return err
@@ -160,6 +160,8 @@ func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.O
 		result = leftValue * rightValue
 	case code.OpDiv:
 		result = leftValue / rightValue
+	case code.OpPow:
+		result = math.Pow(leftValue, rightValue)
 	case code.OpMod:
 		result = math.Mod(leftValue, rightValue)
 	default:

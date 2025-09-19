@@ -22,6 +22,7 @@ const (
 	OpSub
 	OpMul
 	OpDiv
+	OpPow
 	OpMod
 
 	// Booleans

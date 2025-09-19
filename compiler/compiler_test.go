@@ -75,6 +75,16 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			input:             "2 ^ 3",
+			expectedConstants: []any{2, 3},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPow),
+				code.Make(code.OpPop),
+			},
+		},
+		{
 			input:             "1 % 2",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{

@@ -22,6 +22,7 @@ var definitions = map[Opcode]*Definition{
 	OpSub: {"OpSub", []int{}},
 	OpMul: {"OpMul", []int{}},
 	OpDiv: {"OpDiv", []int{}},
+	OpPow: {"OpPow", []int{}},
 	OpMod: {"OpMod", []int{}},
 	// Booleans
 	OpTrue:  {"OpTrue", []int{}},

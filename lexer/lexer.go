@@ -94,6 +94,8 @@ func (l *Lexer) NextToken() tokens.Token {
 		default:
 			token = newToken(tokens.ASTERISK, l)
 		}
+	case '^':
+		token = newToken(tokens.CARET, l)
 	case '%':
 		token = newToken(tokens.MOD, l)
 	case '>':

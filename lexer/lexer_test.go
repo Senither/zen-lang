@@ -39,7 +39,7 @@ func TestNextToken(t *testing.T) {
 		'one-word';
 		'multiple words';
 
-		=+-!*%/<>
+		=+-!*^%/<>
 		== !=;
 		<= >=;
 
@@ -170,6 +170,7 @@ func TestNextToken(t *testing.T) {
 		{tokens.MINUS, "-"},
 		{tokens.BANG, "!"},
 		{tokens.ASTERISK, "*"},
+		{tokens.CARET, "^"},
 		{tokens.MOD, "%"},
 		{tokens.SLASH, "/"},
 		{tokens.LT, "<"},

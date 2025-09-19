@@ -33,6 +33,7 @@ const (
 	BANG     TokenType = "!"
 	ASTERISK TokenType = "*"
 	SLASH    TokenType = "/"
+	CARET    TokenType = "^"
 	MOD      TokenType = "%"
 	GT       TokenType = ">"
 	LT       TokenType = "<"

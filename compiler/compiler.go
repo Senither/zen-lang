@@ -166,6 +166,8 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
 		c.emit(code.OpMul)
 	case "/":
 		c.emit(code.OpDiv)
+	case "^":
+		c.emit(code.OpPow)
 	case "%":
 		c.emit(code.OpMod)
 	case "==":
