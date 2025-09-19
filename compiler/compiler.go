@@ -260,15 +260,3 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 
 	return nil
 }
-
-type Bytecode struct {
-	Instructions code.Instructions
-	Constants    []objects.Object
-}
-
-func (c *Compiler) Bytecode() *Bytecode {
-	return &Bytecode{
-		Instructions: c.instructions,
-		Constants:    c.constants,
-	}
-}
