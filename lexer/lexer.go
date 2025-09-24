@@ -256,6 +256,8 @@ func (l *Lexer) readNumberToken() tokens.Token {
 	val := l.readNumber()
 	if strings.Contains(val, ".") {
 		return newTokenWithValue(tokens.FLOAT, l, val)
+	} else if strings.HasSuffix(val, "f") {
+		return newTokenWithValue(tokens.FLOAT, l, val[:len(val)-1])
 	}
 
 	return newTokenWithValue(tokens.INT, l, val)
@@ -268,12 +270,15 @@ func (l *Lexer) readNumber() string {
 		l.readChar()
 	}
 
-	if l.ch == '.' {
+	switch l.ch {
+	case '.':
 		l.readChar()
 
 		for isDigit(l.ch) {
 			l.readChar()
 		}
+	case 'f':
+		l.readChar()
 	}
 
 	return strings.ReplaceAll(l.input[position:l.position], "_", "")

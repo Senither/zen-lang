@@ -10,6 +10,7 @@ func TestNextToken(t *testing.T) {
 	input := `
 		var mut five = 5;
 		var pie = 3.14;
+		var val = 9f;
 
 		var add = func(x, y) {
 			return x + y;
@@ -68,6 +69,12 @@ func TestNextToken(t *testing.T) {
 		{tokens.IDENT, "pie"},
 		{tokens.ASSIGN, "="},
 		{tokens.FLOAT, "3.14"},
+		{tokens.SEMICOLON, ";"},
+		// Variable assignment to val
+		{tokens.VARIABLE, "var"},
+		{tokens.IDENT, "val"},
+		{tokens.ASSIGN, "="},
+		{tokens.FLOAT, "9"},
 		{tokens.SEMICOLON, ";"},
 		// Variable for add function
 		{tokens.VARIABLE, "var"},
