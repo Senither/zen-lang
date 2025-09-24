@@ -7,6 +7,7 @@ import (
 
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/lexer"
+	"github.com/senither/zen-lang/objects"
 	"github.com/senither/zen-lang/parser"
 	"github.com/senither/zen-lang/vm"
 	"github.com/spf13/cobra"
@@ -22,6 +23,10 @@ var replCommand = &cobra.Command{
 	Long:  "Runs the code provided and outputs the JIT-compiled result.",
 	Run: func(cmd *cobra.Command, args []string) {
 		scanner := bufio.NewScanner(os.Stdin)
+
+		constants := []objects.Object{}
+		globals := make([]objects.Object, vm.GLOBALS_SIZE)
+		symbolTable := compiler.NewSymbolTable()
 
 		fmt.Println("Welcome to the Zen REPL, type your code below to see the output.")
 		fmt.Println("Type 'exit' to exit the REPL or press Ctrl+C.")
@@ -48,14 +53,14 @@ var replCommand = &cobra.Command{
 				continue
 			}
 
-			compiler := compiler.New()
+			compiler := compiler.NewWithState(symbolTable, constants)
 			err := compiler.Compile(program)
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 
-			vm := vm.New(compiler.Bytecode())
+			vm := vm.NewWithGlobalsStore(compiler.Bytecode(), globals)
 			err = vm.Run()
 			if err != nil {
 				fmt.Println(err)

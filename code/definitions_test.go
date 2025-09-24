@@ -15,6 +15,9 @@ func TestMake(t *testing.T) {
 		// Jumps
 		{OpJump, []int{1024}, []byte{byte(OpJump), 4, 0}},
 		{OpJumpNotTruthy, []int{1024}, []byte{byte(OpJumpNotTruthy), 4, 0}},
+		// Globals
+		{OpSetGlobal, []int{255}, []byte{byte(OpSetGlobal), 0, 255}},
+		{OpGetGlobal, []int{255}, []byte{byte(OpGetGlobal), 0, 255}},
 		// Arithmetic
 		{OpAdd, []int{}, []byte{byte(OpAdd)}},
 		{OpSub, []int{}, []byte{byte(OpSub)}},

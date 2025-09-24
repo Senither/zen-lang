@@ -17,6 +17,10 @@ const (
 	OpJump
 	OpJumpNotTruthy
 
+	// Globals
+	OpSetGlobal
+	OpGetGlobal
+
 	// Arithmetic
 	OpAdd
 	OpSub

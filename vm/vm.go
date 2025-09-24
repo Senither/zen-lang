@@ -10,6 +10,7 @@ import (
 )
 
 const STACK_SIZE = 2048
+const GLOBALS_SIZE = 65536
 
 var (
 	NULL  = &objects.Null{}
@@ -23,6 +24,8 @@ type VM struct {
 
 	stack []objects.Object
 	sp    int
+
+	globals []objects.Object
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
@@ -32,7 +35,17 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 		stack: make([]objects.Object, STACK_SIZE),
 		sp:    0,
+
+		globals: make([]objects.Object, GLOBALS_SIZE),
 	}
+}
+
+func NewWithGlobalsStore(bytecode *compiler.Bytecode, globals []objects.Object) *VM {
+	vm := New(bytecode)
+
+	vm.globals = globals
+
+	return vm
 }
 
 func (vm *VM) LastPoppedStackElem() objects.Object {
@@ -86,6 +99,20 @@ func (vm *VM) Run() error {
 			}
 		case code.OpMinus:
 			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
+
+		case code.OpSetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+
+			vm.globals[globalIndex] = vm.pop()
+		case code.OpGetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+
+			err := vm.push(vm.globals[globalIndex])
 			if err != nil {
 				return err
 			}
