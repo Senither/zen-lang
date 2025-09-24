@@ -276,7 +276,7 @@ func (l *Lexer) readNumber() string {
 		}
 	}
 
-	return l.input[position:l.position]
+	return strings.ReplaceAll(l.input[position:l.position], "_", "")
 }
 
 func (l *Lexer) peekChar() byte {
@@ -307,5 +307,5 @@ func isLetter(ch byte) bool {
 }
 
 func isDigit(ch byte) bool {
-	return '0' <= ch && ch <= '9'
+	return '0' <= ch && ch <= '9' || ch == '_'
 }
