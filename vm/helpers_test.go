@@ -57,6 +57,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 		if err != nil {
 			t.Errorf("testBooleanObject failed: %s", err)
 		}
+	case string:
+		err := testStringObject(expected, actual)
+		if err != nil {
+			t.Errorf("testStringObject failed: %s", err)
+		}
 
 	case nil:
 		if actual != NULL {
@@ -102,6 +107,19 @@ func testBooleanObject(expected bool, actual objects.Object) error {
 
 	if result.Value != expected {
 		return fmt.Errorf("object has wrong value. got %t, expected %t", result.Value, expected)
+	}
+
+	return nil
+}
+
+func testStringObject(expected string, actual objects.Object) error {
+	result, ok := actual.(*objects.String)
+	if !ok {
+		return fmt.Errorf("object is not String. got %T (%+v)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value. got %q, expected %q", result.Value, expected)
 	}
 
 	return nil

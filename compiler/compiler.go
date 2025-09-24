@@ -94,6 +94,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpGetGlobal, symbol.Index)
 
 	// Expression types
+	case *ast.StringLiteral:
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: n.Value}))
 	case *ast.IntegerLiteral:
 		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: n.Value}))
 	case *ast.FloatLiteral:
