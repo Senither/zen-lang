@@ -20,6 +20,7 @@ const (
 	INTEGER_CONST = uint8(10)
 	FLOAT_CONST   = uint8(11)
 	BOOLEAN_CONST = uint8(12)
+	STRING_CONST  = uint8(13)
 )
 
 type Bytecode struct {
@@ -37,6 +38,7 @@ func (c *Compiler) Bytecode() *Bytecode {
 func (b *Bytecode) String() string {
 	return b.Instructions.String()
 }
+
 func (b *Bytecode) Serialize() []byte {
 	buf := &bytes.Buffer{}
 	write := func(data any) { binary.Write(buf, binary.BigEndian, data) }
@@ -65,10 +67,16 @@ func (b *Bytecode) Serialize() []byte {
 			} else {
 				buf.WriteByte(0)
 			}
+		case *objects.String:
+			buf.WriteByte(STRING_CONST)
+			write(uint32(len(v.Value)))
+			buf.WriteString(v.Value)
+
 		default:
 			panic(fmt.Sprintf("unsupported constant type: %T", v))
 		}
 	}
+
 	return buf.Bytes()
 }
 
@@ -128,6 +136,18 @@ func Deserialize(data []byte) (*Bytecode, error) {
 				return nil, err
 			}
 			consts = append(consts, &objects.Boolean{Value: val == 1})
+		case STRING_CONST:
+			var strLen uint32
+			if err := read(&strLen); err != nil {
+				return nil, err
+			}
+
+			str := make([]byte, strLen)
+			if _, err := io.ReadFull(r, str); err != nil {
+				return nil, err
+			}
+
+			consts = append(consts, &objects.String{Value: string(str)})
 
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)

@@ -11,6 +11,10 @@ import (
 func TestBytecodeString(t *testing.T) {
 	tests := []string{
 		"1 + 2",
+		"2.5 + 3f",
+		"'Hello, World!'",
+		"[1, 2, 3]",
+		"{ 'key': 'value' }",
 		"1 + 2 * 3 - 4 / 5 % 6",
 		"var a = 10; var b = 20; a + b",
 		"var mut x = 5; x = x + 10; x",
@@ -41,6 +45,10 @@ func TestBytecodeString(t *testing.T) {
 func TestBytecodeSerializeDeserialize(t *testing.T) {
 	tests := []string{
 		"1 + 2",
+		"2.5 + 3f",
+		"'Hello, World!'",
+		"[1, 2, 3]",
+		"{ 'key': 'value' }",
 		"1 + 2 * 3 - 4 / 5 % 6",
 		"var a = 10; var b = 20; a + b",
 		"var mut x = 5; x = x + 10; x",
@@ -108,6 +116,16 @@ func TestBytecodeSerializeDeserialize(t *testing.T) {
 						i, deserializedConstant.(*objects.Boolean).Value, v.Value,
 					)
 				}
+			case *objects.String:
+				if v.Value != deserializedConstant.(*objects.String).Value {
+					t.Errorf(
+						"String constant %d value mismatch. got %v, want %v",
+						i, deserializedConstant.(*objects.String).Value, v.Value,
+					)
+				}
+
+			default:
+				t.Errorf("Unsupported constant type %T", v)
 			}
 		}
 
