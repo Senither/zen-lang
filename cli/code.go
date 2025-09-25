@@ -29,7 +29,7 @@ var codeCommand = &cobra.Command{
 			}
 
 			path, _ := filepath.Abs(args[0])
-			runAndEvalAST(content, path)
+			runAndEvalBytecode(content, path)
 
 			return
 		}

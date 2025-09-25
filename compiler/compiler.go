@@ -14,6 +14,8 @@ type Compiler struct {
 
 	lastInstruction     EmittedInstruction
 	previousInstruction EmittedInstruction
+
+	symbolTable *SymbolTable
 }
 
 type EmittedInstruction struct {
@@ -28,7 +30,18 @@ func New() *Compiler {
 
 		lastInstruction:     EmittedInstruction{},
 		previousInstruction: EmittedInstruction{},
+
+		symbolTable: NewSymbolTable(),
 	}
+}
+
+func NewWithState(s *SymbolTable, constants []objects.Object) *Compiler {
+	compiler := New()
+
+	compiler.symbolTable = s
+	compiler.constants = constants
+
+	return compiler
 }
 
 func (c *Compiler) Compile(node ast.Node) error {
@@ -52,6 +65,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpPop)
+	case *ast.VariableStatement:
+		err := c.Compile(n.Value)
+		if err != nil {
+			return err
+		}
+
+		symbol := c.symbolTable.Define(n.Name.Value, n.Mutable)
+		c.emit(code.OpSetGlobal, symbol.Index)
+
+	// Expression operators
 	case *ast.PrefixExpression:
 		err := c.compilePrefixExpression(n)
 		if err != nil {
@@ -62,8 +85,17 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+	case *ast.Identifier:
+		symbol, ok := c.symbolTable.Resolve(n.Value)
+		if !ok {
+			return fmt.Errorf("undefined variable %s", n.Value)
+		}
+
+		c.emit(code.OpGetGlobal, symbol.Index)
 
 	// Expression types
+	case *ast.StringLiteral:
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: n.Value}))
 	case *ast.IntegerLiteral:
 		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: n.Value}))
 	case *ast.FloatLiteral:
@@ -166,6 +198,8 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
 		c.emit(code.OpMul)
 	case "/":
 		c.emit(code.OpDiv)
+	case "^":
+		c.emit(code.OpPow)
 	case "%":
 		c.emit(code.OpMod)
 	case "==":
@@ -259,16 +293,4 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 	c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
 
 	return nil
-}
-
-type Bytecode struct {
-	Instructions code.Instructions
-	Constants    []objects.Object
-}
-
-func (c *Compiler) Bytecode() *Bytecode {
-	return &Bytecode{
-		Instructions: c.instructions,
-		Constants:    c.constants,
-	}
 }

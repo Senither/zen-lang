@@ -3,6 +3,8 @@ tmp/
 *.exe
 *.log
 *.zen
+.vscode/
+TODO
 
 # Unignore .zen files within the /tests directory
 !tests/**/*.zen

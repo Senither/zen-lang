@@ -1,0 +1,6 @@
+--TEST--
+Defines a float with suffix
+--FILE--
+3f
+--EXPECT--
+3.000000

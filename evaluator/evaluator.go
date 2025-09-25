@@ -17,7 +17,9 @@ var (
 	NULL  = &objects.Null{}
 	TRUE  = &objects.Boolean{Value: true}
 	FALSE = &objects.Boolean{Value: false}
-	BREAK = &objects.Break{}
+
+	BREAK    = &objects.Break{}
+	CONTINUE = &objects.Continue{}
 )
 
 func Eval(node ast.Node, env *objects.Environment) objects.Object {
@@ -47,6 +49,8 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 	// Loop controls
 	case *ast.BreakStatement:
 		return &objects.ReturnValue{Value: BREAK}
+	case *ast.ContinueStatement:
+		return &objects.ReturnValue{Value: CONTINUE}
 
 	// Expression types
 	case *ast.StringLiteral:
@@ -677,10 +681,12 @@ func evalNumberInfixExpression(
 		return wrapNumberValue(leftVal-rightVal, left, right)
 	case "*":
 		return wrapNumberValue(leftVal*rightVal, left, right)
-	case "%":
-		return wrapNumberValue(math.Mod(leftVal, rightVal), left, right)
 	case "/":
 		return wrapNumberValue(leftVal/rightVal, left, right)
+	case "^":
+		return wrapNumberValue(math.Pow(leftVal, rightVal), left, right)
+	case "%":
+		return wrapNumberValue(math.Mod(leftVal, rightVal), left, right)
 	case "<":
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
@@ -853,7 +859,7 @@ func extendFunctionEnv(
 	env := objects.NewEnclosedEnvironment(fn.Env)
 
 	for paramIdx, param := range fn.Parameters {
-		env.Set(node, param.Value, args[paramIdx], false)
+		env.SetImmutableForcefully(param.Value, args[paramIdx])
 	}
 
 	return env

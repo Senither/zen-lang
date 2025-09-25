@@ -17,11 +17,15 @@ var definitions = map[Opcode]*Definition{
 	// Jumps
 	OpJump:          {"OpJump", []int{2}},
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
+	// Globals
+	OpSetGlobal: {"OpSetGlobal", []int{2}},
+	OpGetGlobal: {"OpGetGlobal", []int{2}},
 	// Arithmetic
 	OpAdd: {"OpAdd", []int{}},
 	OpSub: {"OpSub", []int{}},
 	OpMul: {"OpMul", []int{}},
 	OpDiv: {"OpDiv", []int{}},
+	OpPow: {"OpPow", []int{}},
 	OpMod: {"OpMod", []int{}},
 	// Booleans
 	OpTrue:  {"OpTrue", []int{}},

@@ -10,6 +10,7 @@ import (
 )
 
 const STACK_SIZE = 2048
+const GLOBALS_SIZE = 65536
 
 var (
 	NULL  = &objects.Null{}
@@ -23,6 +24,8 @@ type VM struct {
 
 	stack []objects.Object
 	sp    int
+
+	globals []objects.Object
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
@@ -32,7 +35,17 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 		stack: make([]objects.Object, STACK_SIZE),
 		sp:    0,
+
+		globals: make([]objects.Object, GLOBALS_SIZE),
 	}
+}
+
+func NewWithGlobalsStore(bytecode *compiler.Bytecode, globals []objects.Object) *VM {
+	vm := New(bytecode)
+
+	vm.globals = globals
+
+	return vm
 }
 
 func (vm *VM) LastPoppedStackElem() objects.Object {
@@ -56,7 +69,7 @@ func (vm *VM) Run() error {
 		case code.OpPop:
 			vm.pop()
 
-		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpMod:
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpPow, code.OpMod:
 			err := vm.executeBinaryOperation(op)
 			if err != nil {
 				return err
@@ -86,6 +99,20 @@ func (vm *VM) Run() error {
 			}
 		case code.OpMinus:
 			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
+
+		case code.OpSetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+
+			vm.globals[globalIndex] = vm.pop()
+		case code.OpGetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+
+			err := vm.push(vm.globals[globalIndex])
 			if err != nil {
 				return err
 			}
@@ -138,11 +165,15 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	rightType := right.Type()
 	leftType := left.Type()
 
-	if isNumber(leftType) && isNumber(rightType) {
+	switch {
+	case isNumber(leftType) && isNumber(rightType):
 		return vm.executeBinaryNumberOperation(op, left, right)
-	}
+	case leftType == objects.STRING_OBJ && rightType == objects.STRING_OBJ:
+		return vm.executeBinaryStringOperation(op, left, right)
 
-	return nil
+	default:
+		return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
+	}
 }
 
 func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.Object) error {
@@ -160,6 +191,8 @@ func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.O
 		result = leftValue * rightValue
 	case code.OpDiv:
 		result = leftValue / rightValue
+	case code.OpPow:
+		result = math.Pow(leftValue, rightValue)
 	case code.OpMod:
 		result = math.Mod(leftValue, rightValue)
 	default:
@@ -167,6 +200,17 @@ func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.O
 	}
 
 	return vm.push(wrapNumberValue(result, left, right))
+}
+
+func (vm *VM) executeBinaryStringOperation(op code.Opcode, left, right objects.Object) error {
+	if op != code.OpAdd {
+		return fmt.Errorf("unknown string operator: %d", op)
+	}
+
+	leftValue := left.(*objects.String).Value
+	rightValue := right.(*objects.String).Value
+
+	return vm.push(&objects.String{Value: leftValue + rightValue})
 }
 
 func (vm *VM) executeComparison(op code.Opcode) error {

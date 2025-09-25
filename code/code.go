@@ -17,11 +17,16 @@ const (
 	OpJump
 	OpJumpNotTruthy
 
+	// Globals
+	OpSetGlobal
+	OpGetGlobal
+
 	// Arithmetic
 	OpAdd
 	OpSub
 	OpMul
 	OpDiv
+	OpPow
 	OpMod
 
 	// Booleans

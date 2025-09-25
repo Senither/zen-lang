@@ -1,0 +1,6 @@
+--TEST--
+Power with long numbers and parentheses
+--FILE--
+1234.567 ^ (1 + 1) ^ 2 - 2
+--EXPECT--
+2323050529219.952148

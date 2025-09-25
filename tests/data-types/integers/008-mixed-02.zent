@@ -1,0 +1,6 @@
+--TEST--
+Mixed math operations with integers #2
+--FILE--
+(12345 * (2 ^ 3 / 2 - 1987)) % 456 + 232
+--EXPECT--
+1

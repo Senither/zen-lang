@@ -1,0 +1,6 @@
+--TEST--
+Power with two numbers
+--FILE--
+12.34 ^ 4.53
+--EXPECT--
+87832.991259

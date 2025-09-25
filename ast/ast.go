@@ -530,3 +530,12 @@ func (bs *BreakStatement) statementNode()         {}
 func (bs *BreakStatement) GetToken() tokens.Token { return bs.Token }
 func (bs *BreakStatement) TokenLiteral() string   { return bs.Token.Literal }
 func (bs *BreakStatement) String() string         { return "break;" }
+
+type ContinueStatement struct {
+	Token tokens.Token
+}
+
+func (cs *ContinueStatement) statementNode()         {}
+func (cs *ContinueStatement) GetToken() tokens.Token { return cs.Token }
+func (cs *ContinueStatement) TokenLiteral() string   { return cs.Token.Literal }
+func (cs *ContinueStatement) String() string         { return "continue;" }

@@ -1,5 +1,5 @@
 --TEST--
-Mixed math operations with integers
+Mixed math operations with integers #1
 --FILE--
 (12345 * (4 / 2 - 1987)) % 123 + 28
 --EXPECT--

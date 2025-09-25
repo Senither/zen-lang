@@ -37,6 +37,13 @@ func TestIntegerArithmetic(t *testing.T) {
 		{"-(5.5 + 4.5)", -10.0},
 		{"-50 + 100 + -50", 0},
 		{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
+		{"5.5 ^ 0", 1.0},
+		{"5.5 ^ 2", 30.25},
+		{"2.5 + 5.5 ^ 2", 32.75},
+		{"(2.5 + 5.5) ^ 2 * 2", 128.0},
+		{"10.75 % 3", 1.75},
+		{"12.34 % 5", 2.34},
+		{"3.14 % 2", 1.14},
 	}
 
 	runVmTests(t, tests)
@@ -81,6 +88,16 @@ func TestBooleanExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestStringExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{`"hello world"`, "hello world"},
+		{`"hello" + " " + "world"`, "hello world"},
+		{`"foo" + "bar"`, "foobar"},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},
@@ -97,6 +114,17 @@ func TestConditionals(t *testing.T) {
 		{"if (false) { 10 } else if (true) { 20 } else { 30 }", 20},
 		{"if (false) { 10 } else if (false) { 20 } else { 30 }", 30},
 		{"if (false) { 10 } else if (if (true) { 15}) { 20 } else { 30 }", 20},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestGlobalVarStatements(t *testing.T) {
+	tests := []vmTestCase{
+		{"var a = 1; a;", 1},
+		{"var a = 1; var b = 2; a + b;", 3},
+		{"var a = 1; var b = a + 1; a + b;", 3},
+		{"var a = 1; var b = a + a; a + b;", 3},
 	}
 
 	runVmTests(t, tests)

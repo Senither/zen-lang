@@ -259,3 +259,49 @@ func TestBlockCommentStatements(t *testing.T) {
 		t.Errorf("varStmt.Name.Value is not 'y'. got %q", secondStmt.Name.Value)
 	}
 }
+
+func TestBreakLoopStatement(t *testing.T) {
+	input := `break;`
+
+	l := lexer.New(input)
+	p := New(l, nil)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+	}
+
+	breakStmt, ok := program.Statements[0].(*ast.BreakStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.BreakStatement. got %T", program.Statements[0])
+	}
+
+	if breakStmt.TokenLiteral() != "break" {
+		t.Fatalf("breakStmt.TokenLiteral is not 'break', got %q", breakStmt.TokenLiteral())
+	}
+}
+
+func TestContinueLoopStatement(t *testing.T) {
+	input := `continue;`
+
+	l := lexer.New(input)
+	p := New(l, nil)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+	}
+
+	continueStmt, ok := program.Statements[0].(*ast.ContinueStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ContinueStatement. got %T", program.Statements[0])
+	}
+
+	if continueStmt.TokenLiteral() != "continue" {
+		t.Fatalf("continueStmt.TokenLiteral is not 'continue', got %q", continueStmt.TokenLiteral())
+	}
+}

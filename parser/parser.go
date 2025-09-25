@@ -70,6 +70,7 @@ func New(lexer *lexer.Lexer, filePath interface{}) *Parser {
 	p.registerInfix(tokens.MINUS, p.parseInfixExpression)
 	p.registerInfix(tokens.SLASH, p.parseInfixExpression)
 	p.registerInfix(tokens.ASTERISK, p.parseInfixExpression)
+	p.registerInfix(tokens.CARET, p.parseInfixExpression)
 	p.registerInfix(tokens.MOD, p.parseInfixExpression)
 	p.registerInfix(tokens.EQ, p.parseInfixExpression)
 	p.registerInfix(tokens.NOT_EQ, p.parseInfixExpression)
@@ -129,6 +130,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseExportStatement()
 	case tokens.BREAK_LOOP:
 		return p.parseBreakStatement()
+	case tokens.CONTINUE_LOOP:
+		return p.parseContinueStatement()
 	case tokens.COMMENT:
 		return p.parseCommentStatement()
 	case tokens.BLOCK_COMMENT_START:

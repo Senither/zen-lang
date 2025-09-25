@@ -94,6 +94,8 @@ func (l *Lexer) NextToken() tokens.Token {
 		default:
 			token = newToken(tokens.ASTERISK, l)
 		}
+	case '^':
+		token = newToken(tokens.CARET, l)
 	case '%':
 		token = newToken(tokens.MOD, l)
 	case '>':
@@ -254,6 +256,8 @@ func (l *Lexer) readNumberToken() tokens.Token {
 	val := l.readNumber()
 	if strings.Contains(val, ".") {
 		return newTokenWithValue(tokens.FLOAT, l, val)
+	} else if strings.HasSuffix(val, "f") {
+		return newTokenWithValue(tokens.FLOAT, l, val[:len(val)-1])
 	}
 
 	return newTokenWithValue(tokens.INT, l, val)
@@ -266,15 +270,18 @@ func (l *Lexer) readNumber() string {
 		l.readChar()
 	}
 
-	if l.ch == '.' {
+	switch l.ch {
+	case '.':
 		l.readChar()
 
 		for isDigit(l.ch) {
 			l.readChar()
 		}
+	case 'f':
+		l.readChar()
 	}
 
-	return l.input[position:l.position]
+	return strings.ReplaceAll(l.input[position:l.position], "_", "")
 }
 
 func (l *Lexer) peekChar() byte {
@@ -305,5 +312,5 @@ func isLetter(ch byte) bool {
 }
 
 func isDigit(ch byte) bool {
-	return '0' <= ch && ch <= '9'
+	return '0' <= ch && ch <= '9' || ch == '_'
 }
