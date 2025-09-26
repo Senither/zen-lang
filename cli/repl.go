@@ -1,14 +1,8 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 
-	"github.com/senither/zen-lang/compiler"
-	"github.com/senither/zen-lang/lexer"
-	"github.com/senither/zen-lang/objects"
-	"github.com/senither/zen-lang/parser"
 	"github.com/senither/zen-lang/vm"
 	"github.com/spf13/cobra"
 )
@@ -22,55 +16,29 @@ var replCommand = &cobra.Command{
 	Short: "Run code and get the JIT-compiled output",
 	Long:  "Runs the code provided and outputs the JIT-compiled result.",
 	Run: func(cmd *cobra.Command, args []string) {
-		scanner := bufio.NewScanner(os.Stdin)
+		table, globals, constants := createCompilerParameters()
 
-		constants := []objects.Object{}
-		globals := make([]objects.Object, vm.GLOBALS_SIZE)
-		symbolTable := compiler.NewSymbolTable()
-
-		fmt.Println("Welcome to the Zen REPL, type your code below to see the output.")
-		fmt.Println("Type 'exit' to exit the REPL or press Ctrl+C.")
-
-		for {
-			fmt.Printf(">>> ")
-
-			scanned := scanner.Scan()
-			if !scanned {
+		createREPLRunner(args, []string{
+			"Welcome to the Zen REPL, type your code below to see the evaluated output.",
+			"Type 'exit' to exit the REPL or press Ctrl+C.",
+		}, func(input string, path any) {
+			lexer := inputToLexer(input)
+			program := lexerToProgram(lexer, path)
+			bytecode := programToBytecode(program, table, constants)
+			if bytecode == nil {
 				return
 			}
 
-			line := scanner.Text()
-			if line == "exit" {
+			vm := vm.NewWithGlobalsStore(bytecode, globals)
+			if err := vm.Run(); err != nil {
+				fmt.Println(err)
 				return
-			}
-
-			lexer := lexer.New(line)
-			parser := parser.New(lexer, nil)
-
-			program := parser.ParseProgram()
-			if len(parser.Errors()) > 0 {
-				printParseErrors(parser.Errors())
-				continue
-			}
-
-			compiler := compiler.NewWithState(symbolTable, constants)
-			err := compiler.Compile(program)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			vm := vm.NewWithGlobalsStore(compiler.Bytecode(), globals)
-			err = vm.Run()
-			if err != nil {
-				fmt.Println(err)
-				continue
 			}
 
 			stackTop := vm.LastPoppedStackElem()
 			if stackTop != nil {
 				fmt.Printf("%s\n", stackTop.Inspect())
 			}
-		}
+		})
 	},
 }
