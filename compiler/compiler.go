@@ -98,6 +98,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpIndex)
+	case *ast.ChainExpression:
+		err := c.compileChainExpression(n, false)
+		if err != nil {
+			return err
+		}
 	case *ast.Identifier:
 		symbol, ok := c.symbolTable.Resolve(n.Value)
 		if !ok {
@@ -335,6 +340,34 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 
 	afterAlternativePos := len(c.instructions)
 	c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
+
+	return nil
+}
+
+func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool) error {
+	switch left := node.Left.(type) {
+	case *ast.Identifier:
+		if inner {
+			c.emit(code.OpConstant, c.addConstant(&objects.String{Value: left.Value}))
+			c.emit(code.OpIndex)
+		} else {
+			c.Compile(node.Left)
+		}
+
+	default:
+		return fmt.Errorf("unsupported chain expression left side: %T", left)
+	}
+
+	switch right := node.Right.(type) {
+	case *ast.Identifier:
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: right.Value}))
+	case *ast.ChainExpression:
+		return c.compileChainExpression(right, true)
+	default:
+		return fmt.Errorf("unsupported chain expression right side: %T", right)
+	}
+
+	c.emit(code.OpIndex)
 
 	return nil
 }

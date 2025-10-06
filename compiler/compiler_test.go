@@ -402,6 +402,39 @@ func TestIndexExpressions(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func TestChainIndexExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "var test = {}; test.key",
+			expectedConstants: []interface{}{"key"},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpHash, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpIndex),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "var test = {}; test.another.key",
+			expectedConstants: []interface{}{"another", "key"},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpHash, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpIndex),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
