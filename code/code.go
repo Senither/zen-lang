@@ -45,6 +45,7 @@ const (
 
 	// Objects
 	OpArray
+	OpHash
 )
 
 type Instructions []byte

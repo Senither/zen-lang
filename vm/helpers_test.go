@@ -67,6 +67,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 		if err != nil {
 			t.Errorf("testIntegerArrayObject failed: %s", err)
 		}
+	case map[objects.HashKey]int64:
+		err := testHashMapIntegerObject(expected, actual)
+		if err != nil {
+			t.Errorf("testHashMapObject failed: %s", err)
+		}
 
 	case nil:
 		if actual != NULL {
@@ -144,6 +149,31 @@ func testIntegerArrayObject(expected []int, actual objects.Object) error {
 		err := testIntegerObject(int64(expectedElem), array.Elements[i])
 		if err != nil {
 			return fmt.Errorf("array[%d] - %s", i, err)
+		}
+	}
+
+	return nil
+}
+
+func testHashMapIntegerObject(expected map[objects.HashKey]int64, actual objects.Object) error {
+	hash, ok := actual.(*objects.Hash)
+	if !ok {
+		return fmt.Errorf("object is not Hash. got %T (%+v)", actual, actual)
+	}
+
+	if len(hash.Pairs) != len(expected) {
+		return fmt.Errorf("hash has wrong number of pairs. got %d, want %d", len(hash.Pairs), len(expected))
+	}
+
+	for expectedKey, expectedValue := range expected {
+		pair, ok := hash.Pairs[expectedKey]
+		if !ok {
+			return fmt.Errorf("no pair found for given key in Pairs: %d", expectedKey.Value)
+		}
+
+		err := testIntegerObject(expectedValue, pair.Value)
+		if err != nil {
+			return fmt.Errorf("testIntegerObject failed: %s", err)
 		}
 	}
 

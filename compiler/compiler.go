@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/code"
@@ -115,6 +116,29 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpArray, len(n.Elements))
+	case *ast.HashLiteral:
+		keys := []ast.Expression{}
+		for key := range n.Pairs {
+			keys = append(keys, key)
+		}
+
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+
+		for _, key := range keys {
+			err := c.Compile(key)
+			if err != nil {
+				return err
+			}
+
+			err = c.Compile(n.Pairs[key])
+			if err != nil {
+				return err
+			}
+		}
+
+		c.emit(code.OpHash, len(n.Pairs)*2)
 	case *ast.IfExpression:
 		err := c.compileConditionalIfExpression(n)
 		if err != nil {

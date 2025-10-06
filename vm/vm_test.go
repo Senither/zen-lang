@@ -1,6 +1,10 @@
 package vm
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/senither/zen-lang/objects"
+)
 
 type vmTestCase struct {
 	input    string
@@ -103,6 +107,31 @@ func TestArrayLiterals(t *testing.T) {
 		{"[]", []int{}},
 		{"[1, 2, 3]", []int{1, 2, 3}},
 		{"[1 + 2, 3 * 4, 5 + 6]", []int{3, 12, 11}},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestHashLiterals(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			"{}", map[objects.HashKey]int64{},
+		},
+		{
+			"{1: 2, 3: 4, 5: 6}",
+			map[objects.HashKey]int64{
+				(&objects.Integer{Value: 1}).HashKey(): 2,
+				(&objects.Integer{Value: 3}).HashKey(): 4,
+				(&objects.Integer{Value: 5}).HashKey(): 6,
+			},
+		},
+		{
+			"{1 + 1: 2 * 2, 3 + 3: 4 * 4}",
+			map[objects.HashKey]int64{
+				(&objects.Integer{Value: 2}).HashKey(): 4,
+				(&objects.Integer{Value: 6}).HashKey(): 16,
+			},
+		},
 	}
 
 	runVmTests(t, tests)

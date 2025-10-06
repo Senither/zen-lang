@@ -38,6 +38,7 @@ func TestMake(t *testing.T) {
 		{OpBang, []int{}, []byte{byte(OpBang)}},
 		// Objects
 		{OpArray, []int{255}, []byte{byte(OpArray), 0, 255}},
+		{OpHash, []int{255}, []byte{byte(OpHash), 0, 255}},
 	}
 
 	for _, tt := range tests {
