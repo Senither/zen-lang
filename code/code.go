@@ -43,6 +43,9 @@ const (
 	OpMinus
 	OpBang
 
+	// Suffixes
+	OpIndex
+
 	// Objects
 	OpArray
 	OpHash

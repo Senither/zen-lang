@@ -86,6 +86,18 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+	case *ast.IndexExpression:
+		err := c.Compile(n.Left)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(n.Index)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpIndex)
 	case *ast.Identifier:
 		symbol, ok := c.symbolTable.Resolve(n.Value)
 		if !ok {

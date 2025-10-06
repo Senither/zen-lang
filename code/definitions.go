@@ -38,6 +38,8 @@ var definitions = map[Opcode]*Definition{
 	// Prefixes
 	OpMinus: {"OpMinus", []int{}},
 	OpBang:  {"OpBang", []int{}},
+	// Suffixes
+	OpIndex: {"OpIndex", []int{}},
 	// Objects
 	OpArray: {"OpArray", []int{2}},
 	OpHash:  {"OpHash", []int{2}},

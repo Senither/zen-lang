@@ -36,6 +36,8 @@ func TestMake(t *testing.T) {
 		// Prefixes
 		{OpMinus, []int{}, []byte{byte(OpMinus)}},
 		{OpBang, []int{}, []byte{byte(OpBang)}},
+		// Suffixes
+		{OpIndex, []int{}, []byte{byte(OpIndex)}},
 		// Objects
 		{OpArray, []int{255}, []byte{byte(OpArray), 0, 255}},
 		{OpHash, []int{255}, []byte{byte(OpHash), 0, 255}},
