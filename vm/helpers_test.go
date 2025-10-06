@@ -62,6 +62,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 		if err != nil {
 			t.Errorf("testStringObject failed: %s", err)
 		}
+	case []int:
+		err := testIntegerArrayObject(expected, actual)
+		if err != nil {
+			t.Errorf("testIntegerArrayObject failed: %s", err)
+		}
 
 	case nil:
 		if actual != NULL {
@@ -120,6 +125,26 @@ func testStringObject(expected string, actual objects.Object) error {
 
 	if result.Value != expected {
 		return fmt.Errorf("object has wrong value. got %q, expected %q", result.Value, expected)
+	}
+
+	return nil
+}
+
+func testIntegerArrayObject(expected []int, actual objects.Object) error {
+	array, ok := actual.(*objects.Array)
+	if !ok {
+		return fmt.Errorf("object is not Array. got %T (%+v)", actual, actual)
+	}
+
+	if len(array.Elements) != len(expected) {
+		return fmt.Errorf("array has wrong length. got %d, want %d", len(array.Elements), len(expected))
+	}
+
+	for i, expectedElem := range expected {
+		err := testIntegerObject(int64(expectedElem), array.Elements[i])
+		if err != nil {
+			return fmt.Errorf("array[%d] - %s", i, err)
+		}
 	}
 
 	return nil

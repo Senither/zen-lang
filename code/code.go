@@ -42,6 +42,9 @@ const (
 	// Prefixes
 	OpMinus
 	OpBang
+
+	// Objects
+	OpArray
 )
 
 type Instructions []byte

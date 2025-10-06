@@ -38,6 +38,8 @@ var definitions = map[Opcode]*Definition{
 	// Prefixes
 	OpMinus: {"OpMinus", []int{}},
 	OpBang:  {"OpBang", []int{}},
+	// Objects
+	OpArray: {"OpArray", []int{2}},
 }
 
 func Make(op Opcode, operands ...int) []byte {

@@ -106,7 +106,15 @@ func (c *Compiler) Compile(node ast.Node) error {
 		} else {
 			c.emit(code.OpFalse)
 		}
+	case *ast.ArrayLiteral:
+		for _, element := range n.Elements {
+			err := c.Compile(element)
+			if err != nil {
+				return err
+			}
+		}
 
+		c.emit(code.OpArray, len(n.Elements))
 	case *ast.IfExpression:
 		err := c.compileConditionalIfExpression(n)
 		if err != nil {
