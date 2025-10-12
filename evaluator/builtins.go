@@ -22,7 +22,7 @@ func registerBuiltins() {
 					fmt.Fprint(os.Stdout, arg.Inspect())
 				}
 
-				return NULL
+				return objects.NULL
 			},
 		},
 		"println": {
@@ -35,7 +35,7 @@ func registerBuiltins() {
 					fmt.Fprint(os.Stdout, arg.Inspect(), "\n")
 				}
 
-				return NULL
+				return objects.NULL
 			},
 		},
 		"len": {

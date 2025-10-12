@@ -268,8 +268,8 @@ func TestHashLiterals(t *testing.T) {
 		(&objects.String{Value: "two"}).HashKey():   2,
 		(&objects.String{Value: "three"}).HashKey(): 3,
 		(&objects.Integer{Value: 4}).HashKey():      4,
-		TRUE.HashKey():                              5,
-		FALSE.HashKey():                             6,
+		objects.TRUE.HashKey():                      5,
+		objects.FALSE.HashKey():                     6,
 	}
 
 	if len(result.Pairs) != len(expected) {

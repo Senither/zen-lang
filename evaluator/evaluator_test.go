@@ -184,7 +184,7 @@ func testEval(input string) objects.Object {
 }
 
 func testNullObject(t *testing.T, obj objects.Object) bool {
-	if obj == NULL {
+	if obj == objects.NULL {
 		return true
 	}
 

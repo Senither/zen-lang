@@ -74,7 +74,7 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 		}
 
 	case nil:
-		if actual != NULL {
+		if actual != objects.NULL {
 			t.Errorf("object is not NULL. got %T (%+v)", actual, actual)
 		}
 

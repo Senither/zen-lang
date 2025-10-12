@@ -46,7 +46,7 @@ func registerGlobals() {
 				}
 
 				if len(array.Elements) == 0 {
-					return NULL
+					return objects.NULL
 				}
 
 				first := array.Elements[0]
@@ -69,7 +69,7 @@ func registerGlobals() {
 				}
 
 				if len(array.Elements) == 0 {
-					return NULL
+					return objects.NULL
 				}
 
 				last := array.Elements[len(array.Elements)-1]
@@ -105,11 +105,11 @@ func registerGlobals() {
 					env := objects.NewEnclosedEnvironment(callback.Env)
 					env.SetImmutableForcefully(callback.Parameters[0].Value, elem)
 
-					rs := unwrapReturnValue(Eval(callback.Body, env))
+					rs := objects.UnwrapReturnValue(Eval(callback.Body, env))
 
 					switch rs := rs.(type) {
 					case *objects.Boolean:
-						if rs == TRUE {
+						if rs == objects.TRUE {
 							filtered = append(filtered, elem)
 						}
 					case *objects.Error:
@@ -145,10 +145,10 @@ func registerGlobals() {
 				}
 
 				if strings.Contains(str.Value, substr.Value) {
-					return TRUE
+					return objects.TRUE
 				}
 
-				return FALSE
+				return objects.FALSE
 			}),
 			objects.WrapBuiltinFunctionInMap("split", func(
 				node *ast.CallExpression,

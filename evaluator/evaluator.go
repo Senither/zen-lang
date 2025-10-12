@@ -13,15 +13,6 @@ import (
 	"github.com/senither/zen-lang/parser"
 )
 
-var (
-	NULL  = &objects.Null{}
-	TRUE  = &objects.Boolean{Value: true}
-	FALSE = &objects.Boolean{Value: false}
-
-	BREAK    = &objects.Break{}
-	CONTINUE = &objects.Continue{}
-)
-
 func Eval(node ast.Node, env *objects.Environment) objects.Object {
 	switch node := node.(type) {
 	// Statements
@@ -48,9 +39,9 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 
 	// Loop controls
 	case *ast.BreakStatement:
-		return &objects.ReturnValue{Value: BREAK}
+		return &objects.ReturnValue{Value: objects.BREAK}
 	case *ast.ContinueStatement:
-		return &objects.ReturnValue{Value: CONTINUE}
+		return &objects.ReturnValue{Value: objects.CONTINUE}
 
 	// Expression types
 	case *ast.StringLiteral:
@@ -60,7 +51,7 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 	case *ast.FloatLiteral:
 		return &objects.Float{Value: node.Value}
 	case *ast.BooleanLiteral:
-		return nativeBoolToBooleanObject(node.Value)
+		return objects.NativeBoolToBooleanObject(node.Value)
 	case *ast.ArrayLiteral:
 		elements := evalExpressions(node.Elements, env)
 		if len(elements) == 1 && objects.IsError(elements[0]) {
@@ -209,7 +200,7 @@ func evalBlockStatement(block *ast.BlockStatement, env *objects.Environment) obj
 func evalIfExpression(ie *ast.IfExpression, env *objects.Environment) objects.Object {
 	condition := Eval(ie.Condition, env)
 
-	if isTruthy(condition) {
+	if objects.IsTruthy(condition) {
 		return Eval(ie.Consequence, env)
 	}
 
@@ -221,7 +212,7 @@ func evalIfExpression(ie *ast.IfExpression, env *objects.Environment) objects.Ob
 		return Eval(ie.Alternative, env)
 	}
 
-	return NULL
+	return objects.NULL
 }
 
 func evalWhileExpression(we *ast.WhileExpression, env *objects.Environment) objects.Object {
@@ -231,21 +222,21 @@ func evalWhileExpression(we *ast.WhileExpression, env *objects.Environment) obje
 			return condition
 		}
 
-		if !isTruthy(condition) {
+		if !objects.IsTruthy(condition) {
 			break
 		}
 
-		body := unwrapReturnValue(Eval(we.Body, env))
+		body := objects.UnwrapReturnValue(Eval(we.Body, env))
 		if objects.IsError(body) {
 			return body
 		}
 
-		if body == BREAK {
+		if body == objects.BREAK {
 			break
 		}
 	}
 
-	return NULL
+	return objects.NULL
 }
 
 func evalIdentifier(node *ast.Identifier, env *objects.Environment) objects.Object {
@@ -262,33 +253,6 @@ func evalIdentifier(node *ast.Identifier, env *objects.Environment) objects.Obje
 	}
 
 	return objects.NewError(node.Token, env, "%s: %s", "identifier not found", node.Value)
-}
-
-func nativeBoolToBooleanObject(input bool) *objects.Boolean {
-	if input {
-		return TRUE
-	}
-	return FALSE
-}
-
-func isTruthy(obj objects.Object) bool {
-	switch obj {
-	case NULL:
-		return false
-	case FALSE:
-		return false
-	default:
-		return true
-	}
-}
-
-func isNumber(obj objects.ObjectType) bool {
-	switch obj {
-	case objects.INTEGER_OBJ, objects.FLOAT_OBJ:
-		return true
-	default:
-		return false
-	}
 }
 
 func evalHashLiteral(node *ast.HashLiteral, env *objects.Environment) objects.Object {
@@ -334,14 +298,14 @@ func evalPrefixExpression(
 
 func evalBangOperatorExpression(right objects.Object) objects.Object {
 	switch right {
-	case TRUE:
-		return FALSE
-	case FALSE:
-		return TRUE
-	case NULL:
-		return TRUE
+	case objects.TRUE:
+		return objects.FALSE
+	case objects.FALSE:
+		return objects.TRUE
+	case objects.NULL:
+		return objects.TRUE
 	default:
-		return FALSE
+		return objects.FALSE
 	}
 }
 
@@ -362,14 +326,14 @@ func evalMinusPrefixOperatorExpression(
 
 func evalInfixExpression(node *ast.InfixExpression, left, right objects.Object, env *objects.Environment) objects.Object {
 	switch {
-	case isNumber(left.Type()) && isNumber(right.Type()):
+	case objects.IsNumber(left.Type()) && objects.IsNumber(right.Type()):
 		return evalNumberInfixExpression(node, left, right, env)
 	case left.Type() == objects.STRING_OBJ && right.Type() == objects.STRING_OBJ:
 		return evalStringInfixExpression(node, left, right, env)
 	case node.Operator == "==":
-		return nativeBoolToBooleanObject(left == right)
+		return objects.NativeBoolToBooleanObject(left == right)
 	case node.Operator == "!=":
-		return nativeBoolToBooleanObject(left != right)
+		return objects.NativeBoolToBooleanObject(left != right)
 
 	case left.Type() != right.Type():
 		return objects.NewError(node.Token, env, "type mismatch: %s %s %s", left.Type(), node.Operator, right.Type())
@@ -472,7 +436,7 @@ func evalHashIndexExpression(
 
 	pair, ok := hashObj.Pairs[key.HashKey()]
 	if !ok {
-		return NULL
+		return objects.NULL
 	}
 
 	return pair.Value
@@ -671,34 +635,34 @@ func evalNumberInfixExpression(
 	left, right objects.Object,
 	env *objects.Environment,
 ) objects.Object {
-	leftVal := unwrapNumberValue(left)
-	rightVal := unwrapNumberValue(right)
+	leftVal := objects.UnwrapNumberValue(left)
+	rightVal := objects.UnwrapNumberValue(right)
 
 	switch node.Operator {
 	case "+":
-		return wrapNumberValue(leftVal+rightVal, left, right)
+		return objects.WrapNumberValue(leftVal+rightVal, left, right)
 	case "-":
-		return wrapNumberValue(leftVal-rightVal, left, right)
+		return objects.WrapNumberValue(leftVal-rightVal, left, right)
 	case "*":
-		return wrapNumberValue(leftVal*rightVal, left, right)
+		return objects.WrapNumberValue(leftVal*rightVal, left, right)
 	case "/":
-		return wrapNumberValue(leftVal/rightVal, left, right)
+		return objects.WrapNumberValue(leftVal/rightVal, left, right)
 	case "^":
-		return wrapNumberValue(math.Pow(leftVal, rightVal), left, right)
+		return objects.WrapNumberValue(math.Pow(leftVal, rightVal), left, right)
 	case "%":
-		return wrapNumberValue(math.Mod(leftVal, rightVal), left, right)
+		return objects.WrapNumberValue(math.Mod(leftVal, rightVal), left, right)
 	case "<":
-		return nativeBoolToBooleanObject(leftVal < rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
-		return nativeBoolToBooleanObject(leftVal > rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal > rightVal)
 	case "==":
-		return nativeBoolToBooleanObject(leftVal == rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal == rightVal)
 	case "!=":
-		return nativeBoolToBooleanObject(leftVal != rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal != rightVal)
 	case "<=":
-		return nativeBoolToBooleanObject(leftVal <= rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal <= rightVal)
 	case ">=":
-		return nativeBoolToBooleanObject(leftVal >= rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal >= rightVal)
 	default:
 		return objects.NewError(node.Token, env, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
 	}
@@ -716,9 +680,9 @@ func evalStringInfixExpression(
 	case "+":
 		return &objects.String{Value: leftVal + rightVal}
 	case "==":
-		return nativeBoolToBooleanObject(leftVal == rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal == rightVal)
 	case "!=":
-		return nativeBoolToBooleanObject(leftVal != rightVal)
+		return objects.NativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return objects.NewError(node.Token, env, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
 	}
@@ -814,7 +778,7 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 		env.SetImmutableForcefully(cleanFilename, hash)
 	}
 
-	return NULL
+	return objects.NULL
 }
 
 func evalExportStatement(node *ast.ExportStatement, env *objects.Environment) objects.Object {
@@ -828,7 +792,7 @@ func evalExportStatement(node *ast.ExportStatement, env *objects.Environment) ob
 		return objects.NewError(node.Token, env, "failed to export value: %q", err)
 	}
 
-	return NULL
+	return objects.NULL
 }
 
 func applyFunction(
@@ -841,7 +805,7 @@ func applyFunction(
 	case *objects.Function:
 		extendedEnv := extendFunctionEnv(node, fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
-		return unwrapReturnValue(evaluated)
+		return objects.UnwrapReturnValue(evaluated)
 
 	case *objects.Builtin:
 		return captureStdoutForBuiltin(node, fn, args, env)
@@ -863,37 +827,6 @@ func extendFunctionEnv(
 	}
 
 	return env
-}
-
-func unwrapReturnValue(obj objects.Object) objects.Object {
-	if returnValue, ok := obj.(*objects.ReturnValue); ok {
-		return returnValue.Value
-	}
-
-	return obj
-}
-
-func wrapNumberValue(value float64, left, right objects.Object) objects.Object {
-	if left.Type() == objects.FLOAT_OBJ || right.Type() == objects.FLOAT_OBJ {
-		return &objects.Float{Value: value}
-	}
-
-	if float64(int64(value)) == value {
-		return &objects.Integer{Value: int64(value)}
-	}
-
-	return &objects.Float{Value: value}
-}
-
-func unwrapNumberValue(obj objects.Object) float64 {
-	switch n := obj.(type) {
-	case *objects.Integer:
-		return float64(n.Value)
-	case *objects.Float:
-		return n.Value
-	default:
-		return 0
-	}
 }
 
 func captureStdoutForBuiltin(

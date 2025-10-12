@@ -12,12 +12,6 @@ import (
 const STACK_SIZE = 2048
 const GLOBALS_SIZE = 65536
 
-var (
-	NULL  = &objects.Null{}
-	TRUE  = &objects.Boolean{Value: true}
-	FALSE = &objects.Boolean{Value: false}
-)
-
 type VM struct {
 	constants    []objects.Object
 	instructions code.Instructions
@@ -76,12 +70,12 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpTrue:
-			err := vm.push(TRUE)
+			err := vm.push(objects.TRUE)
 			if err != nil {
 				return err
 			}
 		case code.OpFalse:
-			err := vm.push(FALSE)
+			err := vm.push(objects.FALSE)
 			if err != nil {
 				return err
 			}
@@ -125,7 +119,7 @@ func (vm *VM) Run() error {
 			ip += 2
 
 			condition := vm.pop()
-			if !isTruthy(condition) {
+			if !objects.IsTruthy(condition) {
 				ip = pos - 1
 			}
 
@@ -165,7 +159,7 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case code.OpNull:
-			err := vm.push(NULL)
+			err := vm.push(objects.NULL)
 			if err != nil {
 				return err
 			}
@@ -201,7 +195,7 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	leftType := left.Type()
 
 	switch {
-	case isNumber(leftType) && isNumber(rightType):
+	case objects.IsNumber(leftType) && objects.IsNumber(rightType):
 		return vm.executeBinaryNumberOperation(op, left, right)
 	case leftType == objects.STRING_OBJ && rightType == objects.STRING_OBJ:
 		return vm.executeBinaryStringOperation(op, left, right)
@@ -212,8 +206,8 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 }
 
 func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.Object) error {
-	leftValue := unwrapNumberValue(left)
-	rightValue := unwrapNumberValue(right)
+	leftValue := objects.UnwrapNumberValue(left)
+	rightValue := objects.UnwrapNumberValue(right)
 
 	var result float64
 
@@ -234,7 +228,7 @@ func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.O
 		return fmt.Errorf("unknown number operator: %d", op)
 	}
 
-	return vm.push(wrapNumberValue(result, left, right))
+	return vm.push(objects.WrapNumberValue(result, left, right))
 }
 
 func (vm *VM) executeBinaryStringOperation(op code.Opcode, left, right objects.Object) error {
@@ -255,33 +249,33 @@ func (vm *VM) executeComparison(op code.Opcode) error {
 	rightType := right.Type()
 	leftType := left.Type()
 
-	if isNumber(leftType) && isNumber(rightType) {
+	if objects.IsNumber(leftType) && objects.IsNumber(rightType) {
 		return vm.executeComparisonNumberOperation(op, left, right)
 	}
 
 	switch op {
 	case code.OpEqual:
-		return vm.push(nativeBoolToBooleanObject(left == right))
+		return vm.push(objects.NativeBoolToBooleanObject(left == right))
 	case code.OpNotEqual:
-		return vm.push(nativeBoolToBooleanObject(left != right))
+		return vm.push(objects.NativeBoolToBooleanObject(left != right))
 	default:
 		return fmt.Errorf("unknown operator: %d (%s %s)", op, leftType, rightType)
 	}
 }
 
 func (vm *VM) executeComparisonNumberOperation(op code.Opcode, left, right objects.Object) error {
-	leftValue := unwrapNumberValue(left)
-	rightValue := unwrapNumberValue(right)
+	leftValue := objects.UnwrapNumberValue(left)
+	rightValue := objects.UnwrapNumberValue(right)
 
 	switch op {
 	case code.OpEqual:
-		return vm.push(nativeBoolToBooleanObject(leftValue == rightValue))
+		return vm.push(objects.NativeBoolToBooleanObject(leftValue == rightValue))
 	case code.OpNotEqual:
-		return vm.push(nativeBoolToBooleanObject(leftValue != rightValue))
+		return vm.push(objects.NativeBoolToBooleanObject(leftValue != rightValue))
 	case code.OpGreaterThan:
-		return vm.push(nativeBoolToBooleanObject(leftValue > rightValue))
+		return vm.push(objects.NativeBoolToBooleanObject(leftValue > rightValue))
 	case code.OpGreaterThanOrEqual:
-		return vm.push(nativeBoolToBooleanObject(leftValue >= rightValue))
+		return vm.push(objects.NativeBoolToBooleanObject(leftValue >= rightValue))
 	default:
 		return fmt.Errorf("unknown number operator: %d", op)
 	}
@@ -291,26 +285,26 @@ func (vm *VM) executeBangOperator() error {
 	operand := vm.pop()
 
 	switch operand {
-	case TRUE:
-		return vm.push(FALSE)
-	case FALSE:
-		return vm.push(TRUE)
-	case NULL:
-		return vm.push(TRUE)
+	case objects.TRUE:
+		return vm.push(objects.FALSE)
+	case objects.FALSE:
+		return vm.push(objects.TRUE)
+	case objects.NULL:
+		return vm.push(objects.TRUE)
 
 	default:
-		return vm.push(FALSE)
+		return vm.push(objects.FALSE)
 	}
 }
 
 func (vm *VM) executeMinusOperator() error {
 	operand := vm.pop()
 
-	if !isNumber(operand.Type()) {
+	if !objects.IsNumber(operand.Type()) {
 		return fmt.Errorf("unknown operator: -%s", operand.Type())
 	}
 
-	return vm.push(wrapNumberValue(-unwrapNumberValue(operand), operand, operand))
+	return vm.push(objects.WrapNumberValue(-objects.UnwrapNumberValue(operand), operand, operand))
 }
 
 func (vm *VM) executeIndexExpression(left, index objects.Object) error {
@@ -331,7 +325,7 @@ func (vm *VM) executeArrayIndex(array, index objects.Object) error {
 	max := int64(len(arrayObj.Elements) - 1)
 
 	if i < 0 || i > max {
-		return vm.push(NULL)
+		return vm.push(objects.NULL)
 	}
 
 	return vm.push(arrayObj.Elements[i])
@@ -347,7 +341,7 @@ func (vm *VM) executeHashIndex(hash, index objects.Object) error {
 
 	pair, ok := hashObj.Pairs[key.HashKey()]
 	if !ok {
-		return vm.push(NULL)
+		return vm.push(objects.NULL)
 	}
 
 	return vm.push(pair.Value)
@@ -381,50 +375,4 @@ func (vm *VM) buildHash(startIndex, endIndex int) (objects.Object, error) {
 	}
 
 	return &objects.Hash{Pairs: pairs}, nil
-}
-
-func nativeBoolToBooleanObject(input bool) *objects.Boolean {
-	if input {
-		return TRUE
-	}
-	return FALSE
-}
-
-func isTruthy(obj objects.Object) bool {
-	switch obj := obj.(type) {
-	case *objects.Boolean:
-		return obj.Value
-	case *objects.Null:
-		return false
-
-	default:
-		return true
-	}
-}
-
-func isNumber(t objects.ObjectType) bool {
-	return t == objects.INTEGER_OBJ || t == objects.FLOAT_OBJ
-}
-
-func wrapNumberValue(value float64, left, right objects.Object) objects.Object {
-	if left.Type() == objects.FLOAT_OBJ || right.Type() == objects.FLOAT_OBJ {
-		return &objects.Float{Value: value}
-	}
-
-	if float64(int64(value)) == value {
-		return &objects.Integer{Value: int64(value)}
-	}
-
-	return &objects.Float{Value: value}
-}
-
-func unwrapNumberValue(obj objects.Object) float64 {
-	switch n := obj.(type) {
-	case *objects.Integer:
-		return float64(n.Value)
-	case *objects.Float:
-		return n.Value
-	default:
-		return 0
-	}
 }
