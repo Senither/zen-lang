@@ -1,0 +1,7 @@
+--TEST--
+Print escaped quote
+--FILE--
+print("\"")
+print('\'')
+--EXPECT--
+"'

@@ -1,0 +1,7 @@
+--TEST--
+Print escaped quote in string
+--FILE--
+print("Hello\"World")
+print('Hello\'World')
+--EXPECT--
+Hello"WorldHello'World

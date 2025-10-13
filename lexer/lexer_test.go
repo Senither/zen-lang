@@ -225,13 +225,89 @@ func TestNextToken(t *testing.T) {
 		tok := l.NextToken()
 
 		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-				i, tt.expectedType, tok.Type)
+			t.Fatalf("tests[%d] - token type wrong.\nexpected %q\ngot %q", i, tt.expectedType, tok.Type)
 		}
 
 		if tok.Literal != tt.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
-				i, tt.expectedLiteral, tok.Literal)
+			t.Fatalf("tests[%d] - literal wrong.\nexpected %q\ngot %q", i, tt.expectedLiteral, tok.Literal)
 		}
+	}
+
+	tok := l.NextToken()
+	if tok.Type != tokens.EOF {
+		t.Fatalf("expected EOF token at end of input, got %q (value: %q)", tok.Type, tok.Literal)
+	}
+}
+
+func TestNextTokenEscapedString(t *testing.T) {
+	input := `
+		"\\ \ \'" \\ \ \''
+		"Hello\"World" \""
+		"Hello\nWorld" \n
+		"Hello\rWorld" \r
+		"Hello\tWorld" \t
+		"Hello\bWorld" \b
+		"Hello\aWorld" \a
+		"Hello\0World" \0
+	`
+
+	l := New(input)
+
+	tests := []struct {
+		expectedType    tokens.TokenType
+		expectedLiteral string
+	}{
+		// Backslash escape
+		{tokens.STRING, `\ \ '`},
+		{tokens.ILLEGAL, `\`},
+		{tokens.ILLEGAL, `\`},
+		{tokens.ILLEGAL, `\`},
+		{tokens.ILLEGAL, `\`},
+		{tokens.STRING, ""},
+		// Quote escape
+		{tokens.STRING, `Hello"World`},
+		{tokens.ILLEGAL, `\`},
+		{tokens.STRING, ``},
+		// New line escape
+		{tokens.STRING, "Hello\nWorld"},
+		{tokens.ILLEGAL, "\\"},
+		{tokens.IDENT, "n"},
+		// Reset escape
+		{tokens.STRING, "Hello\rWorld"},
+		{tokens.ILLEGAL, "\\"},
+		{tokens.IDENT, "r"},
+		// Tab escape
+		{tokens.STRING, "Hello\tWorld"},
+		{tokens.ILLEGAL, "\\"},
+		{tokens.IDENT, "t"},
+		// Backspace escape
+		{tokens.STRING, "Hello\bWorld"},
+		{tokens.ILLEGAL, "\\"},
+		{tokens.IDENT, "b"},
+		// Alert escape
+		{tokens.STRING, "Hello\aWorld"},
+		{tokens.ILLEGAL, "\\"},
+		{tokens.IDENT, "a"},
+		// Null byte escape
+		{tokens.STRING, "Hello\x00World"},
+		{tokens.ILLEGAL, "\\"},
+		{tokens.INT, "0"},
+	}
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - token type wrong.\nexpected %q,\ngot %q", i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong.\nexpected %q,\ngot %q", i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+
+	tok := l.NextToken()
+	if tok.Type != tokens.EOF {
+		t.Fatalf("expected EOF token at end of input, got %q (value: %q)", tok.Type, tok.Literal)
 	}
 }

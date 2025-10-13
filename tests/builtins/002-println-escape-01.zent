@@ -1,0 +1,8 @@
+--TEST--
+Println escaped quote
+--FILE--
+println("\"")
+println('\'')
+--EXPECT--
+"
+'

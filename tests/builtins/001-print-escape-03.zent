@@ -1,0 +1,7 @@
+--TEST--
+Print with new line
+--FILE--
+print("Hello\nWorld")
+--EXPECT--
+Hello
+World

@@ -227,17 +227,38 @@ func (l *Lexer) readIdentifier() string {
 }
 
 func (l *Lexer) readString(endChar byte) string {
-	position := l.position + 1
+	var result strings.Builder
+	l.readChar()
 
-	for {
-		l.readChar()
+	for l.ch != endChar && l.ch != 0 {
+		result.WriteByte(l.ch)
 
-		if l.ch == endChar || l.ch == 0 {
-			break
+		if l.ch == '\\' {
+			peek := l.peekChar()
+			if peek == endChar || peek == '\\' {
+				l.readChar()
+				result.WriteByte(l.ch)
+			}
 		}
+
+		l.readChar()
 	}
 
-	return l.input[position:l.position]
+	return l.escapeString(result.String())
+}
+
+func (l *Lexer) escapeString(val string) string {
+	escaped := strings.ReplaceAll(val, `\\`, "\\")
+	escaped = strings.ReplaceAll(escaped, `\"`, "\"")
+	escaped = strings.ReplaceAll(escaped, `\'`, "'")
+	escaped = strings.ReplaceAll(escaped, `\n`, "\n")
+	escaped = strings.ReplaceAll(escaped, `\r`, "\r")
+	escaped = strings.ReplaceAll(escaped, `\t`, "\t")
+	escaped = strings.ReplaceAll(escaped, `\b`, "\b")
+	escaped = strings.ReplaceAll(escaped, `\a`, "\a")
+	escaped = strings.ReplaceAll(escaped, `\0`, "\x00")
+
+	return escaped
 }
 
 func (l *Lexer) readChar() {
