@@ -31,7 +31,7 @@ var evalCommand = &cobra.Command{
 			}
 
 			evaluated := evaluator.Eval(program, env)
-			if evaluated != nil {
+			if evaluated != nil && evaluated.Type() != objects.NULL_OBJ {
 				fmt.Printf("%s\n", evaluated.Inspect())
 			}
 		})
