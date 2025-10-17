@@ -595,3 +595,48 @@ func TestGlobalVarStatements(t *testing.T) {
 
 	runCompilationTests(t, tests)
 }
+
+func TestCompilerScopes(t *testing.T) {
+	compiler := New()
+	if compiler.scopeIndex != 0 {
+		t.Fatalf("compiler at wrong initial scope index. got %d, want 0", compiler.scopeIndex)
+	}
+
+	compiler.emit(code.OpMul)
+
+	compiler.enterScope()
+	if compiler.scopeIndex != 1 {
+		t.Fatalf("compiler did not enter scope correctly. got %d, want 1", compiler.scopeIndex)
+	}
+
+	compiler.emit(code.OpSub)
+
+	if len(compiler.scopes[compiler.scopeIndex].instructions) != 1 {
+		t.Fatalf("instructions length wrong. got %d, want 1", len(compiler.scopes[compiler.scopeIndex].instructions))
+	}
+
+	last := compiler.scopes[compiler.scopeIndex].lastInstruction
+	if last.Opcode != code.OpSub {
+		t.Fatalf("last instruction wrong. got %d, want %d", last.Opcode, code.OpSub)
+	}
+
+	compiler.leaveScope()
+	if compiler.scopeIndex != 0 {
+		t.Fatalf("compiler did not leave scope correctly. got %d, want 0", compiler.scopeIndex)
+	}
+
+	compiler.emit(code.OpAdd)
+	if len(compiler.scopes[compiler.scopeIndex].instructions) != 2 {
+		t.Fatalf("instructions length wrong. got %d, want 2", len(compiler.scopes[compiler.scopeIndex].instructions))
+	}
+
+	last = compiler.scopes[compiler.scopeIndex].lastInstruction
+	if last.Opcode != code.OpAdd {
+		t.Fatalf("last instruction wrong. got %d, want %d", last.Opcode, code.OpAdd)
+	}
+
+	previous := compiler.scopes[compiler.scopeIndex].previousInstruction
+	if previous.Opcode != code.OpMul {
+		t.Fatalf("previous instruction wrong. got %d, want %d", previous.Opcode, code.OpMul)
+	}
+}

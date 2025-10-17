@@ -9,14 +9,19 @@ import (
 	"github.com/senither/zen-lang/objects"
 )
 
-type Compiler struct {
-	instructions code.Instructions
-	constants    []objects.Object
-
+type CompilationScope struct {
+	instructions        code.Instructions
 	lastInstruction     EmittedInstruction
 	previousInstruction EmittedInstruction
+}
+
+type Compiler struct {
+	constants []objects.Object
 
 	symbolTable *SymbolTable
+
+	scopes     []CompilationScope
+	scopeIndex int
 }
 
 type EmittedInstruction struct {
@@ -25,14 +30,19 @@ type EmittedInstruction struct {
 }
 
 func New() *Compiler {
-	return &Compiler{
-		instructions: code.Instructions{},
-		constants:    []objects.Object{},
-
+	mainScope := CompilationScope{
+		instructions:        code.Instructions{},
 		lastInstruction:     EmittedInstruction{},
 		previousInstruction: EmittedInstruction{},
+	}
 
-		symbolTable: NewSymbolTable(),
+	symbolTable := NewSymbolTable()
+
+	return &Compiler{
+		constants:   []objects.Object{},
+		symbolTable: symbolTable,
+		scopes:      []CompilationScope{mainScope},
+		scopeIndex:  0,
 	}
 }
 
@@ -166,6 +176,26 @@ func (c *Compiler) Compile(node ast.Node) error {
 	return nil
 }
 
+func (c *Compiler) enterScope() {
+	scope := CompilationScope{
+		instructions:        code.Instructions{},
+		lastInstruction:     EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
+	}
+
+	c.scopes = append(c.scopes, scope)
+	c.scopeIndex++
+}
+
+func (c *Compiler) leaveScope() code.Instructions {
+	instructions := c.currentInstructions()
+
+	c.scopes = c.scopes[:len(c.scopes)-1]
+	c.scopeIndex--
+
+	return instructions
+}
+
 func (c *Compiler) addConstant(obj objects.Object) int {
 	c.constants = append(c.constants, obj)
 	return len(c.constants) - 1
@@ -180,38 +210,56 @@ func (c *Compiler) emit(op code.Opcode, operands ...int) int {
 	return pos
 }
 
-func (c *Compiler) addInstruction(ins []byte) int {
-	posNewInstruction := len(c.instructions)
-	c.instructions = append(c.instructions, ins...)
+func (c *Compiler) currentInstructions() code.Instructions {
+	return c.scopes[c.scopeIndex].instructions
+}
 
-	return posNewInstruction
+func (c *Compiler) addInstruction(ins []byte) int {
+	newInstructionPos := len(c.currentInstructions())
+	updatedInstructions := append(c.currentInstructions(), ins...)
+
+	c.scopes[c.scopeIndex].instructions = updatedInstructions
+
+	return newInstructionPos
 }
 
 func (c *Compiler) setLastInstruction(op code.Opcode, pos int) {
-	c.previousInstruction = c.lastInstruction
-	c.lastInstruction = EmittedInstruction{Opcode: op, Position: pos}
+	previous := c.scopes[c.scopeIndex].lastInstruction
+	last := EmittedInstruction{Opcode: op, Position: pos}
+
+	c.scopes[c.scopeIndex].previousInstruction = previous
+	c.scopes[c.scopeIndex].lastInstruction = last
 }
 
 func (c *Compiler) replaceInstruction(pos int, newInstructions []byte) {
-	for i := range newInstructions {
-		c.instructions[pos+i] = newInstructions[i]
+	ins := c.currentInstructions()
+
+	for i := 0; i < len(newInstructions); i++ {
+		ins[pos+i] = newInstructions[i]
 	}
 }
 
 func (c *Compiler) changeInstructionOperandAt(opPos int, operand int) {
-	op := code.Opcode(c.instructions[opPos])
+	op := code.Opcode(c.currentInstructions()[opPos])
 	newInstruction := code.Make(op, operand)
 
 	c.replaceInstruction(opPos, newInstruction)
 }
 
 func (c *Compiler) lastInstructionIs(op code.Opcode) bool {
-	return c.lastInstruction.Opcode == op
+	return len(c.currentInstructions()) > 0 &&
+		c.scopes[c.scopeIndex].lastInstruction.Opcode == op
 }
 
 func (c *Compiler) removeLastPop() {
-	c.instructions = c.instructions[:c.lastInstruction.Position]
-	c.lastInstruction = c.previousInstruction
+	last := c.scopes[c.scopeIndex].lastInstruction
+	previous := c.scopes[c.scopeIndex].previousInstruction
+
+	old := c.currentInstructions()
+	new := old[:last.Position]
+
+	c.scopes[c.scopeIndex].instructions = new
+	c.scopes[c.scopeIndex].previousInstruction = previous
 }
 
 func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) error {
@@ -317,7 +365,7 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 
 	jumpPos := c.emit(code.OpJump, 9999)
 
-	afterConsequencePos := len(c.instructions)
+	afterConsequencePos := len(c.currentInstructions())
 	c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
 
 	if node.Intermediary != nil {
@@ -338,7 +386,7 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 		}
 	}
 
-	afterAlternativePos := len(c.instructions)
+	afterAlternativePos := len(c.currentInstructions())
 	c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
 
 	return nil
