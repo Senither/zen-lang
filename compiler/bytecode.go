@@ -21,6 +21,8 @@ const (
 	FLOAT_CONST   = uint8(11)
 	BOOLEAN_CONST = uint8(12)
 	STRING_CONST  = uint8(13)
+
+	COMPILED_FUNCTION_CONST = uint8(20)
 )
 
 type Bytecode struct {
@@ -36,7 +38,59 @@ func (c *Compiler) Bytecode() *Bytecode {
 }
 
 func (b *Bytecode) String() string {
-	return b.Instructions.String()
+	var out bytes.Buffer
+
+	constantDef, err := code.Lookup(code.OpConstant)
+	if err != nil {
+		return fmt.Sprintf("ERROR: %s\n", err)
+	}
+
+	i, s := 0, 0
+	for i < len(b.Instructions) {
+		def, err := code.Lookup(code.Opcode(b.Instructions[i]))
+		if err != nil {
+			fmt.Fprintf(&out, "ERROR: %s\n", err)
+			continue
+		}
+
+		if def == constantDef {
+			constIndex := binary.BigEndian.Uint16(b.Instructions[i+1 : i+3])
+			constant := b.Constants[constIndex]
+
+			switch fn := constant.(type) {
+			case *objects.CompiledFunction:
+				s++
+
+				fnIns := fn.Instructions
+				if len(fnIns) == 0 {
+					fmt.Fprintf(&out, "ERROR: compiled function has no instructions\n")
+					break
+				}
+
+				x := 0
+				for x < len(fnIns) {
+					fnDef, err := code.Lookup(code.Opcode(fnIns[x]))
+					if err != nil {
+						fmt.Fprintf(&out, "ERROR: %s\n", err)
+						break
+					}
+
+					x += writeInstructionsToBuffer(&out, x, s, fnDef, fnIns)
+				}
+			}
+		}
+
+		i += writeInstructionsToBuffer(&out, i, 0, def, b.Instructions)
+	}
+
+	return out.String()
+}
+
+func writeInstructionsToBuffer(out *bytes.Buffer, index, scope int, def *code.Definition, ins code.Instructions) int {
+	operands, read := code.ReadOperands(def, ins[index+1:])
+	fmt.Fprintf(out, "%04dx%08d %s\n", scope, index, ins.FormatInstruction(def, operands))
+
+	return read + 1
 }
 
 func (b *Bytecode) Serialize() []byte {
@@ -71,7 +125,10 @@ func (b *Bytecode) Serialize() []byte {
 			buf.WriteByte(STRING_CONST)
 			write(uint32(len(v.Value)))
 			buf.WriteString(v.Value)
-
+		case *objects.CompiledFunction:
+			buf.WriteByte(COMPILED_FUNCTION_CONST)
+			write(uint32(len(v.Instructions)))
+			write(v.Instructions)
 		default:
 			panic(fmt.Sprintf("unsupported constant type: %T", v))
 		}
@@ -148,6 +205,18 @@ func Deserialize(data []byte) (*Bytecode, error) {
 			}
 
 			consts = append(consts, &objects.String{Value: string(str)})
+		case COMPILED_FUNCTION_CONST:
+			var insLen uint32
+			if err := read(&insLen); err != nil {
+				return nil, err
+			}
+
+			instructions := make([]byte, insLen)
+			if _, err := io.ReadFull(r, instructions); err != nil {
+				return nil, err
+			}
+
+			consts = append(consts, &objects.CompiledFunction{Instructions: instructions})
 
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)

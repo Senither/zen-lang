@@ -70,7 +70,7 @@ func (in Instructions) String() string {
 		}
 
 		operands, read := ReadOperands(def, in[i+1:])
-		fmt.Fprintf(&out, "%04d %s\n", i, in.fmtInstruction(def, operands))
+		fmt.Fprintf(&out, "%04d %s\n", i, in.FormatInstruction(def, operands))
 
 		i += read + 1
 	}
@@ -78,7 +78,7 @@ func (in Instructions) String() string {
 	return out.String()
 }
 
-func (in Instructions) fmtInstruction(def *Definition, operands []int) string {
+func (in Instructions) FormatInstruction(def *Definition, operands []int) string {
 	operandCount := len(def.OperandWidths)
 	if len(operands) != operandCount {
 		return fmt.Sprintf("ERROR: operand len %d does not match defined %d\n", len(operands), operandCount)
@@ -89,6 +89,7 @@ func (in Instructions) fmtInstruction(def *Definition, operands []int) string {
 		return def.Name
 	case 1:
 		return fmt.Sprintf("%s %d", def.Name, operands[0])
+
 	default:
 		return fmt.Sprintf("ERROR: unhandled operandCount for %s\n", def.Name)
 	}

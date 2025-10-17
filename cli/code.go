@@ -25,7 +25,7 @@ var codeCommand = &cobra.Command{
 			program := lexerToProgram(lexer, path)
 
 			if bytecode := programToBytecode(program, table, constants); bytecode != nil {
-				fmt.Print(bytecode.Instructions.String())
+				fmt.Print(bytecode.String())
 			}
 		})
 	},
