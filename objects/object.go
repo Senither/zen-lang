@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/senither/zen-lang/ast"
+	"github.com/senither/zen-lang/code"
 )
 
 type ObjectType string
@@ -33,6 +34,8 @@ const (
 
 	FUNCTION_OBJ = "FUNCTION"
 	BUILTIN_OBJ  = "BUILTIN"
+
+	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
 )
 
 type Object interface {
@@ -264,3 +267,10 @@ type Builtin struct {
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
 func (b *Builtin) Inspect() string  { return "builtin function" }
+
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
+func (cf *CompiledFunction) Inspect() string  { return fmt.Sprintf("CompiledFunction[%p]", cf) }

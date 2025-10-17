@@ -49,6 +49,11 @@ const (
 	// Objects
 	OpArray
 	OpHash
+
+	// Functions
+	OpCall
+	OpReturnValue
+	OpReturn
 )
 
 type Instructions []byte

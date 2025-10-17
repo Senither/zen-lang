@@ -91,6 +91,11 @@ func testConstants(t *testing.T, expected []interface{}, actual []objects.Object
 			if err != nil {
 				return fmt.Errorf("constant %d - testStringObject failed: %s", i, err)
 			}
+		case []code.Instructions:
+			err := testCodeInstructions(constant, actual[i])
+			if err != nil {
+				return fmt.Errorf("constant %d - testCodeInstructions failed: %s", i, err)
+			}
 
 		default:
 			return fmt.Errorf("unknown constant type %T", constant)
@@ -134,6 +139,20 @@ func testStringObject(expected string, actual objects.Object) error {
 
 	if result.Value != expected {
 		return fmt.Errorf("object has wrong value. got %q, expected %q", result.Value, expected)
+	}
+
+	return nil
+}
+
+func testCodeInstructions(expected []code.Instructions, actual objects.Object) error {
+	fn, ok := actual.(*objects.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("object is not CompiledFunction. got %T (%+v)", actual, actual)
+	}
+
+	err := testInstructions(expected, fn.Instructions)
+	if err != nil {
+		return fmt.Errorf("instructions do not match the CompiledFunction instructions: %s", err)
 	}
 
 	return nil
