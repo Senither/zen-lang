@@ -52,6 +52,12 @@ type Hashable interface {
 	HashKey() HashKey
 }
 
+type CompiledInstructionsObject interface {
+	Type() ObjectType
+	Inspect() string
+	Instructions() code.Instructions
+}
+
 type Null struct{}
 
 func (n *Null) Type() ObjectType { return NULL_OBJ }
@@ -269,8 +275,9 @@ func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
 func (b *Builtin) Inspect() string  { return "builtin function" }
 
 type CompiledFunction struct {
-	Instructions code.Instructions
+	OpcodeInstructions code.Instructions
 }
 
-func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
-func (cf *CompiledFunction) Inspect() string  { return fmt.Sprintf("CompiledFunction[%p]", cf) }
+func (cf *CompiledFunction) Type() ObjectType                { return COMPILED_FUNCTION_OBJ }
+func (cf *CompiledFunction) Inspect() string                 { return fmt.Sprintf("CompiledFunction[%p]", cf) }
+func (cf *CompiledFunction) Instructions() code.Instructions { return cf.OpcodeInstructions }

@@ -61,7 +61,7 @@ func (b *Bytecode) String() string {
 			case *objects.CompiledFunction:
 				s++
 
-				fnIns := fn.Instructions
+				fnIns := fn.Instructions()
 				if len(fnIns) == 0 {
 					fmt.Fprintf(&out, "ERROR: compiled function has no instructions\n")
 					break
@@ -127,8 +127,8 @@ func (b *Bytecode) Serialize() []byte {
 			buf.WriteString(v.Value)
 		case *objects.CompiledFunction:
 			buf.WriteByte(COMPILED_FUNCTION_CONST)
-			write(uint32(len(v.Instructions)))
-			write(v.Instructions)
+			write(uint32(len(v.Instructions())))
+			write(v.Instructions())
 		default:
 			panic(fmt.Sprintf("unsupported constant type: %T", v))
 		}
@@ -216,7 +216,7 @@ func Deserialize(data []byte) (*Bytecode, error) {
 				return nil, err
 			}
 
-			consts = append(consts, &objects.CompiledFunction{Instructions: instructions})
+			consts = append(consts, &objects.CompiledFunction{OpcodeInstructions: instructions})
 
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)

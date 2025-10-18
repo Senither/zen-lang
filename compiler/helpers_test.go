@@ -150,7 +150,7 @@ func testCodeInstructions(expected []code.Instructions, actual objects.Object) e
 		return fmt.Errorf("object is not CompiledFunction. got %T (%+v)", actual, actual)
 	}
 
-	err := testInstructions(expected, fn.Instructions)
+	err := testInstructions(expected, fn.Instructions())
 	if err != nil {
 		return fmt.Errorf("instructions do not match the CompiledFunction instructions: %s", err)
 	}

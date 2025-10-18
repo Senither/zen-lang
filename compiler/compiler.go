@@ -189,7 +189,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		instructions := c.leaveScope()
 
-		compiledFn := &objects.CompiledFunction{Instructions: instructions}
+		compiledFn := &objects.CompiledFunction{OpcodeInstructions: instructions}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 	case *ast.ReturnStatement:
 		err := c.Compile(n.ReturnValue)
