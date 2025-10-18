@@ -185,3 +185,78 @@ func TestGlobalVarStatements(t *testing.T) {
 
 	runVmTests(t, tests)
 }
+
+func TestCallingFunctionsWithoutArguments(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var fivePlusTen = func() { 5 + 10; };
+				fivePlusTen();
+			`,
+			expected: 15,
+		},
+		{
+			input: `
+				var one = func() { 1; };
+				var two = func() { 2; };
+				one() + two()
+			`,
+			expected: 3,
+		},
+		{
+			input: `
+				var a = func() { 1 };
+				var b = func() { a() + 1 };
+				var c = func() { b() + 1 };
+				c();
+			`,
+			expected: 3,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestFunctionsWithReturnStatement(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var earlyExit = func() { return 99; 100; };
+				earlyExit();
+			`,
+			expected: 99,
+		},
+		{
+			input: `
+				var earlyExit = func() { return 99; return 100; };
+				earlyExit();
+			`,
+			expected: 99,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestFunctionsWithoutReturnValue(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var noReturn = func() { };
+				noReturn();
+			`,
+			expected: nil,
+		},
+		{
+			input: `
+				var noReturn = func() { };
+				var noReturnTwo = func() { noReturn(); };
+				noReturn();
+				noReturnTwo();
+			`,
+			expected: nil,
+		},
+	}
+
+	runVmTests(t, tests)
+}
