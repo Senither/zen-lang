@@ -20,6 +20,9 @@ const (
 	// Globals
 	OpSetGlobal
 	OpGetGlobal
+	// Locals
+	OpSetLocal
+	OpGetLocal
 
 	// Arithmetic
 	OpAdd
