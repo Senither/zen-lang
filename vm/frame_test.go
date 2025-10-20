@@ -24,7 +24,7 @@ func (m *MockCompiledInstructionsObject) Instructions() code.Instructions {
 
 func TestNewFrame(t *testing.T) {
 	ci := &MockCompiledInstructionsObject{instructions: code.Instructions{0x01, 0x02, 0x03}}
-	frame := NewFrame(ci)
+	frame := NewFrame(ci, 0)
 
 	if frame.ip != -1 {
 		t.Errorf("Expected ip to be -1, got %d", frame.ip)

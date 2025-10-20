@@ -260,3 +260,76 @@ func TestFunctionsWithoutReturnValue(t *testing.T) {
 
 	runVmTests(t, tests)
 }
+
+func TestCallingFunctionsWithBindings(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var one = func() {
+					var one = 1;
+					one
+				}
+				one();
+			`,
+			expected: 1,
+		},
+		{
+			input: `
+				var oneAndTwo = func() {
+					var one = 1;
+					var two = 2;
+					one + two;
+				}
+				oneAndTwo();
+			`,
+			expected: 3,
+		},
+		{
+			input: `
+				var oneAndTwo = func() {
+					var one = 1;
+					var two = 2;
+					one + two;
+				}
+				var threeAndFour = func() {
+					var three = 3;
+					var four = 4;
+					three + four;
+				}
+				oneAndTwo() + threeAndFour();
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+				var firstFoobar = func() {
+					var foobar = 50;
+					foobar;
+				}
+				var secondFoobar = func() {
+					var foobar = 100;
+					foobar;
+				}
+				firstFoobar() + secondFoobar();
+			`,
+			expected: 150,
+		},
+		{
+			input: `
+				var globalSeed = 50;
+				var minusOne = func() {
+					var num = 1;
+					globalSeed - num;
+				}
+				var minusTwo = func() {
+					var num = 2;
+					globalSeed - num;
+				}
+				minusOne() + minusTwo();
+			`,
+			expected: 97,
+		},
+	}
+
+	runVmTests(t, tests)
+}
