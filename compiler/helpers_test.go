@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/senither/zen-lang/ast"
@@ -41,7 +42,17 @@ func parse(input string) *ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l, nil)
 
-	return p.ParseProgram()
+	program := p.ParseProgram()
+	if len(p.Errors()) > 0 {
+		var buf strings.Builder
+		for _, msg := range p.Errors() {
+			fmt.Fprintf(&buf, "%s\n", msg.String())
+		}
+
+		panic("parser errors encountered\n" + buf.String())
+	}
+
+	return program
 }
 
 func testInstructions(expected []code.Instructions, actual code.Instructions) error {
