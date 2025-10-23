@@ -277,6 +277,7 @@ func (b *Builtin) Inspect() string  { return "builtin function" }
 type CompiledFunction struct {
 	OpcodeInstructions code.Instructions
 	NumLocals          int
+	NumParameters      int
 }
 
 func (cf *CompiledFunction) Type() ObjectType                { return COMPILED_FUNCTION_OBJ }

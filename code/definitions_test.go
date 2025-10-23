@@ -45,7 +45,7 @@ func TestMake(t *testing.T) {
 		{OpArray, []int{255}, []byte{byte(OpArray), 0, 255}},
 		{OpHash, []int{255}, []byte{byte(OpHash), 0, 255}},
 		// Functions
-		{OpCall, []int{}, []byte{byte(OpCall)}},
+		{OpCall, []int{255}, []byte{byte(OpCall), 255}},
 		{OpReturnValue, []int{}, []byte{byte(OpReturnValue)}},
 		{OpReturn, []int{}, []byte{byte(OpReturn)}},
 	}

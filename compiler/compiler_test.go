@@ -802,7 +802,9 @@ func TestFunctions(t *testing.T) {
 func TestFunctionCalls(t *testing.T) {
 	tests := []compilerTestCase{
 		{
-			input: "func() { 10 }()",
+			input: `
+				func() { 10 }()
+			`,
 			expectedConstants: []interface{}{
 				10,
 				[]code.Instructions{
@@ -812,12 +814,15 @@ func TestFunctionCalls(t *testing.T) {
 			},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 1),
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
 				code.Make(code.OpPop),
 			},
 		},
 		{
-			input: "var noArgs = func() { 10 }; noArgs()",
+			input: `
+				var noArgs = func() { 10 };
+				noArgs()
+			`,
 			expectedConstants: []interface{}{
 				10,
 				[]code.Instructions{
@@ -829,7 +834,57 @@ func TestFunctionCalls(t *testing.T) {
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpSetGlobal, 0),
 				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+				var oneArg = func(a) { a };
+				oneArg(55)
+			`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpReturnValue),
+				},
+				55,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+				var manyArgs = func(a, b, c) { a; b; c};
+				manyArgs(11, 22, 33)
+			`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpPop),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpPop),
+					code.Make(code.OpGetLocal, 2),
+					code.Make(code.OpReturnValue),
+				},
+				11,
+				22,
+				33,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpCall, 3),
 				code.Make(code.OpPop),
 			},
 		},
