@@ -1,8 +1,8 @@
 --TEST--
 Variables with number values can be incremented
 --FILE--
-num1 = 1;
-num2 = 2.34;
+var num1 = 1;
+var num2 = 2.34;
 
 num1++;
 num2++;

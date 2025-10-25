@@ -1,6 +1,7 @@
 --TEST--
-Can define immutable variable without var keyword
+It fails to assign if variable is not defined
 --FILE--
 num = 1;
---EXPECT--
-1
+--ERROR--
+assignment to undeclared variable: num
+    at <unknown>:1:5

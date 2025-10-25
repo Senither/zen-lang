@@ -561,6 +561,10 @@ func evalAssignmentExpression(
 ) objects.Object {
 	switch left := left.(type) {
 	case *ast.Identifier:
+		if !env.Has(left.Value) {
+			return objects.NewError(node.Token, env, "assignment to undeclared variable: %s", left.Value)
+		}
+
 		return env.Set(node, left.Value, right, false)
 	case *ast.IndexExpression:
 		leftObj := Eval(left.Left, env)

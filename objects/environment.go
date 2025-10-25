@@ -53,6 +53,11 @@ func NewEnclosedEnvironment(outer *Environment) *Environment {
 	return env
 }
 
+func (e *Environment) Has(name string) bool {
+	_, ok := e.GetStateItem(name)
+	return ok
+}
+
 func (e *Environment) Get(name string) (Object, bool) {
 	val, ok := e.GetStateItem(name)
 	return val.value, ok

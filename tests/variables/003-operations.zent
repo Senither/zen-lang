@@ -1,8 +1,8 @@
 --TEST--
 Variables can be used in operations
 --FILE--
-num1 = 1;
-num2 = 2;
+var num1 = 1;
+var num2 = 2;
 
 println(num1 + num2);
 println(num1 - num2);
@@ -10,8 +10,8 @@ println(num1 * num2);
 println(num1 / num2);
 println(num1 % num2);
 
-str1 = "Hello, ";
-str2 = "Zen!";
+var str1 = "Hello, ";
+var str2 = "Zen!";
 
 println(str1 + str2);
 --EXPECT--
