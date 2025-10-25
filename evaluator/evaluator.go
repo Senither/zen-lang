@@ -44,6 +44,8 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		return &objects.ReturnValue{Value: objects.CONTINUE}
 
 	// Expression types
+	case *ast.NullLiteral:
+		return objects.NULL
 	case *ast.StringLiteral:
 		return &objects.String{Value: node.Value}
 	case *ast.IntegerLiteral:

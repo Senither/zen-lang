@@ -56,6 +56,7 @@ func New(lexer *lexer.Lexer, filePath interface{}) *Parser {
 	p.registerPrefix(tokens.STRING, p.parseStringLiteral)
 	p.registerPrefix(tokens.BANG, p.parsePrefixExpression)
 	p.registerPrefix(tokens.MINUS, p.parsePrefixExpression)
+	p.registerPrefix(tokens.NULL, p.parseNullLiteral)
 	p.registerPrefix(tokens.TRUE, p.parseBooleanLiteral)
 	p.registerPrefix(tokens.FALSE, p.parseBooleanLiteral)
 	p.registerPrefix(tokens.LBRACKET, p.parseArrayLiteral)

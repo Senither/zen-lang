@@ -130,6 +130,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 	// Expression types
+	case *ast.NullLiteral:
+		c.emit(code.OpNull)
 	case *ast.StringLiteral:
 		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: n.Value}))
 	case *ast.IntegerLiteral:

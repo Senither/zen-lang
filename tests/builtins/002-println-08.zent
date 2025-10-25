@@ -6,12 +6,14 @@ var num = 42;
 var bool = true;
 var arr = [1, 2, 3];
 var obj = { "key": "value" };
+var nil = null;
 
-println(str, num, bool, arr, obj, println);
+println(str, num, bool, arr, obj, nil, println);
 --EXPECT--
 Hello, World!
 42
 true
 [1, 2, 3]
 {key: value}
+null
 builtin function

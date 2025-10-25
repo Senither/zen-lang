@@ -234,6 +234,8 @@ func registerGlobals() {
 						values = append(values, arg.Value)
 					case *objects.Boolean:
 						values = append(values, arg.Value)
+					case *objects.Null:
+						values = append(values, nil)
 					default:
 						values = append(values, arg.Inspect())
 					}

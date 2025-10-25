@@ -10,6 +10,7 @@ func TestArraysPushGlobalFunction(t *testing.T) {
 		{"arrays.push([], 1)", []any{1}},
 		{"arrays.push([1], 2)", []any{1, 2}},
 		{"arrays.push([1, 2], 3)", []any{1, 2, 3}},
+		{"arrays.push([1], null)", []any{1, nil}},
 		{"var x = []; arrays.push(x, 1);", []any{1}},
 		{"var x = [1]; arrays.push(x, 2);", []any{1, 2}},
 		{"var x = [1, 2]; arrays.push(x, 3);", []any{1, 2, 3}},
@@ -30,6 +31,7 @@ func TestArraysShiftGlobalFunction(t *testing.T) {
 		expected any
 	}{
 		{"arrays.shift([])", nil},
+		{"arrays.shift([null])", nil},
 		{"arrays.shift([1])", 1},
 		{"arrays.shift([1, 2])", 1},
 		{"var x = []; arrays.shift(x);", nil},
@@ -65,8 +67,10 @@ func TestArraysPopGlobalFunction(t *testing.T) {
 		expected any
 	}{
 		{"arrays.pop([])", nil},
+		{"arrays.pop([null])", nil},
 		{"arrays.pop([1])", 1},
 		{"arrays.pop([1, 2])", 2},
+		{"arrays.pop([1, null])", nil},
 		{"var x = []; arrays.pop(x);", nil},
 		{"var x = [1]; arrays.pop(x);", 1},
 		{"var x = [1, 2]; arrays.pop(x);", 2},
@@ -163,6 +167,8 @@ func TestStringsFormatGlobalFunction(t *testing.T) {
 		{`strings.format("%f", 3.14)`, "3.140000"},
 		{`strings.format("%v", 3.14)`, "3.14"},
 		{`strings.format("%t", true)`, "true"},
+		{`strings.format("%t", false)`, "false"},
+		{`strings.format("%+v", null)`, "<nil>"},
 		{`strings.format("%v", [1, 2, 3])`, "[1, 2, 3]"},
 		{`strings.format("%v", {"key": "value"})`, "{key: value}"},
 		{`strings.format("%#T", "test")`, "string"},

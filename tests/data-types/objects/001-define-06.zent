@@ -1,0 +1,6 @@
+--TEST--
+Can define an object with null values
+--FILE--
+var obj = {"key": null};
+--EXPECT--
+{key: null}

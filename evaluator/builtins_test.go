@@ -17,6 +17,7 @@ func TestPrintBuiltinFunction(t *testing.T) {
 		{`print(true)`, "true"},
 		{`print(false)`, "false"},
 		{`print("hello", "world")`, "helloworld"},
+		{`print(null)`, "null"},
 	}
 
 	for _, tt := range tests {
@@ -48,6 +49,7 @@ func TestPrintlnBuiltinFunction(t *testing.T) {
 		{`println(true)`, "true\n"},
 		{`println(false)`, "false\n"},
 		{`println("hello", "world")`, "hello\nworld\n"},
+		{`println(null)`, "null\n"},
 	}
 
 	for _, tt := range tests {
@@ -76,6 +78,7 @@ func TestLenBuiltinFunction(t *testing.T) {
 		{`len("")`, 0},
 		{`len("four")`, 4},
 		{`len("hello world")`, 11},
+		{`len(null)`, 0},
 		{`len(1)`, "argument to `len` not supported, got INTEGER\n    at <unknown>:1:4"},
 		{`len("one", "two")`, "wrong number of arguments. got 2, want 1\n    at <unknown>:1:4"},
 	}
@@ -116,6 +119,7 @@ func TestStringBuiltinFunction(t *testing.T) {
 		{`string("foo" + "bar")`, "foobar"},
 		{`string("foo" + " " + "bar")`, "foo bar"},
 		{`string("foo" + " " + "bar" + "!")`, "foo bar!"},
+		{`string(null)`, "null"},
 	}
 
 	for _, tt := range tests {

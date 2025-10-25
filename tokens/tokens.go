@@ -67,6 +67,7 @@ const (
 
 	// Keywords
 	FUNCTION      TokenType = "FUNCTION"
+	NULL          TokenType = "NULL"
 	TRUE          TokenType = "TRUE"
 	FALSE         TokenType = "FALSE"
 	IF            TokenType = "IF"
@@ -85,6 +86,7 @@ var keywords = map[string]TokenType{
 	"var":      VARIABLE,
 	"mut":      MUTABLE,
 	"func":     FUNCTION,
+	"null":     NULL,
 	"true":     TRUE,
 	"false":    FALSE,
 	"if":       IF,

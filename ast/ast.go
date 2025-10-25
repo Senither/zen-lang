@@ -169,6 +169,15 @@ func (sl *StringLiteral) String() string {
 	return fmt.Sprintf("%q", sl.Value)
 }
 
+type NullLiteral struct {
+	Token tokens.Token
+}
+
+func (nl *NullLiteral) expressionNode()        {}
+func (nl *NullLiteral) GetToken() tokens.Token { return nl.Token }
+func (nl *NullLiteral) TokenLiteral() string   { return nl.Token.Literal }
+func (nl *NullLiteral) String() string         { return "null" }
+
 type BooleanLiteral struct {
 	Token tokens.Token
 	Value bool

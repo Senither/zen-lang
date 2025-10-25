@@ -274,6 +274,8 @@ func testArrayObject(t *testing.T, obj objects.Object, expected []any, input str
 			testIntegerObject(t, array.Elements[i], elem)
 		case bool:
 			testBooleanObject(t, array.Elements[i], elem, input)
+		case nil:
+			testNullObject(t, array.Elements[i])
 		default:
 			t.Errorf("element type is not support for array testing objects. got %T (%+v)\n%s", elem, elem, obj.Inspect())
 			return false

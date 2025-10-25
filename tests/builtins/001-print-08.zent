@@ -6,7 +6,8 @@ var num = 42;
 var bool = true;
 var arr = [1, 2, 3];
 var obj = { "key": "value" };
+var nil = null;
 
-print(str, num, bool, arr, obj, print);
+print(str, num, bool, arr, obj, nil, print);
 --EXPECT--
-Hello, World!42true[1, 2, 3]{key: value}builtin function
+Hello, World!42true[1, 2, 3]{key: value}nullbuiltin function

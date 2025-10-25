@@ -53,6 +53,8 @@ func registerBuiltins() {
 					return &objects.Integer{Value: int64(len(arg.Value))}
 				case *objects.Array:
 					return &objects.Integer{Value: int64(len(arg.Elements))}
+				case *objects.Null:
+					return &objects.Integer{Value: 0}
 				default:
 					return objects.NewError(node.Token, env, "argument to `len` not supported, got %s", args[0].Type())
 				}

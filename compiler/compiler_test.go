@@ -12,6 +12,21 @@ type compilerTestCase struct {
 	expectedInstructions []code.Instructions
 }
 
+func TestNullExpression(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "null;",
+			expectedConstants: []any{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpNull),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []compilerTestCase{
 		{

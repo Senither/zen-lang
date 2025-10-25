@@ -194,6 +194,10 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 	return literal
 }
 
+func (p *Parser) parseNullLiteral() ast.Expression {
+	return &ast.NullLiteral{Token: p.curToken}
+}
+
 func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
