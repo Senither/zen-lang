@@ -224,14 +224,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		for _, arg := range n.Arguments {
-			err := c.Compile(arg)
-			if err != nil {
-				return err
-			}
+		err = c.compileFunctionArguments(n)
+		if err != nil {
+			return err
 		}
-
-		c.emit(code.OpCall, len(n.Arguments))
 	}
 
 	return nil
@@ -483,11 +479,33 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: right.Value}))
 	case *ast.ChainExpression:
 		return c.compileChainExpression(right, true)
+	case *ast.CallExpression:
+		ident, ok := right.Function.(*ast.Identifier)
+		if !ok {
+			return fmt.Errorf("unsupported call expression function in chain: %T", right.Function)
+		}
+
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: ident.Value}))
+		c.emit(code.OpIndex)
+
+		return c.compileFunctionArguments(right)
+
 	default:
 		return fmt.Errorf("unsupported chain expression right side: %T", right)
 	}
 
 	c.emit(code.OpIndex)
+	return nil
+}
+
+func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) error {
+	for _, arg := range node.Arguments {
+		if err := c.Compile(arg); err != nil {
+			return err
+		}
+	}
+
+	c.emit(code.OpCall, len(node.Arguments))
 
 	return nil
 }

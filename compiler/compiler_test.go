@@ -450,6 +450,88 @@ func TestChainIndexExpressions(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func TestChainCallExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				var obj = { 'method': func() { 42 } };
+				obj.method()
+			`,
+			expectedConstants: []interface{}{
+				"method",
+				42,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpReturnValue),
+				},
+				"method",
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpIndex),
+				code.Make(code.OpCall, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+				var obj = {
+					'a': {
+						'b': {
+							'c': func(a, b) { a + b }
+						}
+					}
+				}
+
+				obj.a.b.c(9, 42)
+			`,
+			expectedConstants: []interface{}{
+				"a",
+				"b",
+				"c",
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+				"a",
+				"b",
+				"c",
+				9,
+				42,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 6),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 7),
+				code.Make(code.OpConstant, 8),
+				code.Make(code.OpCall, 2),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilationTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []compilerTestCase{
 		{

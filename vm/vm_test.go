@@ -154,6 +154,55 @@ func TestIndexExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestChainIndexExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var obj = {'a': 2};
+				obj.a
+			`,
+			expected: 2,
+		},
+		{
+			input: `
+				var obj = {'a': {'b': 3}};
+				obj.a.b
+			`,
+			expected: 3,
+		},
+		// {
+		// 	input: `
+		// 		var obj = {'a': [4]};
+		// 		obj.a[0]
+		// 	`,
+		// 	expected: 4,
+		// },
+		{
+			input: `
+				var obj = {'a': {'b': func() { 5 }}};
+				obj.a.b()
+			`,
+			expected: 5,
+		},
+		{
+			input: `
+				var obj = {
+					'a': {
+						'b': func(a, b) {
+							return a + b
+						}
+					}
+				}
+
+				obj.a.b(2, 4)
+			`,
+			expected: 6,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},
