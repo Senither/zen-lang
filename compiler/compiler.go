@@ -479,6 +479,21 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: right.Value}))
 	case *ast.ChainExpression:
 		return c.compileChainExpression(right, true)
+	case *ast.IndexExpression:
+		ident, ok := right.Left.(*ast.Identifier)
+		if !ok {
+			return fmt.Errorf("unsupported call expression function in chain: %T", right.Left)
+		}
+
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: ident.Value}))
+		c.emit(code.OpIndex)
+
+		index, ok := right.Index.(*ast.IntegerLiteral)
+		if !ok {
+			return fmt.Errorf("unsupported index expression index in chain: %T", right.Index)
+		}
+
+		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: index.Value}))
 	case *ast.CallExpression:
 		ident, ok := right.Function.(*ast.Identifier)
 		if !ok {

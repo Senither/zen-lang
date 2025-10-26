@@ -445,6 +445,25 @@ func TestChainIndexExpressions(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input:             "var obj = {'key': [1, 2, 3]}; obj.key[0]",
+			expectedConstants: []interface{}{"key", 1, 2, 3, "key", 0},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpIndex),
+				code.Make(code.OpPop),
+			},
+		},
 	}
 
 	runCompilationTests(t, tests)

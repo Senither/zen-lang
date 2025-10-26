@@ -170,13 +170,13 @@ func TestChainIndexExpressions(t *testing.T) {
 			`,
 			expected: 3,
 		},
-		// {
-		// 	input: `
-		// 		var obj = {'a': [4]};
-		// 		obj.a[0]
-		// 	`,
-		// 	expected: 4,
-		// },
+		{
+			input: `
+				var obj = {'a': [4]};
+				obj.a[0]
+			`,
+			expected: 4,
+		},
 		{
 			input: `
 				var obj = {'a': {'b': func() { 5 }}};

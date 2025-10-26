@@ -8,7 +8,8 @@ var obj = {
     true: "boolean key",
     "inner": {
         "someKey": "another inner value",
-    }
+    },
+    "arr": [10, 20, 30],
 };
 
 println(obj["string"])
@@ -16,9 +17,15 @@ println(obj[123])
 println(obj[3.14])
 println(obj[true])
 println(obj['inner']['someKey'])
+println(obj['arr'][0])
+println(obj['arr'][1])
+println(obj['arr'][2])
 --EXPECT--
 string key
 integer key
 float key
 boolean key
 another inner value
+10
+20
+30

@@ -356,6 +356,14 @@ func TestChainedHashIndexExpressions(t *testing.T) {
 			false,
 		},
 		{
+			`var x = {"foo": [1, 2, 3]}; x.foo[1]`,
+			2,
+		},
+		{
+			`var x = {"foo": [1, 2, 3]}; x.foo[1 + 1]`,
+			3,
+		},
+		{
 			`var x = {"foo": func (n) { return n + 1; }}; x.foo(5)`,
 			6,
 		},

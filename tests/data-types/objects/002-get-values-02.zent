@@ -5,11 +5,14 @@ var obj = {
     "string": "string key",
     "inner": {
         "someKey": "another inner value",
+        "someArr": [42],
     }
 };
 
 println(obj.string)
 println(obj.inner.someKey)
+println(obj.inner.someArr[0])
 --EXPECT--
 string key
 another inner value
+42

@@ -120,7 +120,7 @@ func (p *Parser) parseChainExpression(left ast.Expression) ast.Expression {
 	exp := p.parseExpression(LOWEST)
 
 	switch exp.(type) {
-	case *ast.Identifier, *ast.CallExpression, *ast.ChainExpression:
+	case *ast.Identifier, *ast.CallExpression, *ast.ChainExpression, *ast.IndexExpression:
 		chain.Right = exp
 
 	case *ast.AssignmentExpression:

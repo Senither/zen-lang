@@ -503,6 +503,31 @@ func evalHashChainExpression(
 		}
 
 		return evalCallExpression(right, pair.Value, env)
+	case *ast.IndexExpression:
+		leftInner, ok := right.Left.(*ast.Identifier)
+		if !ok {
+			return objects.NewError(
+				node.Token, env,
+				"invalid chain expression for %s, expected identifier, got %s",
+				hash.Type(), right.Left.TokenLiteral(),
+			)
+		}
+
+		pair, ok := hash.Pairs[(&objects.String{Value: leftInner.Value}).HashKey()]
+		if !ok {
+			return objects.NewError(
+				node.Token, env,
+				"invalid chain expression for %s, key not found: %s",
+				hash.Type(), leftInner.Value,
+			)
+		}
+
+		index := Eval(right.Index, env)
+		if objects.IsError(index) {
+			return index
+		}
+
+		return evalIndexExpression(right, pair.Value, index, env)
 	case *ast.ChainExpression:
 		leftInner, ok := right.Left.(*ast.Identifier)
 		if !ok {
