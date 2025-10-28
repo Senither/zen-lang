@@ -123,9 +123,7 @@ func createCompilerParameters() (*compiler.SymbolTable, []objects.Object, []obje
 	globals := make([]objects.Object, vm.GLOBALS_SIZE)
 	table := compiler.NewSymbolTable()
 
-	for i, v := range objects.Builtins {
-		table.DefineBuiltin(i, v.Name)
-	}
+	compiler.WriteBuiltinSymbols(table)
 
 	return table, globals, constants
 }

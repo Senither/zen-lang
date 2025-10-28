@@ -37,10 +37,7 @@ func New() *Compiler {
 	}
 
 	symbolTable := NewSymbolTable()
-
-	for i, v := range objects.Builtins {
-		symbolTable.DefineBuiltin(i, v.Name)
-	}
+	WriteBuiltinSymbols(symbolTable)
 
 	return &Compiler{
 		constants:   []objects.Object{},
@@ -461,17 +458,16 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 }
 
 func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool) error {
-	switch left := node.Left.(type) {
-	case *ast.Identifier:
-		if inner {
-			c.emit(code.OpConstant, c.addConstant(&objects.String{Value: left.Value}))
-			c.emit(code.OpIndex)
-		} else {
-			c.Compile(node.Left)
-		}
+	leftIdent, ok := node.Left.(*ast.Identifier)
+	if !ok {
+		return fmt.Errorf("unsupported chain expression left side: %T", node.Left)
+	}
 
-	default:
-		return fmt.Errorf("unsupported chain expression left side: %T", left)
+	if inner {
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: leftIdent.Value}))
+		c.emit(code.OpIndex)
+	} else {
+		c.Compile(node.Left)
 	}
 
 	switch right := node.Right.(type) {
@@ -498,6 +494,15 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 		ident, ok := right.Function.(*ast.Identifier)
 		if !ok {
 			return fmt.Errorf("unsupported call expression function in chain: %T", right.Function)
+		}
+
+		if !inner {
+			symbol, ok := c.symbolTable.Resolve(fmt.Sprintf("%s.%s", node.Left, ident.Value))
+			if ok {
+				c.loadSymbol(symbol)
+
+				return c.compileFunctionArguments(right)
+			}
 		}
 
 		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: ident.Value}))
@@ -533,5 +538,7 @@ func (c *Compiler) loadSymbol(symbol Symbol) {
 		c.emit(code.OpGetLocal, symbol.Index)
 	case BuiltinScope:
 		c.emit(code.OpGetBuiltin, symbol.Index)
+	case GlobalBuiltinScope:
+		c.emit(code.OpGetGlobalBuiltin, symbol.Index)
 	}
 }

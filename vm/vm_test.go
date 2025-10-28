@@ -508,3 +508,21 @@ func TestBuiltinFunctions(t *testing.T) {
 
 	runVmTests(t, tests)
 }
+
+func TestGlobalBuiltinFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{`strings.contains("Hello, World", "World")`, true},
+		{`strings.contains("Hello, World", "world")`, false},
+		{`strings.split("a,b,c", ",")`, []string{"a", "b", "c"}},
+		{`strings.join(["a", "b", "c"], ",")`, "a,b,c"},
+		{`strings.format("Hello, %s! You have %d new messages.", "Alice", 5)`, "Hello, Alice! You have 5 new messages."},
+		{`arrays.push([1, 2, 3], 4)`, []int{1, 2, 3, 4}},
+		{`arrays.push(["a", "b", "c"], "d")`, []string{"a", "b", "c", "d"}},
+		{`arrays.shift([1, 2, 3])`, 1},
+		{`var arr = [1, 2, 3]; arrays.shift(arr); arr`, []int{2, 3}},
+		{`arrays.pop([1, 2, 3])`, 3},
+		{`var arr = [1, 2, 3]; arrays.pop(arr); arr`, []int{1, 2}},
+	}
+
+	runVmTests(t, tests)
+}

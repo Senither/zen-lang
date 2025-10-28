@@ -259,6 +259,19 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpGetGlobalBuiltin:
+			builtinIndex := code.ReadUint16(ins[ip+1:])
+			vm.currentFrame().ip += 2
+
+			sIdx := uint8(builtinIndex >> 8)
+			bIdx := uint8(builtinIndex & 0xFF)
+
+			definition := objects.Globals[sIdx].Builtins[bIdx]
+
+			err := vm.push(definition.Builtin)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

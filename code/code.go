@@ -60,6 +60,7 @@ const (
 
 	// Internal Functions
 	OpGetBuiltin
+	OpGetGlobalBuiltin
 )
 
 type Instructions []byte

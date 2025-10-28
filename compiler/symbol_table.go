@@ -1,11 +1,18 @@
 package compiler
 
+import (
+	"fmt"
+
+	"github.com/senither/zen-lang/objects"
+)
+
 type SymbolScope string
 
 const (
-	GlobalScope  SymbolScope = "GLOBAL"
-	LocalScope   SymbolScope = "LOCAL"
-	BuiltinScope SymbolScope = "BUILTIN"
+	GlobalScope        SymbolScope = "GLOBAL"
+	LocalScope         SymbolScope = "LOCAL"
+	BuiltinScope       SymbolScope = "BUILTIN"
+	GlobalBuiltinScope SymbolScope = "GLOBAL_BUILTIN"
 )
 
 type Symbol struct {
@@ -36,8 +43,29 @@ func NewEnclosedSymbolTable(outer *SymbolTable) *SymbolTable {
 	return s
 }
 
+func WriteBuiltinSymbols(table *SymbolTable) {
+	for i, v := range objects.Builtins {
+		table.DefineBuiltin(i, v.Name)
+	}
+
+	for sIdx, s := range objects.Globals {
+		for bIdx, b := range s.Builtins {
+			name := fmt.Sprintf("%s.%s", s.Name, b.Name)
+			idx := (uint16(sIdx) << 8) | uint16(bIdx)
+
+			table.DefineGlobalBuiltin(int(idx), name)
+		}
+	}
+}
+
 func (s *SymbolTable) DefineBuiltin(index int, name string) Symbol {
 	symbol := Symbol{Name: name, Mutable: false, Scope: BuiltinScope, Index: index}
+	s.store[name] = symbol
+	return symbol
+}
+
+func (s *SymbolTable) DefineGlobalBuiltin(index int, name string) Symbol {
+	symbol := Symbol{Name: name, Mutable: false, Scope: GlobalBuiltinScope, Index: index}
 	s.store[name] = symbol
 	return symbol
 }

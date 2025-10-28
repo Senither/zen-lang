@@ -1051,3 +1051,62 @@ func TestBuiltins(t *testing.T) {
 
 	runCompilationTests(t, tests)
 }
+
+func TestGlobalBuiltins(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				strings.contains("hello world", "world")
+				arrays.push([1, 2, 3], 4)
+			`,
+			expectedConstants: []interface{}{
+				"hello world",
+				"world",
+				1,
+				2,
+				3,
+				4,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpGetGlobalBuiltin, 256),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall, 2),
+				code.Make(code.OpPop),
+				code.Make(code.OpGetGlobalBuiltin, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpCall, 2),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `func() { strings.join([1, 2, 3], "-") }`,
+			expectedConstants: []interface{}{
+				1,
+				2,
+				3,
+				"-",
+				[]code.Instructions{
+					code.Make(code.OpGetGlobalBuiltin, 258),
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpConstant, 2),
+					code.Make(code.OpArray, 3),
+					code.Make(code.OpConstant, 3),
+					code.Make(code.OpCall, 2),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}

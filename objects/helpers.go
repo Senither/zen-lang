@@ -3,7 +3,6 @@ package objects
 import (
 	"fmt"
 
-	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/tokens"
 )
 
@@ -128,12 +127,12 @@ func BuildImmutableHash(args ...HashPair) *ImmutableHash {
 	return &ImmutableHash{Value: Hash{Pairs: pairs}}
 }
 
-func WrapBuiltinFunctionInMap(
+func WrapBuiltinFunctionInASTAwareMap(
 	name string,
-	fn func(node *ast.CallExpression, env *Environment, args ...Object) Object,
+	fn *Builtin,
 ) HashPair {
 	return HashPair{
 		Key:   &String{Value: name},
-		Value: &ASTAwareBuiltin{Fn: fn},
+		Value: BuiltinToASTAwareBuiltin(fn),
 	}
 }

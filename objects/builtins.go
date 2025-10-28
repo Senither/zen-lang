@@ -7,10 +7,7 @@ import (
 	"github.com/senither/zen-lang/ast"
 )
 
-var Builtins = []struct {
-	Name    string
-	Builtin *Builtin
-}{
+var Builtins = []BuiltinDefinition{
 	{
 		Name: "print",
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
