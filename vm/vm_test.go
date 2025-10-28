@@ -487,3 +487,24 @@ func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world")`, 11},
+		{`len([])`, 0},
+		{`len([1, 2, 3])`, 3},
+		{`len(1)`, &objects.Error{Message: "argument to `len` not supported, got INTEGER"}},
+		{`print("Hello, World")`, nil},
+		{`print("Hello", "World")`, nil},
+		{`println("Hello, World")`, nil},
+		{`println("Hello", " ", "World")`, nil},
+		{`string(123)`, "123"},
+		{`string(45.67)`, "45.670000"},
+		{`string(true)`, "true"},
+		{`string(false)`, "false"},
+	}
+
+	runVmTests(t, tests)
+}

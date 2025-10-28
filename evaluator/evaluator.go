@@ -1,7 +1,6 @@
 package evaluator
 
 import (
-	"bytes"
 	"math"
 	"os"
 	"path/filepath"
@@ -838,7 +837,7 @@ func applyFunction(
 		evaluated := Eval(fn.Body, extendedEnv)
 		return objects.UnwrapReturnValue(evaluated)
 
-	case *objects.Builtin:
+	case *objects.ASTAwareBuiltin:
 		return captureStdoutForBuiltin(node, fn, args, env)
 
 	default:
@@ -858,30 +857,4 @@ func extendFunctionEnv(
 	}
 
 	return env
-}
-
-func captureStdoutForBuiltin(
-	node *ast.CallExpression,
-	fn *objects.Builtin,
-	args []objects.Object,
-	env *objects.Environment,
-) objects.Object {
-	var buf bytes.Buffer
-
-	originalStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	rs := fn.Fn(node, env, args...)
-
-	w.Close()
-	buf.ReadFrom(r)
-	os.Stdout = originalStdout
-
-	output := buf.String()
-	if output != "" && output != "\n" {
-		Stdout.Write(output)
-	}
-
-	return rs
 }

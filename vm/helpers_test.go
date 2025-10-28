@@ -72,6 +72,18 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 		if err != nil {
 			t.Errorf("testHashMapObject failed: %s", err)
 		}
+	case *objects.Error:
+		actualError, ok := actual.(*objects.Error)
+		if !ok {
+			t.Errorf("object is not Error. got %T (%+v)", actual, actual)
+			return
+		}
+
+		if actualError.Message != expected.Message {
+			t.Errorf("wrong error message. got %q, want %q", actualError.Message, expected.Message)
+		}
+	case error:
+		fmt.Printf("Error")
 
 	case nil:
 		if actual != objects.NULL {

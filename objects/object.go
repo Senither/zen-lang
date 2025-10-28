@@ -265,14 +265,21 @@ func (f *Function) Inspect() string {
 	return out.String()
 }
 
-type BuiltinFunction func(node *ast.CallExpression, env *Environment, args ...Object) Object
-
+type BuiltinFunction func(args ...Object) (Object, error)
 type Builtin struct {
 	Fn BuiltinFunction
 }
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
 func (b *Builtin) Inspect() string  { return "builtin function" }
+
+type ASTAwareBuiltinFunction func(node *ast.CallExpression, env *Environment, args ...Object) Object
+type ASTAwareBuiltin struct {
+	Fn ASTAwareBuiltinFunction
+}
+
+func (b *ASTAwareBuiltin) Type() ObjectType { return BUILTIN_OBJ }
+func (b *ASTAwareBuiltin) Inspect() string  { return "builtin function" }
 
 type CompiledFunction struct {
 	OpcodeInstructions code.Instructions

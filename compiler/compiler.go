@@ -38,6 +38,10 @@ func New() *Compiler {
 
 	symbolTable := NewSymbolTable()
 
+	for i, v := range objects.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
+
 	return &Compiler{
 		constants:   []objects.Object{},
 		symbolTable: symbolTable,
@@ -123,11 +127,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable %s", n.Value)
 		}
 
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpGetGlobal, symbol.Index)
-		} else {
-			c.emit(code.OpGetLocal, symbol.Index)
-		}
+		c.loadSymbol(symbol)
 
 	// Expression types
 	case *ast.NullLiteral:
@@ -523,4 +523,15 @@ func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) error {
 	c.emit(code.OpCall, len(node.Arguments))
 
 	return nil
+}
+
+func (c *Compiler) loadSymbol(symbol Symbol) {
+	switch symbol.Scope {
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, symbol.Index)
+	case LocalScope:
+		c.emit(code.OpGetLocal, symbol.Index)
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, symbol.Index)
+	}
 }

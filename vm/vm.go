@@ -210,7 +210,7 @@ func (vm *VM) Run() error {
 			numArgs := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip += 1
 
-			err := vm.callFunction(int(numArgs))
+			err := vm.executeCall(int(numArgs))
 			if err != nil {
 				return err
 			}
@@ -229,6 +229,17 @@ func (vm *VM) Run() error {
 			vm.sp = frame.basePointer - 1
 
 			err := vm.push(objects.NULL)
+			if err != nil {
+				return err
+			}
+
+		case code.OpGetBuiltin:
+			builtinIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+
+			definition := objects.Builtins[builtinIndex]
+
+			err := vm.push(definition.Builtin)
 			if err != nil {
 				return err
 			}
@@ -460,12 +471,21 @@ func (vm *VM) buildHash(startIndex, endIndex int) (objects.Object, error) {
 	return &objects.Hash{Pairs: pairs}, nil
 }
 
-func (vm *VM) callFunction(numArgs int) error {
-	fn, ok := vm.stack[vm.sp-1-numArgs].(*objects.CompiledFunction)
-	if !ok {
-		return fmt.Errorf("calling non-function")
-	}
+func (vm *VM) executeCall(numArgs int) error {
+	callee := vm.stack[vm.sp-1-numArgs]
 
+	switch callee := callee.(type) {
+	case *objects.CompiledFunction:
+		return vm.callFunction(callee, numArgs)
+	case *objects.Builtin:
+		return vm.callBuiltin(callee, numArgs)
+
+	default:
+		return fmt.Errorf("calling non-function and non-builtin")
+	}
+}
+
+func (vm *VM) callFunction(fn *objects.CompiledFunction, numArgs int) error {
 	if numArgs != fn.NumParameters {
 		return fmt.Errorf("wrong number of arguments: got %d, want %d", numArgs, fn.NumParameters)
 	}
@@ -476,4 +496,17 @@ func (vm *VM) callFunction(numArgs int) error {
 	vm.sp = frame.basePointer + fn.NumLocals
 
 	return nil
+}
+
+func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
+	args := vm.stack[vm.sp-numArgs : vm.sp]
+
+	result, err := builtin.Fn(args...)
+	vm.sp = vm.sp - numArgs - 1
+
+	if err != nil {
+		result = objects.NativeErrorToErrorObject(err)
+	}
+
+	return vm.push(result)
 }

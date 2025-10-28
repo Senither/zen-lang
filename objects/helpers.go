@@ -16,6 +16,10 @@ var (
 	CONTINUE = &Continue{}
 )
 
+func NativeErrorToErrorObject(err error) *Error {
+	return &Error{Message: err.Error()}
+}
+
 func NewError(token tokens.Token, env *Environment, format string, a ...interface{}) *Error {
 	err := Error{
 		Message: fmt.Sprintf(format, a...),
@@ -130,6 +134,6 @@ func WrapBuiltinFunctionInMap(
 ) HashPair {
 	return HashPair{
 		Key:   &String{Value: name},
-		Value: &Builtin{Fn: fn},
+		Value: &ASTAwareBuiltin{Fn: fn},
 	}
 }

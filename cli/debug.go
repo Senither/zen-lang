@@ -70,9 +70,17 @@ var debugCommand = &cobra.Command{
 }
 
 func runAndReturnEvaluated(program *ast.Program, path any) string {
+	evaluator.Stdout.Clear()
 	env := objects.NewEnvironment(path)
 
-	evaluated := evaluator.Eval(program, env)
+	evaluated := evaluator.Stdout.Mute(func() objects.Object {
+		return evaluator.Eval(program, env)
+	})
+
+	if len(evaluator.Stdout.Messages) > 0 {
+		return strings.Join(evaluator.Stdout.Messages, "")
+	}
+
 	if evaluated == nil {
 		return ""
 	}

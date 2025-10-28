@@ -48,6 +48,8 @@ func TestMake(t *testing.T) {
 		{OpCall, []int{255}, []byte{byte(OpCall), 255}},
 		{OpReturnValue, []int{}, []byte{byte(OpReturnValue)}},
 		{OpReturn, []int{}, []byte{byte(OpReturn)}},
+		// Internal Functions
+		{OpGetBuiltin, []int{255}, []byte{byte(OpGetBuiltin), 255}},
 	}
 
 	for _, tt := range tests {

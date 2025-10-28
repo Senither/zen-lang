@@ -57,6 +57,9 @@ const (
 	OpCall
 	OpReturnValue
 	OpReturn
+
+	// Internal Functions
+	OpGetBuiltin
 )
 
 type Instructions []byte
