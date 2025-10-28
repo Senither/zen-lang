@@ -836,8 +836,11 @@ func applyFunction(
 		extendedEnv := extendFunctionEnv(node, fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
 		return objects.UnwrapReturnValue(evaluated)
-
 	case *objects.ASTAwareBuiltin:
+		for i, arg := range args {
+			args[i] = WrapFunctionIfNeeded(arg)
+		}
+
 		return captureStdoutForBuiltin(node, fn, args, env)
 
 	default:

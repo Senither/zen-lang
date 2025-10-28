@@ -58,6 +58,12 @@ type CompiledInstructionsObject interface {
 	Instructions() code.Instructions
 }
 
+type Callable interface {
+	Call(args ...Object) Object
+	ParametersCount() int
+	Inspect() string
+}
+
 type Null struct{}
 
 func (n *Null) Type() ObjectType { return NULL_OBJ }

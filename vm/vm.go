@@ -531,6 +531,10 @@ func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
 	args := vm.stack[vm.sp-numArgs : vm.sp]
 	vm.sp = vm.sp - numArgs - 1
 
+	for i, arg := range args {
+		args[i] = WrapFunctionIfNeeded(vm, arg)
+	}
+
 	if vm.settings.CaptureStdout {
 		return vm.push(captureStdoutForBuiltin(builtin, args))
 	}

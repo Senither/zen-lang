@@ -85,34 +85,30 @@ var Globals = []struct {
 						return nil, fmt.Errorf("argument to `filter` must be an array, got %s", args[0].Type())
 					}
 
-					callback, ok := args[1].(*Function)
+					callable, ok := args[1].(Callable)
 					if !ok {
 						return nil, fmt.Errorf("second argument to `filter` must be a function, got %s", args[1].Type())
 					}
 
-					if callback.Parameters == nil || len(callback.Parameters) != 1 {
+					if callable.ParametersCount() != 1 {
 						return nil, fmt.Errorf("function passed to `filter` must take exactly one argument")
 					}
 
 					filtered := make([]Object, 0)
 					for _, elem := range array.Elements {
-						env := NewEnclosedEnvironment(callback.Env)
-						env.SetImmutableForcefully(callback.Parameters[0].Value, elem)
+						rs := callable.Call(elem)
 
-						// TODO: Fix this since we can't call Eval from the objects package, if the compiler is calling the global we'll get broken results.
-						// rs := UnwrapReturnValue(Eval(callback.Body, env))
+						switch rs := rs.(type) {
+						case *Boolean:
+							if rs == TRUE {
+								filtered = append(filtered, elem)
+							}
+						case *Error:
+							return rs, nil
 
-						// switch rs := rs.(type) {
-						// case *Boolean:
-						// 	if rs == TRUE {
-						// 		filtered = append(filtered, elem)
-						// 	}
-						// case *Error:
-						// 	return NewEmptyErrorWithParent(rs, node.Token, env)
-
-						// default:
-						// 	return nil, fmt.Errorf("function passed to `filter` must return a boolean, got %s", rs.Type())
-						// }
+						default:
+							return nil, fmt.Errorf("function passed to `filter` must return a boolean, got %s", rs.Type())
+						}
 					}
 
 					return &Array{Elements: filtered}, nil
