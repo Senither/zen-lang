@@ -15,6 +15,10 @@ const (
 	GLOBALS_SIZE = 65536
 )
 
+type VMSettings struct {
+	CaptureStdout bool
+}
+
 type VM struct {
 	constants []objects.Object
 
@@ -27,6 +31,8 @@ type VM struct {
 
 	frames      []*Frame
 	framesIndex int
+
+	settings VMSettings
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
@@ -35,6 +41,10 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 	frames := make([]*Frame, MAX_FRAMES)
 	frames[0] = mainFrame
+
+	settings := VMSettings{
+		CaptureStdout: false,
+	}
 
 	return &VM{
 		constants: bytecode.Constants,
@@ -46,6 +56,8 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 		frames:      frames,
 		framesIndex: 1,
+
+		settings: settings,
 	}
 }
 
@@ -55,6 +67,10 @@ func NewWithGlobalsStore(bytecode *compiler.Bytecode, globals []objects.Object) 
 	vm.globals = globals
 
 	return vm
+}
+
+func (vm *VM) EnableStdoutCapture() {
+	vm.settings.CaptureStdout = true
 }
 
 func (vm *VM) LastPoppedStackElem() objects.Object {
@@ -500,10 +516,13 @@ func (vm *VM) callFunction(fn *objects.CompiledFunction, numArgs int) error {
 
 func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
 	args := vm.stack[vm.sp-numArgs : vm.sp]
-
-	result, err := builtin.Fn(args...)
 	vm.sp = vm.sp - numArgs - 1
 
+	if vm.settings.CaptureStdout {
+		return vm.push(captureStdoutForBuiltin(builtin, args))
+	}
+
+	result, err := builtin.Fn(args...)
 	if err != nil {
 		result = objects.NativeErrorToErrorObject(err)
 	}

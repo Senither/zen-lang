@@ -14,18 +14,25 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 
 	for _, tt := range tests {
+		Stdout.Clear()
+
 		compiler, err := compile(tt.input)
 		if err != nil {
 			t.Fatalf("compiler error: %s", err)
 		}
 
 		vm := New(compiler.Bytecode())
-		err = vm.Run()
-		if err != nil {
-			t.Fatalf("VM run error: %s", err)
-		}
+		vm.EnableStdoutCapture()
 
-		stackElem := vm.LastPoppedStackElem()
+		stackElem := Stdout.Mute(func() objects.Object {
+			err = vm.Run()
+			if err != nil {
+				t.Fatalf("VM run error: %s", err)
+			}
+
+			return vm.LastPoppedStackElem()
+		})
+
 		testExpectedObject(t, tt.expected, stackElem)
 	}
 }

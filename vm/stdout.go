@@ -1,11 +1,10 @@
-package evaluator
+package vm
 
 import (
 	"bytes"
 	"fmt"
 	"os"
 
-	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/objects"
 )
 
@@ -43,10 +42,8 @@ func (s *StandardOut) Mute(fn func() objects.Object) objects.Object {
 }
 
 func captureStdoutForBuiltin(
-	node *ast.CallExpression,
-	fn *objects.ASTAwareBuiltin,
+	fn *objects.Builtin,
 	args []objects.Object,
-	env *objects.Environment,
 ) objects.Object {
 	var buf bytes.Buffer
 
@@ -54,7 +51,7 @@ func captureStdoutForBuiltin(
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	rs := fn.Fn(node, env, args...)
+	rs, err := fn.Fn(args...)
 
 	w.Close()
 	buf.ReadFrom(r)
@@ -63,6 +60,10 @@ func captureStdoutForBuiltin(
 	output := buf.String()
 	if output != "" && output != "\n" {
 		Stdout.Write(output)
+	}
+
+	if err != nil {
+		return objects.NativeErrorToErrorObject(err)
 	}
 
 	return rs

@@ -77,8 +77,8 @@ func runAndReturnEvaluated(program *ast.Program, path any) string {
 		return evaluator.Eval(program, env)
 	})
 
-	if len(evaluator.Stdout.Messages) > 0 {
-		return strings.Join(evaluator.Stdout.Messages, "")
+	if len(evaluator.Stdout.ReadAll()) > 0 {
+		return strings.Join(evaluator.Stdout.ReadAll(), "")
 	}
 
 	if evaluated == nil {
@@ -89,17 +89,28 @@ func runAndReturnEvaluated(program *ast.Program, path any) string {
 }
 
 func runAndReturnVirtualMachineResult(bytecode *compiler.Bytecode, globals []objects.Object) string {
-	vm := vm.NewWithGlobalsStore(bytecode, globals)
-	if err := vm.Run(); err != nil {
-		return err.Error()
+	vm.Stdout.Clear()
+
+	machine := vm.NewWithGlobalsStore(bytecode, globals)
+	machine.EnableStdoutCapture()
+
+	result := vm.Stdout.Mute(func() objects.Object {
+		if err := machine.Run(); err != nil {
+			return objects.NativeErrorToErrorObject(err)
+		}
+
+		return machine.LastPoppedStackElem()
+	})
+
+	if len(vm.Stdout.ReadAll()) > 0 {
+		return strings.Join(vm.Stdout.ReadAll(), "")
 	}
 
-	stackTop := vm.LastPoppedStackElem()
-	if stackTop == nil {
+	if result == nil {
 		return ""
 	}
 
-	return stackTop.Inspect()
+	return result.Inspect()
 }
 
 func recoverFromPanic() {
