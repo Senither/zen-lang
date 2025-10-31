@@ -76,7 +76,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		c.emit(code.OpPop)
+		if c.shouldPopExpression(n.Expression) {
+			c.emit(code.OpPop)
+		}
 	case *ast.VariableStatement:
 		err := c.Compile(n.Value)
 		if err != nil {
@@ -100,6 +102,35 @@ func (c *Compiler) Compile(node ast.Node) error {
 		err := c.compileInfixExpression(n)
 		if err != nil {
 			return err
+		}
+	case *ast.SuffixExpression:
+		ident, ok := n.Left.(*ast.Identifier)
+		if !ok {
+			return fmt.Errorf("unsupported suffix expression left side: %T", n.Left)
+		}
+
+		symbol, ok := c.symbolTable.Resolve(ident.Value)
+		if !ok {
+			return fmt.Errorf("undefined variable %s", ident.Value)
+		}
+
+		c.loadSymbol(symbol)
+		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: 1}))
+
+		switch n.Operator {
+		case "++":
+			c.emit(code.OpAdd)
+		case "--":
+			c.emit(code.OpSub)
+
+		default:
+			return fmt.Errorf("unknown operator %s", n.Operator)
+		}
+
+		if symbol.Scope == GlobalScope {
+			c.emit(code.OpSetGlobal, symbol.Index)
+		} else {
+			c.emit(code.OpSetLocal, symbol.Index)
 		}
 	case *ast.IndexExpression:
 		err := c.Compile(n.Left)
@@ -325,6 +356,16 @@ func (c *Compiler) removeLastPop() {
 
 	c.scopes[c.scopeIndex].instructions = new
 	c.scopes[c.scopeIndex].previousInstruction = previous
+}
+
+func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
+	switch expr.(type) {
+	case *ast.SuffixExpression:
+		return false
+
+	default:
+		return true
+	}
 }
 
 func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) error {

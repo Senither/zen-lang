@@ -786,6 +786,43 @@ func TestVarStatementScopes(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func TestVarIncDec(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				var mut a = 1;
+				a++;
+			`,
+			expectedConstants: []any{1, 1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
+				code.Make(code.OpSetGlobal, 0),
+			},
+		},
+		{
+			input: `
+				var mut a = 1;
+				a--;
+			`,
+			expectedConstants: []any{1, 1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSub),
+				code.Make(code.OpSetGlobal, 0),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
 func TestCompilerScopes(t *testing.T) {
 	compiler := New()
 	if compiler.scopeIndex != 0 {

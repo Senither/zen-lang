@@ -137,6 +137,20 @@ func TestHashLiterals(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestSuffixExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"var x = 5; x++", 6},
+		{"var x = 5; x--", 4},
+		{"var x = 5; x++; x", 6},
+		{"var x = 5; x--; x", 4},
+		{"var x = 5; x++; x++; x", 7},
+		{"var x = 5; x--; x--; x", 3},
+		{"var x = 5; x++; x--; x", 5},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestIndexExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{"[1, 2, 3][1]", 2},
