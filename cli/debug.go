@@ -15,6 +15,8 @@ import (
 )
 
 func init() {
+	debugCommand.Flags().BoolP("verbose", "v", false, "Disables print capture and panic recoveries so failures show full stack traces.")
+
 	rootCommand.AddCommand(debugCommand)
 }
 
@@ -24,6 +26,8 @@ var debugCommand = &cobra.Command{
 	Long:   "Runs the provided file and outputs the compiled bytecode, the result from the evaluator, and the result from the virtual machine.",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		verbose, _ := cmd.Flags().GetBool("verbose")
+
 		if len(args) == 0 {
 			fmt.Println("Please provide a file that should be run within the debugger.")
 			return
@@ -32,7 +36,9 @@ var debugCommand = &cobra.Command{
 		table, globals, constants := createCompilerParameters()
 
 		createREPLRunner(args, []string{}, func(input string, path any) {
-			defer recoverFromPanic()
+			if !verbose {
+				defer recoverFromPanic()
+			}
 
 			lexer := inputToLexer(input)
 			program := lexerToProgram(lexer, path)
@@ -52,7 +58,7 @@ var debugCommand = &cobra.Command{
 			fmt.Println(evalRes)
 
 			vmStart := time.Now()
-			vmRes := runAndReturnVirtualMachineResult(bytecode, globals)
+			vmRes := runAndReturnVirtualMachineResult(verbose, bytecode, globals)
 			vmDuration := time.Since(vmStart)
 
 			fmt.Printf("=====[ Virtual Machine Result (Time: %s) ]=====\n", vmDuration)
@@ -88,11 +94,13 @@ func runAndReturnEvaluated(program *ast.Program, path any) string {
 	return evaluated.Inspect()
 }
 
-func runAndReturnVirtualMachineResult(bytecode *compiler.Bytecode, globals []objects.Object) string {
+func runAndReturnVirtualMachineResult(verbose bool, bytecode *compiler.Bytecode, globals []objects.Object) string {
 	vm.Stdout.Clear()
 
 	machine := vm.NewWithGlobalsStore(bytecode, globals)
-	machine.EnableStdoutCapture()
+	if !verbose {
+		machine.EnableStdoutCapture()
+	}
 
 	result := vm.Stdout.Mute(func() objects.Object {
 		if err := machine.Run(); err != nil {
