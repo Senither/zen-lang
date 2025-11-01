@@ -3,6 +3,7 @@ package vm
 import (
 	"fmt"
 
+	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
 )
 
@@ -20,12 +21,54 @@ func (fa *CompiledFunctionAdapter) Inspect() string {
 }
 
 func (fa *CompiledFunctionAdapter) Call(args ...objects.Object) objects.Object {
-	// This still needs to be implemented, however we now have
-	// access to the VM instance as well as the function
-	// itself, outside of the evaluator package.
-	return objects.NativeErrorToErrorObject(
-		fmt.Errorf("unsupported function call for the Virtual Machine"),
-	)
+	if len(args) != fa.Fn.NumParameters {
+		return objects.NativeErrorToErrorObject(
+			fmt.Errorf("wrong number of arguments: got %d, want %d", len(args), fa.Fn.NumParameters),
+		)
+	}
+
+	funcVM := &VM{
+		constants:   fa.VM.constants,
+		stack:       make([]objects.Object, STACK_SIZE),
+		sp:          0,
+		globals:     fa.VM.globals,
+		frames:      make([]*Frame, MAX_FRAMES),
+		framesIndex: 0,
+		settings:    fa.VM.settings,
+	}
+
+	frame := NewFrame(fa.Fn, 0)
+	funcVM.pushFrame(frame)
+
+	copy(funcVM.stack, args)
+	funcVM.sp = fa.Fn.NumLocals
+
+	for funcVM.currentFrame().ip < len(funcVM.currentFrame().Instructions())-1 {
+		funcVM.currentFrame().ip++
+
+		ip := funcVM.currentFrame().ip
+		ins := funcVM.currentFrame().Instructions()
+
+		if ip >= len(ins) {
+			break
+		}
+
+		op := code.Opcode(ins[ip])
+
+		switch op {
+		case code.OpReturnValue:
+			return funcVM.pop()
+		case code.OpReturn:
+			return objects.NULL
+		}
+
+		err := funcVM.executeInstructions(op, ins, ip)
+		if err != nil {
+			return objects.NativeErrorToErrorObject(err)
+		}
+	}
+
+	return objects.NULL
 }
 
 func WrapFunctionIfNeeded(vm *VM, obj objects.Object) objects.Object {
