@@ -127,6 +127,8 @@ func (b *Bytecode) Serialize() []byte {
 			buf.WriteString(v.Value)
 		case *objects.CompiledFunction:
 			buf.WriteByte(COMPILED_FUNCTION_CONST)
+			write(uint32(v.NumLocals))
+			write(uint32(v.NumParameters))
 			write(uint32(len(v.Instructions())))
 			write(v.Instructions())
 		default:
@@ -206,6 +208,16 @@ func Deserialize(data []byte) (*Bytecode, error) {
 
 			consts = append(consts, &objects.String{Value: string(str)})
 		case COMPILED_FUNCTION_CONST:
+			var numLocals uint32
+			if err := read(&numLocals); err != nil {
+				return nil, err
+			}
+
+			var numParameters uint32
+			if err := read(&numParameters); err != nil {
+				return nil, err
+			}
+
 			var insLen uint32
 			if err := read(&insLen); err != nil {
 				return nil, err
@@ -216,7 +228,11 @@ func Deserialize(data []byte) (*Bytecode, error) {
 				return nil, err
 			}
 
-			consts = append(consts, &objects.CompiledFunction{OpcodeInstructions: instructions})
+			consts = append(consts, &objects.CompiledFunction{
+				NumLocals:          int(numLocals),
+				NumParameters:      int(numParameters),
+				OpcodeInstructions: instructions,
+			})
 
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)

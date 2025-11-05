@@ -200,6 +200,8 @@ func TestBytecodeSerializeDeserialize(t *testing.T) {
 		"while (false) { 1 }",
 		"func () { return 5 + 10 }",
 		"func () { 5 + 10 }",
+		"func (a) { a + 10 }(5)",
+		"func (a, b) { a + b }(5, 10)",
 	}
 
 	for _, input := range tests {
