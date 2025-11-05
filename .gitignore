@@ -3,6 +3,7 @@ tmp/
 *.exe
 *.log
 *.zen
+*.zenb
 .vscode/
 TODO
 

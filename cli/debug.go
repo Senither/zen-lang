@@ -25,14 +25,9 @@ var debugCommand = &cobra.Command{
 	Short:  "Takes a file as input and produces the bytecode, evaluated, and VM results.",
 	Long:   "Runs the provided file and outputs the compiled bytecode, the result from the evaluator, and the result from the virtual machine.",
 	Hidden: true,
+	Args:   cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose, _ := cmd.Flags().GetBool("verbose")
-
-		if len(args) == 0 {
-			fmt.Println("Please provide a file that should be run within the debugger.")
-			return
-		}
-
 		table, globals, constants := createCompilerParameters()
 
 		createREPLRunner(args, []string{}, func(input string, path any) {

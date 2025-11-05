@@ -35,13 +35,15 @@ var rootCommand = &cobra.Command{
 			return
 		}
 
-		table, globals, constants := createCompilerParameters()
+		bytecode, err := compiler.Deserialize(content)
+		table, _, constants := createCompilerParameters()
+		if err != nil {
+			lexer := inputToLexer(string(content))
+			program := lexerToProgram(lexer, path)
+			bytecode = programToBytecode(program, table, constants)
+		}
 
-		lexer := inputToLexer(string(content))
-		program := lexerToProgram(lexer, path)
-		bytecode := programToBytecode(program, table, constants)
-
-		vm := vm.NewWithGlobalsStore(bytecode, globals)
+		vm := vm.New(bytecode)
 		if err := vm.Run(); err != nil {
 			fmt.Println(err)
 			return
@@ -67,7 +69,7 @@ func createREPLRunner(
 		}
 
 		path, _ := filepath.Abs(args[0])
-		callback(content, path)
+		callback(string(content), path)
 
 		return
 	}
@@ -146,13 +148,13 @@ func programToBytecode(
 	return compile.Bytecode()
 }
 
-func loadFileContents(file string) (string, error) {
+func loadFileContents(file string) ([]byte, error) {
 	content, err := os.ReadFile(file)
 	if err != nil {
-		return "", fmt.Errorf("failed to read file %q: %w", file, err)
+		return nil, fmt.Errorf("failed to read file %q: %w", file, err)
 	}
 
-	return string(content), nil
+	return content, nil
 }
 
 func Execute() {
