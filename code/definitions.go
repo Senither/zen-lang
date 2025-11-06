@@ -53,6 +53,8 @@ var definitions = map[Opcode]*Definition{
 	// Internal Functions
 	OpGetBuiltin:       {"OpGetBuiltin", []int{1}},
 	OpGetGlobalBuiltin: {"OpGetGlobalBuiltin", []int{2}},
+	// Closures
+	OpClosure: {"OpClosure", []int{2, 1}},
 }
 
 func Make(op Opcode, operands ...int) []byte {

@@ -37,7 +37,8 @@ type VM struct {
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &objects.CompiledFunction{OpcodeInstructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn, 0)
+	mainClosure := &objects.Closure{Fn: mainFn}
+	mainFrame := NewFrame(mainClosure, 0)
 
 	frames := make([]*Frame, MAX_FRAMES)
 	frames[0] = mainFrame
@@ -107,6 +108,15 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 		vm.currentFrame().ip += 2
 
 		return vm.push(vm.constants[constIndex])
+	case code.OpClosure:
+		constIndex := code.ReadUint16(ins[ip+1:])
+		_ = code.ReadUint8(ins[ip+3:])
+		vm.currentFrame().ip += 3
+
+		err := vm.pushClosure(int(constIndex))
+		if err != nil {
+			return err
+		}
 
 	case code.OpPop:
 		vm.pop()
@@ -244,6 +254,18 @@ func (vm *VM) push(obj objects.Object) error {
 	vm.sp++
 
 	return nil
+}
+
+func (vm *VM) pushClosure(constIndex int) error {
+	constant := vm.constants[constIndex]
+	fn, ok := constant.(*objects.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("not a function: %T", constant)
+	}
+
+	closure := &objects.Closure{Fn: fn}
+
+	return vm.push(closure)
 }
 
 func (vm *VM) pop() objects.Object {
@@ -461,8 +483,8 @@ func (vm *VM) executeCall(numArgs int) error {
 	callee := vm.stack[vm.sp-1-numArgs]
 
 	switch callee := callee.(type) {
-	case *objects.CompiledFunction:
-		return vm.callFunction(callee, numArgs)
+	case *objects.Closure:
+		return vm.callClosure(callee, numArgs)
 	case *objects.Builtin:
 		return vm.callBuiltin(callee, numArgs)
 
@@ -471,15 +493,15 @@ func (vm *VM) executeCall(numArgs int) error {
 	}
 }
 
-func (vm *VM) callFunction(fn *objects.CompiledFunction, numArgs int) error {
-	if numArgs != fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: got %d, want %d", numArgs, fn.NumParameters)
+func (vm *VM) callClosure(cl *objects.Closure, numArgs int) error {
+	if numArgs != cl.Fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: got %d, want %d", numArgs, cl.Fn.NumParameters)
 	}
 
-	frame := NewFrame(fn, vm.sp-numArgs)
+	frame := NewFrame(cl, vm.sp-numArgs)
 	vm.pushFrame(frame)
 
-	vm.sp = frame.basePointer + fn.NumLocals
+	vm.sp = frame.basePointer + cl.Fn.NumLocals
 
 	return nil
 }
@@ -489,7 +511,7 @@ func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
 	vm.sp = vm.sp - numArgs - 1
 
 	for i, arg := range args {
-		args[i] = WrapFunctionIfNeeded(vm, arg)
+		args[i] = WrapClosuresIfNeeded(vm, arg)
 	}
 
 	if vm.settings.CaptureStdout {

@@ -150,8 +150,8 @@ func TestBytecodeString(t *testing.T) {
 				"0001x00000003 OpConstant 1",
 				"0001x00000006 OpAdd",
 				"0001x00000007 OpReturnValue",
-				"0000x00000000 OpConstant 2",
-				"0000x00000003 OpPop",
+				"0000x00000000 OpClosure 2 0",
+				"0000x00000004 OpPop",
 			},
 		},
 		{
@@ -161,8 +161,8 @@ func TestBytecodeString(t *testing.T) {
 				"0001x00000003 OpConstant 1",
 				"0001x00000006 OpAdd",
 				"0001x00000007 OpReturnValue",
-				"0000x00000000 OpConstant 2",
-				"0000x00000003 OpPop",
+				"0000x00000000 OpClosure 2 0",
+				"0000x00000004 OpPop",
 			},
 		},
 	}

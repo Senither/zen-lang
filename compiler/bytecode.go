@@ -40,7 +40,7 @@ func (c *Compiler) Bytecode() *Bytecode {
 func (b *Bytecode) String() string {
 	var out bytes.Buffer
 
-	constantDef, err := code.Lookup(code.OpConstant)
+	closureDef, err := code.Lookup(code.OpClosure)
 	if err != nil {
 		return fmt.Sprintf("ERROR: %s\n", err)
 	}
@@ -53,7 +53,7 @@ func (b *Bytecode) String() string {
 			continue
 		}
 
-		if def == constantDef {
+		if def == closureDef {
 			constIndex := binary.BigEndian.Uint16(b.Instructions[i+1 : i+3])
 			constant := b.Constants[constIndex]
 

@@ -23,15 +23,17 @@ func (m *MockCompiledInstructionsObject) Instructions() code.Instructions {
 }
 
 func TestNewFrame(t *testing.T) {
-	ci := &MockCompiledInstructionsObject{instructions: code.Instructions{0x01, 0x02, 0x03}}
-	frame := NewFrame(ci, 0)
+	mockInstructions := &MockCompiledInstructionsObject{instructions: code.Instructions{0x01, 0x02, 0x03}}
+	closure := &objects.Closure{Fn: &objects.CompiledFunction{OpcodeInstructions: mockInstructions.instructions}}
+
+	frame := NewFrame(closure, 0)
 
 	if frame.ip != -1 {
 		t.Errorf("Expected ip to be -1, got %d", frame.ip)
 	}
 
-	if frame.obj != ci {
-		t.Errorf("Expected obj to be the provided CompiledInstructionsObject")
+	if frame.obj != closure {
+		t.Errorf("Expected obj to be the provided Closure, got %v", frame.obj)
 	}
 
 	instructions := frame.Instructions()

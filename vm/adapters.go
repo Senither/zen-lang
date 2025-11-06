@@ -7,41 +7,41 @@ import (
 	"github.com/senither/zen-lang/objects"
 )
 
-type CompiledFunctionAdapter struct {
-	Fn *objects.CompiledFunction
-	VM *VM
+type CompiledClosureAdapter struct {
+	Closure *objects.Closure
+	VM      *VM
 }
 
-func (fa *CompiledFunctionAdapter) Type() objects.ObjectType {
-	return "COMPILED_FUNCTION_ADAPTER"
+func (ca *CompiledClosureAdapter) Type() objects.ObjectType {
+	return "COMPILED_CLOSURE_ADAPTER"
 }
 
-func (fa *CompiledFunctionAdapter) Inspect() string {
-	return fa.Fn.Inspect()
+func (ca *CompiledClosureAdapter) Inspect() string {
+	return ca.Closure.Inspect()
 }
 
-func (fa *CompiledFunctionAdapter) Call(args ...objects.Object) objects.Object {
-	if len(args) != fa.Fn.NumParameters {
+func (ca *CompiledClosureAdapter) Call(args ...objects.Object) objects.Object {
+	if len(args) != ca.Closure.Fn.NumParameters {
 		return objects.NativeErrorToErrorObject(
-			fmt.Errorf("wrong number of arguments: got %d, want %d", len(args), fa.Fn.NumParameters),
+			fmt.Errorf("wrong number of arguments: got %d, want %d", len(args), ca.Closure.Fn.NumParameters),
 		)
 	}
 
 	funcVM := &VM{
-		constants:   fa.VM.constants,
+		constants:   ca.VM.constants,
 		stack:       make([]objects.Object, STACK_SIZE),
 		sp:          0,
-		globals:     fa.VM.globals,
+		globals:     ca.VM.globals,
 		frames:      make([]*Frame, MAX_FRAMES),
 		framesIndex: 0,
-		settings:    fa.VM.settings,
+		settings:    ca.VM.settings,
 	}
 
-	frame := NewFrame(fa.Fn, 0)
+	frame := NewFrame(ca.Closure, 0)
 	funcVM.pushFrame(frame)
 
 	copy(funcVM.stack, args)
-	funcVM.sp = fa.Fn.NumLocals
+	funcVM.sp = ca.Closure.Fn.NumLocals
 
 	for funcVM.currentFrame().ip < len(funcVM.currentFrame().Instructions())-1 {
 		funcVM.currentFrame().ip++
@@ -71,14 +71,14 @@ func (fa *CompiledFunctionAdapter) Call(args ...objects.Object) objects.Object {
 	return objects.NULL
 }
 
-func WrapFunctionIfNeeded(vm *VM, obj objects.Object) objects.Object {
-	if fn, ok := obj.(*objects.CompiledFunction); ok {
-		return &CompiledFunctionAdapter{Fn: fn, VM: vm}
+func WrapClosuresIfNeeded(vm *VM, obj objects.Object) objects.Object {
+	if fn, ok := obj.(*objects.Closure); ok {
+		return &CompiledClosureAdapter{Closure: fn, VM: vm}
 	}
 
 	return obj
 }
 
-func (fa *CompiledFunctionAdapter) ParametersCount() int {
-	return fa.Fn.NumParameters
+func (ca *CompiledClosureAdapter) ParametersCount() int {
+	return ca.Closure.Fn.NumParameters
 }
