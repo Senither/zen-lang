@@ -45,7 +45,7 @@ func (b *Bytecode) String() string {
 		return fmt.Sprintf("ERROR: %s\n", err)
 	}
 
-	i, s := 0, 0
+	i := 0
 	for i < len(b.Instructions) {
 		def, err := code.Lookup(code.Opcode(b.Instructions[i]))
 		if err != nil {
@@ -57,26 +57,8 @@ func (b *Bytecode) String() string {
 			constIndex := binary.BigEndian.Uint16(b.Instructions[i+1 : i+3])
 			constant := b.Constants[constIndex]
 
-			switch fn := constant.(type) {
-			case *objects.CompiledFunction:
-				s++
-
-				fnIns := fn.Instructions()
-				if len(fnIns) == 0 {
-					fmt.Fprintf(&out, "ERROR: compiled function has no instructions\n")
-					break
-				}
-
-				x := 0
-				for x < len(fnIns) {
-					fnDef, err := code.Lookup(code.Opcode(fnIns[x]))
-					if err != nil {
-						fmt.Fprintf(&out, "ERROR: %s\n", err)
-						break
-					}
-
-					x += writeInstructionsToBuffer(&out, x, s, fnDef, fnIns)
-				}
+			if fn, ok := constant.(*objects.CompiledFunction); ok {
+				b.printCompiledFunction(&out, def, fn, 1)
 			}
 		}
 
@@ -84,6 +66,34 @@ func (b *Bytecode) String() string {
 	}
 
 	return out.String()
+}
+
+func (b *Bytecode) printCompiledFunction(out *bytes.Buffer, closureDef *code.Definition, fn *objects.CompiledFunction, depth int) {
+	ins := fn.Instructions()
+	if len(ins) == 0 {
+		fmt.Fprintf(out, "ERROR: compiled function has no instructions\n")
+		return
+	}
+
+	x := 0
+	for x < len(ins) {
+		fnDef, err := code.Lookup(code.Opcode(ins[x]))
+		if err != nil {
+			fmt.Fprintf(out, "ERROR: %s\n", err)
+			break
+		}
+
+		if fnDef == closureDef {
+			constIndex := binary.BigEndian.Uint16(ins[x+1 : x+3])
+			constant := b.Constants[constIndex]
+
+			if nestedFn, ok := constant.(*objects.CompiledFunction); ok {
+				b.printCompiledFunction(out, fnDef, nestedFn, depth+1)
+			}
+		}
+
+		x += writeInstructionsToBuffer(out, x, depth, fnDef, ins)
+	}
 }
 
 func writeInstructionsToBuffer(out *bytes.Buffer, index, scope int, def *code.Definition, ins code.Instructions) int {
