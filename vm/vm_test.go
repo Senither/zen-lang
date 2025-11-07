@@ -540,3 +540,92 @@ func TestGlobalBuiltinFunctions(t *testing.T) {
 
 	runVmTests(t, tests)
 }
+
+func TestClosures(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var newClosure = func(x) {
+					return func() {
+						return x
+					}
+				}
+
+				var closure = newClosure(99)
+				closure()
+			`,
+			expected: 99,
+		},
+		{
+			input: `
+				var newAdder = func(a, b) {
+					return func(c) {
+						return a + b + c
+					}
+				}
+
+				var adder = newAdder(1, 2)
+				adder(8)
+			`,
+			expected: 11,
+		},
+		{
+			input: `
+				var newAdder = func(a, b) {
+					var c = a + b
+					return func(d) { c + d }
+				}
+
+				var adder = newAdder(1, 2)
+				adder(8)
+			`,
+			expected: 11,
+		},
+		{
+			input: `
+				var newAdderOuter = func(a, b) {
+					var c = a + b
+					func(d) {
+						var e = d + c
+						func(f) { e + f }
+					}
+				}
+
+				var newAdderInner = newAdderOuter(1, 2)
+				var adder = newAdderInner(3)
+				adder(8)
+			`,
+			expected: 14,
+		},
+		{
+			input: `
+				var a = 1
+				var newAdderOuter = func(b) {
+					func(c) {
+						func(d) { a + b + c + d }
+					}
+				}
+
+				var newAdderInner = newAdderOuter(2)
+				var adder = newAdderInner(3)
+				adder(8)
+			`,
+			expected: 14,
+		},
+		{
+			input: `
+				var newClosure = func(a, b) {
+					var one = func() { a }
+					var two = func() { b }
+					func() { one() + two() }
+				}
+
+				var closure = newClosure(9, 90)
+				closure()
+			`,
+			expected: 99,
+		},
+	}
+
+	runVmTests(t, tests)
+}

@@ -32,8 +32,8 @@ func TestNewFrame(t *testing.T) {
 		t.Errorf("Expected ip to be -1, got %d", frame.ip)
 	}
 
-	if frame.obj != closure {
-		t.Errorf("Expected obj to be the provided Closure, got %v", frame.obj)
+	if frame.closure != closure {
+		t.Errorf("Expected obj to be the provided Closure, got %v", frame.closure)
 	}
 
 	instructions := frame.Instructions()

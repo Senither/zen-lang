@@ -229,8 +229,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDefinitions
 		instructions := c.leaveScope()
+
+		for _, sym := range freeSymbols {
+			c.loadSymbol(sym)
+		}
 
 		compiledFn := &objects.CompiledFunction{
 			OpcodeInstructions: instructions,
@@ -238,7 +243,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			NumParameters:      len(n.Parameters),
 		}
 
-		c.emit(code.OpClosure, c.addConstant(compiledFn), 0)
+		c.emit(code.OpClosure, c.addConstant(compiledFn), len(freeSymbols))
 	case *ast.ReturnStatement:
 		err := c.Compile(n.ReturnValue)
 		if err != nil {
@@ -581,5 +586,7 @@ func (c *Compiler) loadSymbol(symbol Symbol) {
 		c.emit(code.OpGetBuiltin, symbol.Index)
 	case GlobalBuiltinScope:
 		c.emit(code.OpGetGlobalBuiltin, symbol.Index)
+	case FreeScope:
+		c.emit(code.OpGetFree, symbol.Index)
 	}
 }

@@ -64,6 +64,7 @@ const (
 
 	// Closures
 	OpClosure
+	OpGetFree
 )
 
 type Instructions []byte
