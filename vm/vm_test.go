@@ -629,3 +629,59 @@ func TestClosures(t *testing.T) {
 
 	runVmTests(t, tests)
 }
+
+func TestRecursiveFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var countDown = func(x) {
+					if (x == 0) {
+						return 0
+					} else {
+						countDown(x - 1)
+					}
+				}
+
+				countDown(1)
+			`,
+			expected: 0,
+		},
+		{
+			input: `
+				var countDown = func(x) {
+					if (x == 0) {
+						return 0
+					} else {
+						countDown(x - 1)
+					}
+				}
+
+				var wrapper = func() {
+					countDown(1)
+				}
+
+				wrapper()
+			`,
+			expected: 0,
+		},
+		{
+			input: `
+				var wrapper = func() {
+					var countDown = func(x) {
+						if (x == 0) {
+							return 0
+						} else {
+							countDown(x - 1)
+						}
+					}
+
+					countDown(1)
+				}
+
+				wrapper()
+			`,
+			expected: 0,
+		},
+	}
+	runVmTests(t, tests)
+}

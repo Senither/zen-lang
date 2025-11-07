@@ -53,6 +53,8 @@ func TestMake(t *testing.T) {
 		{OpGetGlobalBuiltin, []int{65535}, []byte{byte(OpGetGlobalBuiltin), 255, 255}},
 		// Closures
 		{OpClosure, []int{65534, 255}, []byte{byte(OpClosure), 255, 254, 255}},
+		{OpGetFree, []int{255}, []byte{byte(OpGetFree), 255}},
+		{OpCurrentClosure, []int{}, []byte{byte(OpCurrentClosure)}},
 	}
 
 	for _, tt := range tests {

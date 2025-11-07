@@ -14,6 +14,7 @@ const (
 	FreeScope          SymbolScope = "FREE"
 	BuiltinScope       SymbolScope = "BUILTIN"
 	GlobalBuiltinScope SymbolScope = "GLOBAL_BUILTIN"
+	FunctionScope      SymbolScope = "FUNCTION"
 )
 
 type Symbol struct {
@@ -24,7 +25,9 @@ type Symbol struct {
 }
 
 func (s *Symbol) isEligibleForFreeing() bool {
-	return s.Scope == LocalScope || s.Scope == FreeScope
+	return s.Scope != GlobalScope &&
+		s.Scope != BuiltinScope &&
+		s.Scope != GlobalBuiltinScope
 }
 
 type SymbolTable struct {
@@ -74,6 +77,12 @@ func (s *SymbolTable) DefineBuiltin(index int, name string) Symbol {
 
 func (s *SymbolTable) DefineGlobalBuiltin(index int, name string) Symbol {
 	symbol := Symbol{Name: name, Mutable: false, Scope: GlobalBuiltinScope, Index: index}
+	s.store[name] = symbol
+	return symbol
+}
+
+func (s *SymbolTable) DefineFunctionName(name string, mutable bool) Symbol {
+	symbol := Symbol{Name: name, Mutable: mutable, Index: 0, Scope: FunctionScope}
 	s.store[name] = symbol
 	return symbol
 }

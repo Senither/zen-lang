@@ -171,6 +171,12 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 		if err != nil {
 			return err
 		}
+	case code.OpCurrentClosure:
+		currentClosure := vm.currentFrame().closure
+		err := vm.push(currentClosure)
+		if err != nil {
+			return err
+		}
 
 	case code.OpJump:
 		pos := int(code.ReadUint16(ins[ip+1:]))

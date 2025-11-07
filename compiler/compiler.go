@@ -80,12 +80,26 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpPop)
 		}
 	case *ast.VariableStatement:
-		err := c.Compile(n.Value)
-		if err != nil {
-			return err
+		symbol := c.symbolTable.Define(n.Name.Value, n.Mutable)
+
+		if fn, ok := n.Value.(*ast.FunctionLiteral); ok {
+			funcLit := &ast.FunctionLiteral{
+				Parameters: fn.Parameters,
+				Body:       fn.Body,
+				Name:       &ast.Identifier{Value: n.Name.Value},
+			}
+
+			err := c.Compile(funcLit)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := c.Compile(n.Value)
+			if err != nil {
+				return err
+			}
 		}
 
-		symbol := c.symbolTable.Define(n.Name.Value, n.Mutable)
 		if symbol.Scope == GlobalScope {
 			c.emit(code.OpSetGlobal, symbol.Index)
 		} else {
@@ -211,6 +225,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 	case *ast.FunctionLiteral:
 		c.enterScope()
+
+		if n.Name != nil {
+			c.symbolTable.DefineFunctionName(n.Name.Value, false)
+		}
 
 		for _, param := range n.Parameters {
 			c.symbolTable.Define(param.Value, false)
@@ -588,5 +606,7 @@ func (c *Compiler) loadSymbol(symbol Symbol) {
 		c.emit(code.OpGetGlobalBuiltin, symbol.Index)
 	case FreeScope:
 		c.emit(code.OpGetFree, symbol.Index)
+	case FunctionScope:
+		c.emit(code.OpCurrentClosure)
 	}
 }
