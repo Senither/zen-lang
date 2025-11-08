@@ -83,13 +83,17 @@ func (c *Compiler) Compile(node ast.Node) error {
 		symbol := c.symbolTable.Define(n.Name.Value, n.Mutable)
 
 		if fn, ok := n.Value.(*ast.FunctionLiteral); ok {
+			if fn.Name != nil {
+				return fmt.Errorf("cannot use named function literal in variable statement")
+			}
+
 			funcLit := &ast.FunctionLiteral{
 				Parameters: fn.Parameters,
 				Body:       fn.Body,
 				Name:       &ast.Identifier{Value: n.Name.Value},
 			}
 
-			err := c.Compile(funcLit)
+			err := c.compileFunctionLiteral(funcLit, false)
 			if err != nil {
 				return err
 			}
@@ -224,44 +228,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 	case *ast.FunctionLiteral:
-		c.enterScope()
-
-		if n.Name != nil {
-			c.symbolTable.DefineFunctionName(n.Name.Value, false)
-		}
-
-		for _, param := range n.Parameters {
-			c.symbolTable.Define(param.Value, false)
-		}
-
-		err := c.Compile(n.Body)
+		err := c.compileFunctionLiteral(n, true)
 		if err != nil {
 			return err
 		}
-
-		if c.lastInstructionIs(code.OpPop) {
-			c.replaceLastPopWithReturn()
-		}
-
-		if !c.lastInstructionIs(code.OpReturnValue) {
-			c.emit(code.OpReturn)
-		}
-
-		freeSymbols := c.symbolTable.FreeSymbols
-		numLocals := c.symbolTable.numDefinitions
-		instructions := c.leaveScope()
-
-		for _, sym := range freeSymbols {
-			c.loadSymbol(sym)
-		}
-
-		compiledFn := &objects.CompiledFunction{
-			OpcodeInstructions: instructions,
-			NumLocals:          numLocals,
-			NumParameters:      len(n.Parameters),
-		}
-
-		c.emit(code.OpClosure, c.addConstant(compiledFn), len(freeSymbols))
 	case *ast.ReturnStatement:
 		err := c.Compile(n.ReturnValue)
 		if err != nil {
@@ -382,9 +352,11 @@ func (c *Compiler) removeLastPop() {
 }
 
 func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
-	switch expr.(type) {
+	switch expr := expr.(type) {
 	case *ast.SuffixExpression:
 		return false
+	case *ast.FunctionLiteral:
+		return expr.Name == nil
 
 	default:
 		return true
@@ -517,6 +489,63 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 
 	afterAlternativePos := len(c.currentInstructions())
 	c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
+
+	return nil
+}
+
+func (c *Compiler) compileFunctionLiteral(node *ast.FunctionLiteral, constructNamed bool) error {
+	var symbol *Symbol
+	if constructNamed && node.Name != nil {
+		sym := c.symbolTable.Define(node.Name.Value, false)
+		symbol = &sym
+	}
+
+	c.enterScope()
+
+	if node.Name != nil {
+		c.symbolTable.DefineFunctionName(node.Name.Value, false)
+	}
+
+	for _, param := range node.Parameters {
+		c.symbolTable.Define(param.Value, false)
+	}
+
+	err := c.Compile(node.Body)
+	if err != nil {
+		return err
+	}
+
+	if c.lastInstructionIs(code.OpPop) {
+		c.replaceLastPopWithReturn()
+	}
+
+	if !c.lastInstructionIs(code.OpReturnValue) {
+		c.emit(code.OpReturn)
+	}
+
+	freeSymbols := c.symbolTable.FreeSymbols
+	numLocals := c.symbolTable.numDefinitions
+	instructions := c.leaveScope()
+
+	for _, sym := range freeSymbols {
+		c.loadSymbol(sym)
+	}
+
+	compiledFn := &objects.CompiledFunction{
+		OpcodeInstructions: instructions,
+		NumLocals:          numLocals,
+		NumParameters:      len(node.Parameters),
+	}
+
+	c.emit(code.OpClosure, c.addConstant(compiledFn), len(freeSymbols))
+
+	if symbol != nil {
+		if symbol.Scope == GlobalScope {
+			c.emit(code.OpSetGlobal, symbol.Index)
+		} else {
+			c.emit(code.OpSetLocal, symbol.Index)
+		}
+	}
 
 	return nil
 }

@@ -685,3 +685,72 @@ func TestRecursiveFunctions(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+
+func TestNamedFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				func foo() {
+					return 42;
+				}
+
+				foo();
+			`,
+			expected: 42,
+		},
+		{
+			input: `
+				func sum(a, b) {
+					return a + b;
+				}
+
+				sum(1, 2);
+			`,
+			expected: 3,
+		},
+		{
+			input: `
+				func fibonacci(x) {
+					if (x <= 1) {
+						return x
+					}
+
+					return fibonacci(x - 1) + fibonacci(x - 2);
+				}
+
+				fibonacci(10);
+			`,
+			expected: 55,
+		},
+		{
+			input: `
+				func outer() {
+					func inner() {
+						return 99;
+					}
+
+					inner();
+				}
+
+				outer();
+			`,
+			expected: 99,
+		},
+		{
+			input: `
+				func outer() {
+					func inner() {
+						return 99;
+					}
+					return inner;
+				}
+
+				var innerFunc = outer();
+				innerFunc();
+			`,
+			expected: 99,
+		},
+	}
+
+	runVmTests(t, tests)
+}

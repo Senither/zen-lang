@@ -1079,6 +1079,97 @@ func TestClosures(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func TestNamedFunctions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				func example() {
+					return 5;
+				}
+			`,
+			expectedConstants: []interface{}{
+				5,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 1, 0),
+				code.Make(code.OpSetGlobal, 0),
+			},
+		},
+		{
+			input: `
+				func sum(a, b) {
+					return a + b;
+				}
+			`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 0, 0),
+				code.Make(code.OpSetGlobal, 0),
+			},
+		},
+		{
+			input: `
+				func alpha(a, b) {
+					return func bravo(c, d) {
+						return func charlie(e, f) {
+							return a + b + c + d + e + f;
+						}
+					}
+				}
+			`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetFree, 0),
+					code.Make(code.OpGetFree, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpGetFree, 2),
+					code.Make(code.OpAdd),
+					code.Make(code.OpGetFree, 3),
+					code.Make(code.OpAdd),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpAdd),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+				[]code.Instructions{
+					code.Make(code.OpGetFree, 0),
+					code.Make(code.OpGetFree, 1),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpClosure, 0, 4),
+					code.Make(code.OpSetLocal, 2),
+					code.Make(code.OpReturnValue),
+				},
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpClosure, 1, 2),
+					code.Make(code.OpSetLocal, 2),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 2, 0),
+				code.Make(code.OpSetGlobal, 0),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
 func TestRecursiveFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
