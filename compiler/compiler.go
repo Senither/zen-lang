@@ -518,7 +518,10 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 		c.removeLastPop()
 	}
 
-	jumpPos := c.emit(code.OpJump, 9999)
+	var jumpPos int = -1
+	if !c.lastInstructionIs(code.OpJump) {
+		jumpPos = c.emit(code.OpJump, 9999)
+	}
 
 	afterConsequencePos := len(c.currentInstructions())
 	c.changeInstructionOperandAt(jumpNotTruthyPos, afterConsequencePos)
@@ -541,8 +544,10 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 		}
 	}
 
-	afterAlternativePos := len(c.currentInstructions())
-	c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
+	if jumpPos >= 0 {
+		afterAlternativePos := len(c.currentInstructions())
+		c.changeInstructionOperandAt(jumpPos, afterAlternativePos)
+	}
 
 	return nil
 }
