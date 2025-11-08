@@ -296,6 +296,10 @@ func (vm *VM) pushClosure(constIndex int, numFree int) error {
 }
 
 func (vm *VM) pop() objects.Object {
+	if vm.sp == 0 {
+		return nil
+	}
+
 	obj := vm.stack[vm.sp-1]
 	vm.sp--
 
