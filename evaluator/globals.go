@@ -4,22 +4,18 @@ import (
 	"github.com/senither/zen-lang/objects"
 )
 
-var globals = map[string]*objects.ImmutableHash{}
+var globals map[string]*objects.ImmutableHash
 
 func registerGlobals() {
-	globals = map[string]*objects.ImmutableHash{
-		"arrays": objects.BuildImmutableHash(
-			objects.WrapBuiltinFunctionInASTAwareMap("push", objects.GetGlobalBuiltinByName("arrays", "push")),
-			objects.WrapBuiltinFunctionInASTAwareMap("shift", objects.GetGlobalBuiltinByName("arrays", "shift")),
-			objects.WrapBuiltinFunctionInASTAwareMap("pop", objects.GetGlobalBuiltinByName("arrays", "pop")),
-			objects.WrapBuiltinFunctionInASTAwareMap("filter", objects.GetGlobalBuiltinByName("arrays", "filter")),
-		),
+	globals = make(map[string]*objects.ImmutableHash, len(objects.Globals))
 
-		"strings": objects.BuildImmutableHash(
-			objects.WrapBuiltinFunctionInASTAwareMap("contains", objects.GetGlobalBuiltinByName("strings", "contains")),
-			objects.WrapBuiltinFunctionInASTAwareMap("split", objects.GetGlobalBuiltinByName("strings", "split")),
-			objects.WrapBuiltinFunctionInASTAwareMap("join", objects.GetGlobalBuiltinByName("strings", "join")),
-			objects.WrapBuiltinFunctionInASTAwareMap("format", objects.GetGlobalBuiltinByName("strings", "format")),
-		),
+	for _, global := range objects.Globals {
+		builtins := make([]objects.HashPair, len(global.Builtins))
+
+		for i, fn := range global.Builtins {
+			builtins[i] = objects.WrapBuiltinFunctionInASTAwareMap(fn.Name, fn.Builtin)
+		}
+
+		globals[global.Name] = objects.BuildImmutableHash(builtins...)
 	}
 }
