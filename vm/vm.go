@@ -189,6 +189,10 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 		if !objects.IsTruthy(condition) {
 			vm.currentFrame().ip = pos - 1
 		}
+	case code.OpLoopEnd:
+		// Nothing needs to happen here, this is simply a marker for
+		// the end of loops that Jump operands are able to point
+		// to, so we don't pop the result off the stack.
 
 	case code.OpIndex:
 		index := vm.pop()

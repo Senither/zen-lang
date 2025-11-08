@@ -44,6 +44,8 @@ func TestMake(t *testing.T) {
 		// Objects
 		{OpArray, []int{255}, []byte{byte(OpArray), 0, 255}},
 		{OpHash, []int{255}, []byte{byte(OpHash), 0, 255}},
+		// Loop control
+		{OpLoopEnd, []int{}, []byte{byte(OpLoopEnd)}},
 		// Functions
 		{OpCall, []int{255}, []byte{byte(OpCall), 255}},
 		{OpReturnValue, []int{}, []byte{byte(OpReturnValue)}},

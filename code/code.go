@@ -53,6 +53,9 @@ const (
 	OpArray
 	OpHash
 
+	// Loop control
+	OpLoopEnd
+
 	// Functions
 	OpCall
 	OpReturnValue

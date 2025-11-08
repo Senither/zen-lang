@@ -46,6 +46,8 @@ var definitions = map[Opcode]*Definition{
 	// Objects
 	OpArray: {"OpArray", []int{2}},
 	OpHash:  {"OpHash", []int{2}},
+	// Loop control
+	OpLoopEnd: {"OpLoopEnd", []int{}},
 	// Functions
 	OpCall:        {"OpCall", []int{1}},
 	OpReturnValue: {"OpReturnValue", []int{}},

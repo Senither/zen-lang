@@ -1435,3 +1435,90 @@ func TestGlobalBuiltins(t *testing.T) {
 
 	runCompilationTests(t, tests)
 }
+
+func TestWhileLoop(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				while (true) { 10 }
+			`,
+			expectedConstants: []interface{}{10},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 11),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+			},
+		},
+		{
+			input: `
+				while (true) {
+					while (false) {
+						10
+					}
+				}
+			`,
+			expectedConstants: []interface{}{10},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 19),
+				code.Make(code.OpFalse),
+				code.Make(code.OpJumpNotTruthy, 15),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+				code.Make(code.OpJump, 4),
+				code.Make(code.OpLoopEnd),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+			},
+		},
+		{
+			input: `
+				while (true) {
+					if (true) {
+						continue;
+					}
+				}
+			`,
+			expectedConstants: []interface{}{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 19),
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 14),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpJump, 15),
+				code.Make(code.OpNull),
+				code.Make(code.OpPop),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+			},
+		},
+		{
+			input: `
+				while (true) {
+					if (true) {
+						break;
+					}
+				}
+			`,
+			expectedConstants: []interface{}{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 19),
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 14),
+				code.Make(code.OpJump, 19),
+				code.Make(code.OpJump, 15),
+				code.Make(code.OpNull),
+				code.Make(code.OpPop),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}

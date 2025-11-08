@@ -15,6 +15,11 @@ type CompilationScope struct {
 	previousInstruction EmittedInstruction
 }
 
+type CompilationLoop struct {
+	startJumpIdx   int
+	breakPositions []int
+}
+
 type Compiler struct {
 	constants []objects.Object
 
@@ -22,6 +27,9 @@ type Compiler struct {
 
 	scopes     []CompilationScope
 	scopeIndex int
+
+	loops     []CompilationLoop
+	loopIndex int
 }
 
 type EmittedInstruction struct {
@@ -249,6 +257,27 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+
+	case *ast.WhileExpression:
+		err := c.compileWhileExpression(n)
+		if err != nil {
+			return err
+		}
+	case *ast.BreakStatement:
+		if c.loopIndex == 0 {
+			return fmt.Errorf("break statement not within a loop")
+		}
+
+		loop := &c.loops[c.loopIndex-1]
+		pos := c.emit(code.OpJump, 9999)
+		loop.breakPositions = append(loop.breakPositions, pos)
+	case *ast.ContinueStatement:
+		if c.loopIndex == 0 {
+			return fmt.Errorf("continue statement not within a loop")
+		}
+
+		loop := c.loops[c.loopIndex-1]
+		c.emit(code.OpJump, loop.startJumpIdx)
 	}
 
 	return nil
@@ -276,6 +305,31 @@ func (c *Compiler) leaveScope() code.Instructions {
 	c.symbolTable = c.symbolTable.Outer
 
 	return instructions
+}
+
+func (c *Compiler) enterLoop() int {
+	loop := CompilationLoop{
+		startJumpIdx:   len(c.currentInstructions()),
+		breakPositions: []int{},
+	}
+
+	c.loops = append(c.loops, loop)
+	c.loopIndex++
+
+	return loop.startJumpIdx
+}
+
+func (c *Compiler) leaveLoop(endIdx int) CompilationLoop {
+	loop := c.loops[c.loopIndex-1]
+
+	for _, breakPos := range loop.breakPositions {
+		c.changeInstructionOperandAt(breakPos, endIdx)
+	}
+
+	c.loops = c.loops[:len(c.loops)-1]
+	c.loopIndex--
+
+	return loop
 }
 
 func (c *Compiler) addConstant(obj objects.Object) int {
@@ -353,7 +407,7 @@ func (c *Compiler) removeLastPop() {
 
 func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
 	switch expr := expr.(type) {
-	case *ast.SuffixExpression:
+	case *ast.SuffixExpression, *ast.WhileExpression:
 		return false
 	case *ast.FunctionLiteral:
 		return expr.Name == nil
@@ -638,4 +692,31 @@ func (c *Compiler) loadSymbol(symbol Symbol) {
 	case FunctionScope:
 		c.emit(code.OpCurrentClosure)
 	}
+}
+
+func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) error {
+	startJumpIdx := c.enterLoop()
+
+	err := c.Compile(node.Condition)
+	if err != nil {
+		return err
+	}
+
+	jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+	err = c.Compile(node.Body)
+	if err != nil {
+		return err
+	}
+
+	c.emit(code.OpJump, startJumpIdx)
+
+	endJumpIdx := len(c.currentInstructions())
+
+	c.emit(code.OpLoopEnd)
+	c.leaveLoop(endJumpIdx)
+
+	c.changeInstructionOperandAt(jumpNotTruthyPos, endJumpIdx)
+
+	return nil
 }
