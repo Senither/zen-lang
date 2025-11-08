@@ -59,13 +59,14 @@ func (l *Lexer) NextToken() tokens.Token {
 	case '/':
 		switch l.peekChar() {
 		case '/':
-			ch := l.ch
 			l.readChar()
-			token = newTokenWithValue(tokens.COMMENT, l, string(ch)+string(l.ch))
+			l.skipLineComment()
+			return l.NextToken()
 		case '*':
-			ch := l.ch
 			l.readChar()
-			token = newTokenWithValue(tokens.BLOCK_COMMENT_START, l, string(ch)+string(l.ch))
+			l.skipBlockComment()
+			return l.NextToken()
+
 		default:
 			token = newToken(tokens.SLASH, l)
 		}
@@ -86,14 +87,7 @@ func (l *Lexer) NextToken() tokens.Token {
 			token = newToken(tokens.MINUS, l)
 		}
 	case '*':
-		switch l.peekChar() {
-		case '/':
-			ch := l.ch
-			l.readChar()
-			token = newTokenWithValue(tokens.BLOCK_COMMENT_END, l, string(ch)+string(l.ch))
-		default:
-			token = newToken(tokens.ASTERISK, l)
-		}
+		token = newToken(tokens.ASTERISK, l)
 	case '^':
 		token = newToken(tokens.CARET, l)
 	case '%':
@@ -322,6 +316,22 @@ func (l *Lexer) skipWhitespace() {
 
 		l.readChar()
 	}
+}
+
+func (l *Lexer) skipLineComment() {
+	for l.ch != '\n' && l.ch != 0 {
+		l.readChar()
+	}
+}
+
+func (l *Lexer) skipBlockComment() {
+	for !(l.ch == '*' && l.peekChar() == '/') && l.ch != 0 {
+		l.readChar()
+	}
+
+	// Skip closing '*/'
+	l.readChar()
+	l.readChar()
 }
 
 func isDynamicToken(token tokens.TokenType) bool {

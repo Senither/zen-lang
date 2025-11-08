@@ -60,11 +60,6 @@ const (
 	LBRACKET TokenType = "["
 	RBRACKET TokenType = "]"
 
-	// Comments
-	COMMENT             TokenType = "COMMENT"
-	BLOCK_COMMENT_START TokenType = "BLOCK_COMMENT_START"
-	BLOCK_COMMENT_END   TokenType = "BLOCK_COMMENT_END"
-
 	// Keywords
 	FUNCTION      TokenType = "FUNCTION"
 	NULL          TokenType = "NULL"

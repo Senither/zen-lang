@@ -110,23 +110,3 @@ func (p *Parser) parseContinueStatement() *ast.ContinueStatement {
 
 	return stmt
 }
-
-func (p *Parser) parseCommentStatement() *ast.EmptyStatement {
-	curLine := p.curToken.Line
-
-	for curLine == p.curToken.Line && !p.curTokenIs(tokens.EOF) {
-		p.nextToken()
-	}
-
-	return &ast.EmptyStatement{Token: p.curToken}
-}
-
-func (p *Parser) parseBlockCommentStatement() *ast.EmptyStatement {
-	for !p.curTokenIs(tokens.BLOCK_COMMENT_END) && !p.curTokenIs(tokens.EOF) {
-		p.nextToken()
-	}
-
-	p.nextToken()
-
-	return &ast.EmptyStatement{Token: p.curToken}
-}
