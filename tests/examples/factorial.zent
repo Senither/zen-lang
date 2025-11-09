@@ -1,0 +1,15 @@
+--TEST--
+Can get the factorial of 12
+--FILE--
+func factorial(x) {
+    if (x <= 1) {
+        return 1
+    }
+
+    return x * factorial(x - 1);
+}
+
+println(factorial(10));
+
+--EXPECT--
+3628800

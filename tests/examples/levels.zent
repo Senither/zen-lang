@@ -1,0 +1,46 @@
+--TEST--
+Can convert experience to level and back
+--FILE--
+var A = 5
+var B = 50
+var C = 100
+
+func getExperienceFromLevel(level) {
+    return A * (level ^ 2) + B * level + C
+}
+
+func getLevelFromExperience(xp) {
+    var lvl = (-B + math.sqrt(B ^ 2 - (4 * A * (C - xp)))) / (2 * A)
+
+    if (lvl < 0) {
+        return 0
+    }
+
+    return math.floor(lvl)
+}
+
+println(getExperienceFromLevel(1))
+println(getExperienceFromLevel(2))
+println(getExperienceFromLevel(3))
+println(getExperienceFromLevel(4))
+println(getExperienceFromLevel(5))
+
+println("====")
+
+var exp = getExperienceFromLevel(123)
+
+println(exp)
+println(getLevelFromExperience(exp))
+println(getLevelFromExperience(exp + 1))
+println(getLevelFromExperience(exp - 1))
+--EXPECT--
+155
+220
+295
+380
+475
+====
+81895
+123.000000
+123.000000
+122.000000

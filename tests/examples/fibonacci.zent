@@ -1,0 +1,15 @@
+--TEST--
+Can get the 20th Fibonacci number
+--FILE--
+func fibonacci(x) {
+    if (x <= 1) {
+        return x
+    }
+
+    return fibonacci(x - 1) + fibonacci(x - 2);
+}
+
+println(fibonacci(20));
+
+--EXPECT--
+6765
