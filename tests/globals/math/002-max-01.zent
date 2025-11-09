@@ -1,0 +1,14 @@
+--TEST--
+Can get the maximum of two numbers
+--FILE--
+println(math.max(10, 20));
+println(math.max(20, 10));
+println(math.max(10.5, 10));
+println(math.max(10, 10.1));
+println(math.max(2.51, 2.5));
+--EXPECT--
+20
+20
+10.500000
+10.100000
+2.510000

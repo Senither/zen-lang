@@ -182,3 +182,124 @@ func TestStringsFormatGlobalFunction(t *testing.T) {
 		testStringObject(t, evaluated, tt.expected)
 	}
 }
+
+func TestMathMinGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"math.min(1, 2)", 1},
+		{"math.min(2, 1)", 1},
+		{"math.min(-1, 1)", -1},
+		{"math.min(0, 0)", 0},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestMathMaxGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"math.max(1, 2)", 2},
+		{"math.max(2, 1)", 2},
+		{"math.max(-1, 1)", 1},
+		{"math.max(0, 0)", 0},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestMathCeilGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"math.ceil(1.1)", 2},
+		{"math.ceil(1.9)", 2},
+		{"math.ceil(-1.1)", -1},
+		{"math.ceil(-1.9)", -1},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testFloatObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestMathFloorGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"math.floor(1.1)", 1},
+		{"math.floor(1.9)", 1},
+		{"math.floor(-1.1)", -2},
+		{"math.floor(-1.9)", -2},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testFloatObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestMathRoundGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"math.round(1.1)", 1},
+		{"math.round(1.5)", 2},
+		{"math.round(1.9)", 2},
+		{"math.round(-1.1)", -1},
+		{"math.round(-1.5)", -2},
+		{"math.round(-1.9)", -2},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testFloatObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestMathLogGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"math.log(1)", 0},
+		{"math.log(10)", 1},
+		{"math.log(100)", 2},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testFloatObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestMathSqrtGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"math.sqrt(0)", 0},
+		{"math.sqrt(1)", 1},
+		{"math.sqrt(4)", 2},
+		{"math.sqrt(9)", 3},
+		{"math.sqrt(1764)", 42},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testFloatObject(t, evaluated, tt.expected)
+	}
+}

@@ -536,6 +536,16 @@ func TestGlobalBuiltinFunctions(t *testing.T) {
 		{`var arr = [1, 2, 3]; arrays.shift(arr); arr`, []int{2, 3}},
 		{`arrays.pop([1, 2, 3])`, 3},
 		{`var arr = [1, 2, 3]; arrays.pop(arr); arr`, []int{1, 2}},
+		{`var arr = [1, 2, 3, 4, 5]; arrays.filter(arr, func(x) { x % 2 == 0}); arr`, []int{1, 2, 3, 4, 5}},
+		{`arrays.filter([1, 2, 3, 4, 5, 6], func(x) { x % 2 == 0 });`, []int{2, 4, 6}},
+		{`math.min(19, 42)`, 19},
+		{`math.max(19, 42)`, 42},
+		{`math.ceil(12.34)`, 13.0},
+		{`math.floor(98.76)`, 98.0},
+		{`math.round(12.49)`, 12.0},
+		{`math.round(12.50)`, 13.0},
+		{`math.log(10 ^ 42)`, 42.0},
+		{`math.sqrt(1764)`, 42.0},
 	}
 
 	runVmTests(t, tests)

@@ -1,0 +1,13 @@
+--TEST--
+Can get the square root of various numeric types
+--FILE--
+println(math.sqrt(10));
+println(math.sqrt(100));
+println(math.sqrt(123.456789));
+println(math.sqrt(1764));
+
+--EXPECT--
+3.162278
+10.000000
+11.111111
+42.000000

@@ -1,0 +1,15 @@
+--TEST--
+Can get the logarithmic value of various numeric types
+--FILE--
+println(math.log(5));
+println(math.log(8));
+println(math.log(10));
+println(math.log(10.1));
+println(math.log(10 ^ 42));
+
+--EXPECT--
+0.698970
+0.903090
+1.000000
+1.004321
+42.000000

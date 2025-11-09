@@ -1,0 +1,22 @@
+--TEST--
+Can round values to their nearest integer
+--FILE--
+println(math.round(10));
+println(math.round(10.0));
+println(math.round(10.1));
+println(math.round(10.9));
+println(math.round(10.51));
+println(math.round(10.49));
+println(math.round(10.5));
+println(math.round(10.4999999));
+println(math.round(10.5000001));
+--EXPECT--
+10.000000
+10.000000
+10.000000
+11.000000
+11.000000
+10.000000
+11.000000
+10.000000
+11.000000

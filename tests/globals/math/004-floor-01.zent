@@ -1,0 +1,14 @@
+--TEST--
+Can round values to their floor value
+--FILE--
+println(math.floor(10));
+println(math.floor(10.0));
+println(math.floor(10.9));
+println(math.floor(10.999));
+println(math.floor(10.5));
+--EXPECT--
+10.000000
+10.000000
+10.000000
+10.000000
+10.000000

@@ -1,0 +1,8 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+println(math.sqrt());
+--ERROR--
+wrong number of arguments. got 0, want 1
+    at <unknown>:1:18
+    at <unknown>:1:8

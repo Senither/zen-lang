@@ -1,0 +1,8 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+println(math.min());
+--ERROR--
+wrong number of arguments. got 0, want 2
+    at <unknown>:1:17
+    at <unknown>:1:8

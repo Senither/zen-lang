@@ -1,0 +1,14 @@
+--TEST--
+Can get the minimum of two numbers
+--FILE--
+println(math.min(10, 20));
+println(math.min(20, 10));
+println(math.min(2.5, 10));
+println(math.min(10, 2.5));
+println(math.min(2.49, 2.5));
+--EXPECT--
+10
+10
+2.500000
+2.500000
+2.490000
