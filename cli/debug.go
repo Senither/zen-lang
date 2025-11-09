@@ -78,15 +78,27 @@ func runAndReturnEvaluated(program *ast.Program, path any) string {
 		return evaluator.Eval(program, env)
 	})
 
+	var output strings.Builder
+
 	if len(evaluator.Stdout.ReadAll()) > 0 {
-		return strings.Join(evaluator.Stdout.ReadAll(), "")
+		output.WriteString(strings.Join(evaluator.Stdout.ReadAll(), ""))
 	}
 
 	if evaluated == nil {
-		return ""
+		return output.String()
 	}
 
-	return evaluated.Inspect()
+	switch evaluated := evaluated.(type) {
+	case *objects.Error:
+		output.WriteString(evaluated.Inspect())
+
+	default:
+		if output.Len() == 0 {
+			output.WriteString(evaluated.Inspect())
+		}
+	}
+
+	return output.String()
 }
 
 func runAndReturnVirtualMachineResult(verbose bool, bytecode *compiler.Bytecode, globals []objects.Object) string {
@@ -105,15 +117,27 @@ func runAndReturnVirtualMachineResult(verbose bool, bytecode *compiler.Bytecode,
 		return machine.LastPoppedStackElem()
 	})
 
+	var output strings.Builder
+
 	if len(vm.Stdout.ReadAll()) > 0 {
-		return strings.Join(vm.Stdout.ReadAll(), "")
+		output.WriteString(strings.Join(vm.Stdout.ReadAll(), ""))
 	}
 
 	if result == nil {
-		return ""
+		return output.String()
 	}
 
-	return result.Inspect()
+	switch result := result.(type) {
+	case *objects.Error:
+		output.WriteString(result.Inspect())
+
+	default:
+		if output.Len() == 0 {
+			output.WriteString(result.Inspect())
+		}
+	}
+
+	return output.String()
 }
 
 func recoverFromPanic() {
