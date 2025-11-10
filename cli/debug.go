@@ -37,13 +37,20 @@ var debugCommand = &cobra.Command{
 
 			lexer := inputToLexer(input)
 			program := lexerToProgram(lexer, path)
-			bytecode := programToBytecode(program, table, constants)
-			if bytecode == nil {
+			if program == nil {
 				return
 			}
 
+			compile := compiler.NewWithState(table, constants)
+			compilerErr := compile.Compile(program)
+			bytecode := compile.Bytecode()
+
 			fmt.Println("=====[ Compiled Bytecode ]=====")
-			fmt.Println(strings.TrimRight(bytecode.String(), "\n"))
+			if compilerErr != nil {
+				fmt.Printf("\nCompilation error: %s\n\n", compilerErr.Error())
+			} else {
+				fmt.Println(strings.TrimRight(bytecode.String(), "\n"))
+			}
 
 			evalStart := time.Now()
 			evalRes := runAndReturnEvaluated(program, path)
@@ -52,8 +59,11 @@ var debugCommand = &cobra.Command{
 			fmt.Printf("=====[ Evaluator Result (Time: %s) ]=====\n", evalDuration)
 			fmt.Println(evalRes)
 
+			var vmRes = " ~ Not executed due to compiler errors ~ "
 			vmStart := time.Now()
-			vmRes := runAndReturnVirtualMachineResult(verbose, bytecode, globals)
+			if compilerErr == nil {
+				vmRes = runAndReturnVirtualMachineResult(verbose, bytecode, globals)
+			}
 			vmDuration := time.Since(vmStart)
 
 			fmt.Printf("=====[ Virtual Machine Result (Time: %s) ]=====\n", vmDuration)
