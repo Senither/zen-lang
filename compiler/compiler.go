@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 
@@ -30,6 +31,8 @@ type Compiler struct {
 
 	loops     []CompilationLoop
 	loopIndex int
+
+	file *objects.FileDescriptorContext
 }
 
 type EmittedInstruction struct {
@@ -37,7 +40,7 @@ type EmittedInstruction struct {
 	Position int
 }
 
-func New() *Compiler {
+func New(path interface{}) *Compiler {
 	mainScope := CompilationScope{
 		instructions:        code.Instructions{},
 		lastInstruction:     EmittedInstruction{},
@@ -47,16 +50,22 @@ func New() *Compiler {
 	symbolTable := NewSymbolTable()
 	WriteBuiltinSymbols(symbolTable)
 
+	var file *objects.FileDescriptorContext
+	if pathStr, ok := path.(string); ok {
+		file = objects.NewFileDescriptorContext(pathStr)
+	}
+
 	return &Compiler{
 		constants:   []objects.Object{},
 		symbolTable: symbolTable,
 		scopes:      []CompilationScope{mainScope},
 		scopeIndex:  0,
+		file:        file,
 	}
 }
 
-func NewWithState(s *SymbolTable, constants []objects.Object) *Compiler {
-	compiler := New()
+func NewWithState(path interface{}, s *SymbolTable, constants []objects.Object) *Compiler {
+	compiler := New(path)
 
 	compiler.symbolTable = s
 	compiler.constants = constants
@@ -65,21 +74,40 @@ func NewWithState(s *SymbolTable, constants []objects.Object) *Compiler {
 }
 
 func (c *Compiler) Compile(node ast.Node) error {
-	switch n := node.(type) {
-	case *ast.Program:
-		for _, statement := range n.Statements {
-			if err := c.Compile(statement); err != nil {
-				return err
-			}
+	program, ok := node.(*ast.Program)
+	if !ok {
+		return fmt.Errorf("can only compile program nodes, got %T", node)
+	}
+
+	var errors []*objects.Error
+	for _, statement := range program.Statements {
+		if err := c.compileInstruction(statement); err != nil {
+			errors = append(errors, err)
 		}
+	}
+
+	if len(errors) == 0 {
+		return nil
+	}
+
+	var combinedErr bytes.Buffer
+	for _, err := range errors {
+		combinedErr.WriteString(err.Inspect() + "\n")
+	}
+
+	return fmt.Errorf("%s", combinedErr.String())
+}
+
+func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
+	switch n := node.(type) {
 	case *ast.BlockStatement:
 		for _, statement := range n.Statements {
-			if err := c.Compile(statement); err != nil {
+			if err := c.compileInstruction(statement); err != nil {
 				return err
 			}
 		}
 	case *ast.ExpressionStatement:
-		err := c.Compile(n.Expression)
+		err := c.compileInstruction(n.Expression)
 		if err != nil {
 			return err
 		}
@@ -92,7 +120,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		if fn, ok := n.Value.(*ast.FunctionLiteral); ok {
 			if fn.Name != nil {
-				return fmt.Errorf("cannot use named function literal in variable statement")
+				return objects.NewError(
+					n.Token, c.file,
+					"cannot use named function literal in variable statement",
+				)
 			}
 
 			funcLit := &ast.FunctionLiteral{
@@ -106,7 +137,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		} else {
-			err := c.Compile(n.Value)
+			err := c.compileInstruction(n.Value)
 			if err != nil {
 				return err
 			}
@@ -128,12 +159,20 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.SuffixExpression:
 		ident, ok := n.Left.(*ast.Identifier)
 		if !ok {
-			return fmt.Errorf("unsupported suffix expression left side: %T", n.Left)
+			return objects.NewError(
+				n.Token, c.file,
+				"unsupported suffix expression left side: %T",
+				n.Left,
+			)
 		}
 
 		symbol, ok := c.symbolTable.Resolve(ident.Value)
 		if !ok {
-			return fmt.Errorf("undefined variable %s", ident.Value)
+			return objects.NewError(
+				n.Token, c.file,
+				"undefined variable %s",
+				ident.Value,
+			)
 		}
 
 		c.loadSymbol(symbol)
@@ -146,17 +185,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpSub)
 
 		default:
-			return fmt.Errorf("unknown operator %s", n.Operator)
+			return objects.NewError(
+				n.Token, c.file,
+				"unknown operator %s",
+				n.Operator,
+			)
 		}
 
 		c.setSymbol(symbol)
 	case *ast.IndexExpression:
-		err := c.Compile(n.Left)
+		err := c.compileInstruction(n.Left)
 		if err != nil {
 			return err
 		}
 
-		err = c.Compile(n.Index)
+		err = c.compileInstruction(n.Index)
 		if err != nil {
 			return err
 		}
@@ -170,7 +213,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.Identifier:
 		symbol, ok := c.symbolTable.Resolve(n.Value)
 		if !ok {
-			return fmt.Errorf("undefined variable %s", n.Value)
+			return objects.NewError(
+				n.Token, c.file,
+				"undefined variable %s",
+				n.Value,
+			)
 		}
 
 		c.loadSymbol(symbol)
@@ -197,7 +244,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 	case *ast.ArrayLiteral:
 		for _, element := range n.Elements {
-			err := c.Compile(element)
+			err := c.compileInstruction(element)
 			if err != nil {
 				return err
 			}
@@ -215,12 +262,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		})
 
 		for _, key := range keys {
-			err := c.Compile(key)
+			err := c.compileInstruction(key)
 			if err != nil {
 				return err
 			}
 
-			err = c.Compile(n.Pairs[key])
+			err = c.compileInstruction(n.Pairs[key])
 			if err != nil {
 				return err
 			}
@@ -238,14 +285,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 	case *ast.ReturnStatement:
-		err := c.Compile(n.ReturnValue)
+		err := c.compileInstruction(n.ReturnValue)
 		if err != nil {
 			return err
 		}
 
 		c.emit(code.OpReturnValue)
 	case *ast.CallExpression:
-		err := c.Compile(n.Function)
+		err := c.compileInstruction(n.Function)
 		if err != nil {
 			return err
 		}
@@ -262,7 +309,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 	case *ast.BreakStatement:
 		if c.loopIndex == 0 {
-			return fmt.Errorf("break statement not within a loop")
+			return objects.NewError(
+				n.Token, c.file,
+				"break statement not within a loop",
+			)
 		}
 
 		loop := &c.loops[c.loopIndex-1]
@@ -270,7 +320,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		loop.breakPositions = append(loop.breakPositions, pos)
 	case *ast.ContinueStatement:
 		if c.loopIndex == 0 {
-			return fmt.Errorf("continue statement not within a loop")
+			return objects.NewError(
+				n.Token, c.file,
+				"continue statement not within a loop",
+			)
 		}
 
 		loop := c.loops[c.loopIndex-1]
@@ -414,8 +467,8 @@ func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
 	}
 }
 
-func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) error {
-	err := c.Compile(node.Right)
+func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) *objects.Error {
+	err := c.compileInstruction(node.Right)
 	if err != nil {
 		return err
 	}
@@ -425,14 +478,19 @@ func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) error {
 		c.emit(code.OpBang)
 	case "-":
 		c.emit(code.OpMinus)
+
 	default:
-		return fmt.Errorf("unknown operator %s", node.Operator)
+		return objects.NewError(
+			node.Token, c.file,
+			"unknown operator %s",
+			node.Operator,
+		)
 	}
 
 	return nil
 }
 
-func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
+func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) *objects.Error {
 	err := c.compileInfixExpressionOperands(node)
 	if err != nil {
 		return err
@@ -459,23 +517,28 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
 		c.emit(code.OpGreaterThan)
 	case ">=", "<=":
 		c.emit(code.OpGreaterThanOrEqual)
+
 	default:
-		return fmt.Errorf("unknown operator %s", node.Operator)
+		return objects.NewError(
+			node.Token, c.file,
+			"unknown operator %s",
+			node.Operator,
+		)
 	}
 
 	return nil
 }
 
-func (c *Compiler) compileInfixExpressionOperands(node *ast.InfixExpression) error {
+func (c *Compiler) compileInfixExpressionOperands(node *ast.InfixExpression) *objects.Error {
 	// Reverse order for < and <= to so we're able to
 	// treat them as > and >= during evaluation
 	if node.Operator == "<" || node.Operator == "<=" {
-		err := c.Compile(node.Right)
+		err := c.compileInstruction(node.Right)
 		if err != nil {
 			return err
 		}
 
-		err = c.Compile(node.Left)
+		err = c.compileInstruction(node.Left)
 		if err != nil {
 			return err
 		}
@@ -483,12 +546,12 @@ func (c *Compiler) compileInfixExpressionOperands(node *ast.InfixExpression) err
 		return nil
 	}
 
-	err := c.Compile(node.Left)
+	err := c.compileInstruction(node.Left)
 	if err != nil {
 		return err
 	}
 
-	err = c.Compile(node.Right)
+	err = c.compileInstruction(node.Right)
 	if err != nil {
 		return err
 	}
@@ -496,8 +559,8 @@ func (c *Compiler) compileInfixExpressionOperands(node *ast.InfixExpression) err
 	return nil
 }
 
-func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error {
-	err := c.Compile(node.Condition)
+func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) *objects.Error {
+	err := c.compileInstruction(node.Condition)
 	if err != nil {
 		return err
 	}
@@ -506,7 +569,7 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 	// later on when we know where in the stack to jump to.
 	jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
 
-	err = c.Compile(node.Consequence)
+	err = c.compileInstruction(node.Consequence)
 	if err != nil {
 		return err
 	}
@@ -531,7 +594,7 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 	} else if node.Alternative == nil {
 		c.emit(code.OpNull)
 	} else {
-		err := c.Compile(node.Alternative)
+		err := c.compileInstruction(node.Alternative)
 		if err != nil {
 			return err
 		}
@@ -549,7 +612,7 @@ func (c *Compiler) compileConditionalIfExpression(node *ast.IfExpression) error 
 	return nil
 }
 
-func (c *Compiler) compileFunctionLiteral(node *ast.FunctionLiteral, constructNamed bool) error {
+func (c *Compiler) compileFunctionLiteral(node *ast.FunctionLiteral, constructNamed bool) *objects.Error {
 	var symbol *Symbol
 	if constructNamed && node.Name != nil {
 		sym := c.symbolTable.Define(node.Name.Value, false)
@@ -566,7 +629,7 @@ func (c *Compiler) compileFunctionLiteral(node *ast.FunctionLiteral, constructNa
 		c.symbolTable.Define(param.Value, false)
 	}
 
-	err := c.Compile(node.Body)
+	err := c.compileInstruction(node.Body)
 	if err != nil {
 		return err
 	}
@@ -602,17 +665,21 @@ func (c *Compiler) compileFunctionLiteral(node *ast.FunctionLiteral, constructNa
 	return nil
 }
 
-func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool) error {
+func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool) *objects.Error {
 	leftIdent, ok := node.Left.(*ast.Identifier)
 	if !ok {
-		return fmt.Errorf("unsupported chain expression left side: %T", node.Left)
+		return objects.NewError(
+			node.Token, c.file,
+			"unsupported chain expression left side: %T",
+			node.Left,
+		)
 	}
 
 	if inner {
 		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: leftIdent.Value}))
 		c.emit(code.OpIndex)
 	} else {
-		c.Compile(node.Left)
+		c.compileInstruction(node.Left)
 	}
 
 	switch right := node.Right.(type) {
@@ -623,7 +690,11 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 	case *ast.IndexExpression:
 		ident, ok := right.Left.(*ast.Identifier)
 		if !ok {
-			return fmt.Errorf("unsupported call expression function in chain: %T", right.Left)
+			return objects.NewError(
+				node.Token, c.file,
+				"unsupported call expression function in chain: %T",
+				right.Left,
+			)
 		}
 
 		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: ident.Value}))
@@ -631,14 +702,22 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 
 		index, ok := right.Index.(*ast.IntegerLiteral)
 		if !ok {
-			return fmt.Errorf("unsupported index expression index in chain: %T", right.Index)
+			return objects.NewError(
+				node.Token, c.file,
+				"unsupported index expression index in chain: %T",
+				right.Index,
+			)
 		}
 
 		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: index.Value}))
 	case *ast.CallExpression:
 		ident, ok := right.Function.(*ast.Identifier)
 		if !ok {
-			return fmt.Errorf("unsupported call expression function in chain: %T", right.Function)
+			return objects.NewError(
+				node.Token, c.file,
+				"unsupported call expression function in chain: %T",
+				right.Function,
+			)
 		}
 
 		if !inner {
@@ -656,22 +735,38 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 		return c.compileFunctionArguments(right)
 
 	default:
-		return fmt.Errorf("unsupported chain expression right side: %T", right)
+		return objects.NewError(
+			node.Token, c.file,
+			"unsupported chain expression right side: %T",
+			right,
+		)
 	}
 
 	c.emit(code.OpIndex)
 	return nil
 }
 
-func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) error {
+func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) *objects.Error {
 	switch left := node.Left.(type) {
 	case *ast.Identifier:
 		symbol, ok := c.symbolTable.Resolve(left.Value)
 		if !ok {
-			return fmt.Errorf("assignment to undeclared variable: %s", left.Value)
+			return objects.NewError(
+				node.Token, c.file,
+				"assignment to undeclared variable: %s",
+				left.Value,
+			)
 		}
 
-		err := c.Compile(node.Right)
+		if !symbol.Mutable {
+			return objects.NewError(
+				node.Token, c.file,
+				"cannot modify immutable variable: %s",
+				left.Value,
+			)
+		}
+
+		err := c.compileInstruction(node.Right)
 		if err != nil {
 			return err
 		}
@@ -679,17 +774,17 @@ func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) e
 		c.setSymbol(symbol)
 
 	case *ast.IndexExpression:
-		err := c.Compile(left.Left)
+		err := c.compileInstruction(left.Left)
 		if err != nil {
 			return err
 		}
 
-		err = c.Compile(left.Index)
+		err = c.compileInstruction(left.Index)
 		if err != nil {
 			return err
 		}
 
-		err = c.Compile(node.Right)
+		err = c.compileInstruction(node.Right)
 		if err != nil {
 			return err
 		}
@@ -697,16 +792,20 @@ func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) e
 		c.emit(code.OpIndexAssign)
 
 	default:
-		return fmt.Errorf("left hand side of assignment is not a valid expression: %T", left)
+		return objects.NewError(
+			node.Token, c.file,
+			"left hand side of assignment is not a valid expression: %T",
+			left,
+		)
 	}
 
 	return nil
 }
 
-func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) error {
+func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) *objects.Error {
 	for _, arg := range node.Arguments {
-		if err := c.Compile(arg); err != nil {
-			return err
+		if err := c.compileInstruction(arg); err != nil {
+			return objects.NewEmptyErrorWithParent(err, node.Token, c.file)
 		}
 	}
 
@@ -715,17 +814,17 @@ func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) error {
 	return nil
 }
 
-func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) error {
+func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) *objects.Error {
 	startJumpIdx := c.enterLoop()
 
-	err := c.Compile(node.Condition)
+	err := c.compileInstruction(node.Condition)
 	if err != nil {
-		return err
+		return objects.NewEmptyErrorWithParent(err, node.Token, c.file)
 	}
 
 	jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
 
-	err = c.Compile(node.Body)
+	err = c.compileInstruction(node.Body)
 	if err != nil {
 		return err
 	}

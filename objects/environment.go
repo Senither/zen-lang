@@ -2,7 +2,6 @@ package objects
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/senither/zen-lang/ast"
 )
@@ -11,12 +10,7 @@ type Environment struct {
 	store   map[string]EnvironmentStateItem
 	exports map[string]Object
 	outer   *Environment
-	file    *EnvironmentFile
-}
-
-type EnvironmentFile struct {
-	Name string
-	Path string
+	file    *FileDescriptorContext
 }
 
 type EnvironmentStateItem struct {
@@ -36,12 +30,7 @@ func NewEnvironment(fullFilePath interface{}) *Environment {
 	}
 
 	fullPath := fullFilePath.(string)
-	fileName := filepath.Base(fullPath)
-
-	env.file = &EnvironmentFile{
-		Name: fileName,
-		Path: fullPath[:len(fullPath)-len(fileName)-1],
-	}
+	env.file = NewFileDescriptorContext(fullPath)
 
 	return env
 }
@@ -76,7 +65,12 @@ func (e *Environment) Set(node ast.Node, name string, val Object, mutable bool) 
 	item, ok := e.GetStateItem(name)
 	if ok {
 		if !item.mutable {
-			return NewError(node.GetToken(), e, "Cannot modify immutable variable '%s'", name)
+			return NewError(
+				node.GetToken(),
+				e.GetFileDescriptorContext(),
+				"Cannot modify immutable variable '%s'",
+				name,
+			)
 		}
 
 		mutable = item.mutable
@@ -122,9 +116,9 @@ func (e *Environment) GetExports() map[string]Object {
 	return e.exports
 }
 
-func (e *Environment) GetFile() *EnvironmentFile {
+func (e *Environment) GetFileDescriptorContext() *FileDescriptorContext {
 	if e.file == nil && e.outer != nil {
-		return e.outer.GetFile()
+		return e.outer.GetFileDescriptorContext()
 	}
 
 	return e.file

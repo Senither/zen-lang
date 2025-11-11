@@ -69,7 +69,7 @@ func BuiltinToASTAwareBuiltin(builtin *Builtin) *ASTAwareBuiltin {
 		) Object {
 			result, err := builtin.Fn(args...)
 			if err != nil {
-				return NewError(node.Token, env, "%s", err.Error())
+				return NewError(node.Token, env.GetFileDescriptorContext(), "%s", err.Error())
 			}
 
 			return result

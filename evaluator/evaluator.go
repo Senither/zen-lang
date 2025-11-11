@@ -253,7 +253,11 @@ func evalIdentifier(node *ast.Identifier, env *objects.Environment) objects.Obje
 		return global
 	}
 
-	return objects.NewError(node.Token, env, "%s: %s", "identifier not found", node.Value)
+	return objects.NewError(
+		node.Token, env.GetFileDescriptorContext(),
+		"%s: %s",
+		"identifier not found", node.Value,
+	)
 }
 
 func evalHashLiteral(node *ast.HashLiteral, env *objects.Environment) objects.Object {
@@ -267,7 +271,11 @@ func evalHashLiteral(node *ast.HashLiteral, env *objects.Environment) objects.Ob
 
 		hashKey, ok := keyObj.(objects.Hashable)
 		if !ok {
-			return objects.NewError(node.Token, env, "key is not hashable: %s", keyObj.Type())
+			return objects.NewError(
+				node.Token, env.GetFileDescriptorContext(),
+				"key is not hashable: %s",
+				keyObj.Type(),
+			)
 		}
 
 		valueObj := Eval(value, env)
@@ -292,8 +300,13 @@ func evalPrefixExpression(
 		return evalBangOperatorExpression(right)
 	case "-":
 		return evalMinusPrefixOperatorExpression(node, right, env)
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: %s%s", node.Operator, right.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s%s",
+			node.Operator, right.Type(),
+		)
 	}
 }
 
@@ -305,6 +318,7 @@ func evalBangOperatorExpression(right objects.Object) objects.Object {
 		return objects.TRUE
 	case objects.NULL:
 		return objects.TRUE
+
 	default:
 		return objects.FALSE
 	}
@@ -320,8 +334,9 @@ func evalMinusPrefixOperatorExpression(
 		return &objects.Integer{Value: -right.Value}
 	case *objects.Float:
 		return &objects.Float{Value: -right.Value}
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: -%s", right.Type())
+		return objects.NewError(node.Token, env.GetFileDescriptorContext(), "unknown operator: -%s", right.Type())
 	}
 }
 
@@ -337,9 +352,18 @@ func evalInfixExpression(node *ast.InfixExpression, left, right objects.Object, 
 		return objects.NativeBoolToBooleanObject(left != right)
 
 	case left.Type() != right.Type():
-		return objects.NewError(node.Token, env, "type mismatch: %s %s %s", left.Type(), node.Operator, right.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"type mismatch: %s %s %s",
+			left.Type(), node.Operator, right.Type(),
+		)
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s %s %s",
+			left.Type(), node.Operator, right.Type(),
+		)
 	}
 }
 
@@ -349,8 +373,13 @@ func evalSuffixExpression(node *ast.SuffixExpression, left objects.Object, env *
 		return evalIncrementExpression(node, left, env)
 	case "--":
 		return evalDecrementExpression(node, left, env)
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: %s%s", node.Operator, left.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s%s",
+			node.Operator, left.Type(),
+		)
 	}
 }
 
@@ -362,8 +391,13 @@ func evalIncrementExpression(node *ast.SuffixExpression, left objects.Object, en
 	case *objects.Float:
 		left.Value++
 		return left
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: %s%s", node.Operator, left.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s%s",
+			node.Operator, left.Type(),
+		)
 	}
 }
 
@@ -375,8 +409,13 @@ func evalDecrementExpression(node *ast.SuffixExpression, left objects.Object, en
 	case *objects.Float:
 		left.Value--
 		return left
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: %s%s", node.Operator, left.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s%s",
+			node.Operator, left.Type(),
+		)
 	}
 }
 
@@ -392,10 +431,14 @@ func evalIndexExpression(
 		return evalHashIndexExpression(node, left, index, env)
 	case left.Type() == objects.IMMUTABLE_HASH_OBJ:
 		iHash := left.(*objects.ImmutableHash)
-
 		return evalHashIndexExpression(node, &iHash.Value, index, env)
+
 	default:
-		return objects.NewError(node.Token, env, "index operator not supported: %s", left.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"index operator not supported: %s",
+			left.Type(),
+		)
 	}
 }
 
@@ -417,7 +460,11 @@ func evalArrayIndexExpression(
 	}
 
 	if idx < 0 || idx >= length {
-		return objects.NewError(node.Token, env, "array index out of bounds: %d", idxObj.Value)
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"array index out of bounds: %d",
+			idxObj.Value,
+		)
 	}
 
 	return arrObj.Elements[idx]
@@ -432,7 +479,11 @@ func evalHashIndexExpression(
 
 	key, ok := index.(objects.Hashable)
 	if !ok {
-		return objects.NewError(node.Token, env, "invalid type given as hash key: %s", index.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"invalid type given as hash key: %s",
+			index.Type(),
+		)
 	}
 
 	pair, ok := hashObj.Pairs[key.HashKey()]
@@ -455,12 +506,21 @@ func evalChainExpression(
 	case *objects.ImmutableHash:
 		switch right := right.(type) {
 		case *ast.AssignmentExpression:
-			return objects.NewError(node.Token, env, "cannot assign to immutable hash keys")
+			return objects.NewError(
+				node.Token, env.GetFileDescriptorContext(),
+				"cannot assign to immutable hash keys",
+			)
+
 		default:
 			return evalHashChainExpression(node, &left.Value, right, env)
 		}
+
 	default:
-		return objects.NewError(node.Token, env, "invalid chain expression for %s", left.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"invalid chain expression for %s",
+			left.Type(),
+		)
 	}
 }
 
@@ -475,7 +535,7 @@ func evalHashChainExpression(
 		pair, ok := hash.Pairs[(&objects.String{Value: right.Value}).HashKey()]
 		if !ok {
 			return objects.NewError(
-				node.Token, env,
+				node.Token, env.GetFileDescriptorContext(),
 				"invalid chain expression for %s, key not found: %s",
 				hash.Type(), right.Value,
 			)
@@ -486,7 +546,7 @@ func evalHashChainExpression(
 		name, ok := right.Function.(*ast.Identifier)
 		if !ok {
 			return objects.NewError(
-				node.Token, env,
+				node.Token, env.GetFileDescriptorContext(),
 				"invalid chain expression for %s, expected identifier, got %s",
 				hash.Type(), right.Function.TokenLiteral(),
 			)
@@ -495,7 +555,7 @@ func evalHashChainExpression(
 		pair, ok := hash.Pairs[(&objects.String{Value: name.Value}).HashKey()]
 		if !ok {
 			return objects.NewError(
-				node.Token, env,
+				node.Token, env.GetFileDescriptorContext(),
 				"invalid chain expression for %s, key not found: %s",
 				hash.Type(), name.Value,
 			)
@@ -506,7 +566,7 @@ func evalHashChainExpression(
 		leftInner, ok := right.Left.(*ast.Identifier)
 		if !ok {
 			return objects.NewError(
-				node.Token, env,
+				node.Token, env.GetFileDescriptorContext(),
 				"invalid chain expression for %s, expected identifier, got %s",
 				hash.Type(), right.Left.TokenLiteral(),
 			)
@@ -515,7 +575,7 @@ func evalHashChainExpression(
 		pair, ok := hash.Pairs[(&objects.String{Value: leftInner.Value}).HashKey()]
 		if !ok {
 			return objects.NewError(
-				node.Token, env,
+				node.Token, env.GetFileDescriptorContext(),
 				"invalid chain expression for %s, key not found: %s",
 				hash.Type(), leftInner.Value,
 			)
@@ -531,7 +591,7 @@ func evalHashChainExpression(
 		leftInner, ok := right.Left.(*ast.Identifier)
 		if !ok {
 			return objects.NewError(
-				node.Token, env,
+				node.Token, env.GetFileDescriptorContext(),
 				"invalid chain expression for %s, expected identifier, got %s",
 				hash.Type(), right.Left.TokenLiteral(),
 			)
@@ -540,7 +600,7 @@ func evalHashChainExpression(
 		pair, ok := hash.Pairs[(&objects.String{Value: leftInner.Value}).HashKey()]
 		if !ok {
 			return objects.NewError(
-				node.Token, env,
+				node.Token, env.GetFileDescriptorContext(),
 				"invalid chain expression for %s, key not found: %s",
 				hash.Type(), leftInner.Value,
 			)
@@ -552,7 +612,7 @@ func evalHashChainExpression(
 		leftKey, ok := assign.Left.(*ast.Identifier)
 		if !ok {
 			return objects.NewError(
-				assign.Token, env,
+				assign.Token, env.GetFileDescriptorContext(),
 				"invalid assignment expression for %s, expected identifier, got %s",
 				hash.Type(), assign.Left.TokenLiteral(),
 			)
@@ -570,7 +630,7 @@ func evalHashChainExpression(
 
 	default:
 		return objects.NewError(
-			node.Token, env,
+			node.Token, env.GetFileDescriptorContext(),
 			"invalid chain expression for %s, got %s",
 			hash.Type(), right.TokenLiteral(),
 		)
@@ -586,7 +646,11 @@ func evalAssignmentExpression(
 	switch left := left.(type) {
 	case *ast.Identifier:
 		if !env.Has(left.Value) {
-			return objects.NewError(node.Token, env, "assignment to undeclared variable: %s", left.Value)
+			return objects.NewError(
+				node.Token, env.GetFileDescriptorContext(),
+				"assignment to undeclared variable: %s",
+				left.Value,
+			)
 		}
 
 		return env.Set(node, left.Value, right, false)
@@ -602,13 +666,25 @@ func evalAssignmentExpression(
 		case *objects.Hash:
 			return evalHashAssignmentExpression(node, leftObj, left.Index, right, env)
 		case *objects.ImmutableHash:
-			return objects.NewError(node.Token, env, "cannot assign to immutable hash keys")
+			return objects.NewError(
+				node.Token, env.GetFileDescriptorContext(),
+				"cannot assign to immutable hash keys",
+			)
+
 		default:
-			return objects.NewError(node.Token, env, "left hand side of index assignment is not a valid indexable type: %s (%T)", leftObj, leftObj)
+			return objects.NewError(
+				node.Token, env.GetFileDescriptorContext(),
+				"left hand side of index assignment is not a valid indexable type: %s (%T)",
+				leftObj, leftObj,
+			)
 		}
 
 	default:
-		return objects.NewError(node.Token, env, "left hand side of assignment is not a valid expression: %s (%T)", left, left)
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"left hand side of assignment is not a valid expression: %s (%T)",
+			left, left,
+		)
 	}
 }
 
@@ -627,12 +703,21 @@ func evalArrayAssignmentExpression(
 	switch idx := idx.(type) {
 	case *objects.Integer:
 		if idx.Value < 0 || idx.Value >= int64(len(arr.Elements)) {
-			return objects.NewError(node.Token, env, "array index out of bounds: %d", idx.Value)
+			return objects.NewError(
+				node.Token, env.GetFileDescriptorContext(),
+				"array index out of bounds: %d",
+				idx.Value,
+			)
 		}
 
 		arr.Elements[idx.Value] = value
+
 	default:
-		return objects.NewError(node.Token, env, "index operator not supported: %s", idx.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"index operator not supported: %s",
+			idx.Type(),
+		)
 	}
 
 	return value
@@ -652,7 +737,11 @@ func evalHashAssignmentExpression(
 
 	key, ok := idx.(objects.Hashable)
 	if !ok {
-		return objects.NewError(node.Token, env, "invalid type given as hash key: %s", idx.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"invalid type given as hash key: %s",
+			idx.Type(),
+		)
 	}
 
 	hash.Pairs[key.HashKey()] = objects.HashPair{Key: idx, Value: value}
@@ -693,8 +782,13 @@ func evalNumberInfixExpression(
 		return objects.NativeBoolToBooleanObject(leftVal <= rightVal)
 	case ">=":
 		return objects.NativeBoolToBooleanObject(leftVal >= rightVal)
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s %s %s",
+			left.Type(), node.Operator, right.Type(),
+		)
 	}
 }
 
@@ -713,8 +807,13 @@ func evalStringInfixExpression(
 		return objects.NativeBoolToBooleanObject(leftVal == rightVal)
 	case "!=":
 		return objects.NativeBoolToBooleanObject(leftVal != rightVal)
+
 	default:
-		return objects.NewError(node.Token, env, "unknown operator: %s %s %s", left.Type(), node.Operator, right.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s %s %s",
+			left.Type(), node.Operator, right.Type(),
+		)
 	}
 }
 
@@ -737,25 +836,40 @@ func evalCallExpression(node *ast.CallExpression, function objects.Object, env *
 	args := evalExpressions(node.Arguments, env)
 
 	if len(args) == 1 && objects.IsError(args[0]) {
-		return objects.NewEmptyErrorWithParent(args[0].(*objects.Error), node.GetToken(), env)
+		return objects.NewEmptyErrorWithParent(
+			args[0].(*objects.Error),
+			node.GetToken(),
+			env.GetFileDescriptorContext(),
+		)
 	}
 
 	functionObj, ok := function.(*objects.Function)
 	if ok && len(args) < len(functionObj.Parameters) {
-		return objects.NewError(node.Token, env, "wrong number of arguments. got %d, want %d", len(args), len(functionObj.Parameters))
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"wrong number of arguments. got %d, want %d",
+			len(args), len(functionObj.Parameters),
+		)
 	}
 
 	result := applyFunction(node, function, args, env)
 	if objects.IsError(result) {
-		return objects.NewEmptyErrorWithParent(result.(*objects.Error), node.GetToken(), env)
+		return objects.NewEmptyErrorWithParent(
+			result.(*objects.Error),
+			node.GetToken(),
+			env.GetFileDescriptorContext(),
+		)
 	}
 
 	return result
 }
 
 func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) objects.Object {
-	if env.GetFile() == nil {
-		return objects.NewError(node.Token, env, "import statements can only be used within a file")
+	if env.GetFileDescriptorContext() == nil {
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"import statements can only be used within a file",
+		)
 	}
 
 	filename := node.Path
@@ -763,15 +877,23 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 		filename += ".zen"
 	}
 
-	relativePath := filepath.Join(env.GetFile().Path, filename)
+	relativePath := filepath.Join(env.GetFileDescriptorContext().Path, filename)
 	path, ok := filepath.Abs(relativePath)
 	if ok != nil {
-		return objects.NewError(node.Token, env, "invalid import path: %q", path)
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"invalid import path: %q",
+			path,
+		)
 	}
 
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return objects.NewError(node.Token, env, "failed to read imported file: %q", path)
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"failed to read imported file: %q",
+			path,
+		)
 	}
 
 	lexer := lexer.New(string(content))
@@ -784,17 +906,29 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 			errors = append(errors, err.String())
 		}
 
-		return objects.NewError(node.Token, env, "failed to parse imported file: %q\n%s", path, strings.Join(errors, "\n"))
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"failed to parse imported file: %q\n%s",
+			path, strings.Join(errors, "\n"),
+		)
 	}
 
 	newEnv := objects.NewEnvironment(path)
 	evaluated := Eval(program, newEnv)
 	if evaluated == nil {
-		return objects.NewError(node.Token, env, "failed to evaluate imported file: %q", path)
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"failed to evaluate imported file: %q",
+			path,
+		)
 	}
 
 	if objects.IsError(evaluated) {
-		return objects.NewEmptyErrorWithParent(evaluated.(*objects.Error), node.GetToken(), env)
+		return objects.NewEmptyErrorWithParent(
+			evaluated.(*objects.Error),
+			node.GetToken(),
+			env.GetFileDescriptorContext(),
+		)
 	}
 
 	hash := objects.CreateImmutableHashFromEnvExports(newEnv)
@@ -819,7 +953,11 @@ func evalExportStatement(node *ast.ExportStatement, env *objects.Environment) ob
 
 	err := env.Export(exportedValue)
 	if err != nil {
-		return objects.NewError(node.Token, env, "failed to export value: %q", err)
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"failed to export value: %q",
+			err,
+		)
 	}
 
 	return objects.NULL
@@ -833,7 +971,7 @@ func applyFunction(
 ) objects.Object {
 	switch fn := fn.(type) {
 	case *objects.Function:
-		extendedEnv := extendFunctionEnv(node, fn, args)
+		extendedEnv := extendFunctionEnv(fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
 		return objects.UnwrapReturnValue(evaluated)
 	case *objects.ASTAwareBuiltin:
@@ -844,15 +982,15 @@ func applyFunction(
 		return captureStdoutForBuiltin(node, fn, args, env)
 
 	default:
-		return objects.NewError(node.Token, env, "not a function: %s", fn.Type())
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"not a function: %s",
+			fn.Type(),
+		)
 	}
 }
 
-func extendFunctionEnv(
-	node *ast.CallExpression,
-	fn *objects.Function,
-	args []objects.Object,
-) *objects.Environment {
+func extendFunctionEnv(fn *objects.Function, args []objects.Object) *objects.Environment {
 	env := objects.NewEnclosedEnvironment(fn.Env)
 
 	for paramIdx, param := range fn.Parameters {

@@ -824,7 +824,7 @@ func TestVarIncDec(t *testing.T) {
 }
 
 func TestCompilerScopes(t *testing.T) {
-	compiler := New()
+	compiler := New(nil)
 	if compiler.scopeIndex != 0 {
 		t.Fatalf("compiler at wrong initial scope index. got %d, want 0", compiler.scopeIndex)
 	}

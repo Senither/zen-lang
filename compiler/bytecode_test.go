@@ -170,7 +170,7 @@ func TestBytecodeString(t *testing.T) {
 	for _, test := range tests {
 		program := parse(test.input)
 
-		compiler := New()
+		compiler := New(nil)
 		err := compiler.Compile(program)
 		if err != nil {
 			t.Fatalf("Compilation failed: %v", err)
@@ -207,7 +207,7 @@ func TestBytecodeSerializeDeserialize(t *testing.T) {
 	for _, input := range tests {
 		program := parse(input)
 
-		compiler := New()
+		compiler := New(nil)
 		err := compiler.Compile(program)
 		if err != nil {
 			t.Fatalf("Compilation failed: %v", err)

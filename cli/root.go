@@ -40,7 +40,7 @@ var rootCommand = &cobra.Command{
 		if err != nil {
 			lexer := inputToLexer(string(content))
 			program := lexerToProgram(lexer, path)
-			bytecode = programToBytecode(program, table, constants)
+			bytecode = programToBytecode(path, program, table, constants)
 		}
 
 		vm := vm.New(bytecode)
@@ -131,6 +131,7 @@ func createCompilerParameters() (*compiler.SymbolTable, []objects.Object, []obje
 }
 
 func programToBytecode(
+	path interface{},
 	prog *ast.Program,
 	table *compiler.SymbolTable,
 	constants []objects.Object,
@@ -139,7 +140,7 @@ func programToBytecode(
 		return nil
 	}
 
-	compile := compiler.NewWithState(table, constants)
+	compile := compiler.NewWithState(path, table, constants)
 	if err := compile.Compile(prog); err != nil {
 		fmt.Println("Compilation error:", err)
 		return nil

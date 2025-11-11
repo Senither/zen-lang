@@ -24,7 +24,7 @@ var replCommand = &cobra.Command{
 		}, func(input string, path any) {
 			lexer := inputToLexer(input)
 			program := lexerToProgram(lexer, path)
-			bytecode := programToBytecode(program, table, constants)
+			bytecode := programToBytecode(path, program, table, constants)
 			if bytecode == nil {
 				return
 			}

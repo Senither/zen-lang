@@ -2,6 +2,7 @@ package objects
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/senither/zen-lang/tokens"
 )
@@ -15,27 +16,41 @@ var (
 	CONTINUE = &Continue{}
 )
 
+type FileDescriptorContext struct {
+	Name string
+	Path string
+}
+
+func NewFileDescriptorContext(path string) *FileDescriptorContext {
+	name := filepath.Base(path)
+
+	return &FileDescriptorContext{
+		Name: name,
+		Path: path[:len(path)-len(name)-1],
+	}
+}
+
 func NativeErrorToErrorObject(err error) *Error {
 	return &Error{Message: err.Error()}
 }
 
-func NewError(token tokens.Token, env *Environment, format string, a ...interface{}) *Error {
+func NewError(token tokens.Token, fileCtx *FileDescriptorContext, format string, a ...interface{}) *Error {
 	err := Error{
 		Message: fmt.Sprintf(format, a...),
 		Line:    token.Line,
 		Column:  token.Column,
 	}
 
-	if env.GetFile() != nil {
-		err.File = env.GetFile().Name
-		err.Path = env.GetFile().Path
+	if fileCtx != nil {
+		err.File = fileCtx.Name
+		err.Path = fileCtx.Path
 	}
 
 	return &err
 }
 
-func NewEmptyErrorWithParent(parent *Error, token tokens.Token, env *Environment) *Error {
-	err := NewError(token, env, "")
+func NewEmptyErrorWithParent(parent *Error, token tokens.Token, fileCtx *FileDescriptorContext) *Error {
+	err := NewError(token, fileCtx, "")
 	err.Parent = parent
 
 	return err

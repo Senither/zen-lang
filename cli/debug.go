@@ -41,13 +41,13 @@ var debugCommand = &cobra.Command{
 				return
 			}
 
-			compile := compiler.NewWithState(table, constants)
+			compile := compiler.NewWithState(path, table, constants)
 			compilerErr := compile.Compile(program)
 			bytecode := compile.Bytecode()
 
 			fmt.Println("=====[ Compiled Bytecode ]=====")
 			if compilerErr != nil {
-				fmt.Printf("\nCompilation error: %s\n\n", compilerErr.Error())
+				fmt.Printf(BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", Reset, compilerErr.Error())
 			} else {
 				fmt.Println(strings.TrimRight(bytecode.String(), "\n"))
 			}

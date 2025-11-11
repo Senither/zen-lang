@@ -40,7 +40,7 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 func compile(input string) (*compiler.Compiler, error) {
 	l := lexer.New(input)
 	p := parser.New(l, nil)
-	c := compiler.New()
+	c := compiler.New(nil)
 
 	return c, c.Compile(p.ParseProgram())
 }

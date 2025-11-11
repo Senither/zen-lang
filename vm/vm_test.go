@@ -843,19 +843,19 @@ func TestWhileLoops(t *testing.T) {
 
 func TestAssignmentExpressions(t *testing.T) {
 	tests := []vmTestCase{
-		{"var a = 5; a = 10; a;", 10},
-		{"var a = 5; a = a + 5; a;", 10},
-		{"var a = 5; var b = 10; a = b; a;", 10},
-		{"var a = 5; var b = 10; b = a; b;", 5},
-		{"var a = 5; var b = 10; a = b + a; a;", 15},
-		{"var a = [1, 2, 3]; a[1] = 20; a;", []int{1, 20, 3}},
-		{"var a = [1, 2, 3]; a[1] = a[0]; a;", []int{1, 1, 3}},
-		{"var a = [1, 2, 3]; a[1] = a[0] + a[2]; a;", []int{1, 4, 3}},
-		{"var a = [1, 2, 3]; a[1] = a[0] + a[1] + a[2]; a;", []int{1, 6, 3}},
-		{"var a = {'x': 1, 'y': 2}; a['y'] = 20; a;", map[string]int{"x": 1, "y": 20}},
-		{"var a = {'x': 1, 'y': 2}; a['z'] = 20; a;", map[string]int{"x": 1, "y": 2, "z": 20}},
-		{"var a = {'x': 1, 'y': 2}; a['x'] = a['y']; a;", map[string]int{"x": 2, "y": 2}},
-		{"var a = {'x': 1, 'y': 2}; a['y'] = a['x'] + a['y']; a;", map[string]int{"x": 1, "y": 3}},
+		{"var mut a = 5; a = 10; a;", 10},
+		{"var mut a = 5; a = a + 5; a;", 10},
+		{"var mut a = 5; var mut b = 10; a = b; a;", 10},
+		{"var mut a = 5; var mut b = 10; b = a; b;", 5},
+		{"var mut a = 5; var mut b = 10; a = b + a; a;", 15},
+		{"var mut a = [1, 2, 3]; a[1] = 20; a;", []int{1, 20, 3}},
+		{"var mut a = [1, 2, 3]; a[1] = a[0]; a;", []int{1, 1, 3}},
+		{"var mut a = [1, 2, 3]; a[1] = a[0] + a[2]; a;", []int{1, 4, 3}},
+		{"var mut a = [1, 2, 3]; a[1] = a[0] + a[1] + a[2]; a;", []int{1, 6, 3}},
+		{"var mut a = {'x': 1, 'y': 2}; a['y'] = 20; a;", map[string]int{"x": 1, "y": 20}},
+		{"var mut a = {'x': 1, 'y': 2}; a['z'] = 20; a;", map[string]int{"x": 1, "y": 2, "z": 20}},
+		{"var mut a = {'x': 1, 'y': 2}; a['x'] = a['y']; a;", map[string]int{"x": 2, "y": 2}},
+		{"var mut a = {'x': 1, 'y': 2}; a['y'] = a['x'] + a['y']; a;", map[string]int{"x": 1, "y": 3}},
 	}
 
 	runVmTests(t, tests)

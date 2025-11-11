@@ -18,7 +18,7 @@ func runCompilationTests(t *testing.T, tests []compilerTestCase) {
 	for _, tt := range tests {
 		program := parse(tt.input)
 
-		compiler := New()
+		compiler := New(nil)
 		err := compiler.Compile(program)
 		if err != nil {
 			t.Fatalf("compiler error: %s", err)

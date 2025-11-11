@@ -42,7 +42,7 @@ var buildCommand = &cobra.Command{
 		}
 
 		table, _, constants := createCompilerParameters()
-		bytecode := programToBytecode(program, table, constants)
+		bytecode := programToBytecode(inputFile, program, table, constants)
 		if bytecode == nil {
 			fmt.Printf("\nFailed to compile file '%s'\n", inputFile)
 			os.Exit(1)
