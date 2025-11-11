@@ -1520,3 +1520,126 @@ func TestWhileLoop(t *testing.T) {
 
 	runCompilationTests(t, tests)
 }
+
+func TestAssignmentExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				var mut a = 1;
+				a = 2;
+			`,
+			expectedConstants: []interface{}{1, 2},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+			},
+		},
+		{
+			input: `
+				var mut a = 1;
+				var b = 10;
+				a = a + b;
+			`,
+			expectedConstants: []interface{}{1, 10},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 1),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpGetGlobal, 1),
+				code.Make(code.OpAdd),
+				code.Make(code.OpSetGlobal, 0),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
+func TestIndexAssignmentExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				var mut arr = [1, 2, 3];
+				arr[1] = 42;
+			`,
+			expectedConstants: []interface{}{1, 2, 3, 1, 42},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpIndexAssign),
+			},
+		},
+		{
+			input: `
+				var mut hash = { "key": 1 };
+				hash["key"] = 99;
+			`,
+			expectedConstants: []interface{}{"key", 1, "key", 99},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpIndexAssign),
+			},
+		},
+		{
+			input: `
+				var mut obj = { "nested": { "key": 1 } };
+				obj["nested"]["key"] = 123;
+			`,
+			expectedConstants: []interface{}{"nested", "key", 1, "nested", "key", 123},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpIndexAssign),
+			},
+		},
+		{
+			input: `
+				var mut obj = { "nested": [1, 2, 3] };
+				obj["nested"][2] = 42;
+			`,
+			expectedConstants: []interface{}{"nested", 1, 2, 3, "nested", 2, 42},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpConstant, 6),
+				code.Make(code.OpIndexAssign),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}

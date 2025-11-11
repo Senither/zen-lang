@@ -199,6 +199,12 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 		left := vm.pop()
 
 		return vm.executeIndexExpression(left, index)
+	case code.OpIndexAssign:
+		value := vm.pop()
+		index := vm.pop()
+		left := vm.pop()
+
+		return vm.executeIndexAssignment(left, index, value)
 	case code.OpArray:
 		numElements := int(code.ReadUint16(ins[ip+1:]))
 		vm.currentFrame().ip += 2
@@ -478,6 +484,34 @@ func (vm *VM) executeHashIndex(hash, index objects.Object) error {
 	}
 
 	return vm.push(pair.Value)
+}
+
+func (vm *VM) executeIndexAssignment(left, index, value objects.Object) error {
+	switch obj := left.(type) {
+	case *objects.Array:
+		idx, ok := index.(*objects.Integer)
+		if !ok {
+			return fmt.Errorf("index operator not supported: %T", index)
+		}
+
+		if idx.Value < 0 || idx.Value >= int64(len(obj.Elements)) {
+			return fmt.Errorf("array index out of bounds: %d", idx.Value)
+		}
+
+		obj.Elements[idx.Value] = value
+	case *objects.Hash:
+		key, ok := index.(objects.Hashable)
+		if !ok {
+			return fmt.Errorf("unusable as hash key: %T", index)
+		}
+
+		obj.Pairs[key.HashKey()] = objects.HashPair{Key: index, Value: value}
+
+	default:
+		return fmt.Errorf("index assignment not supported: %T", left)
+	}
+
+	return nil
 }
 
 func (vm *VM) buildArray(startIndex, endIndex int) objects.Object {

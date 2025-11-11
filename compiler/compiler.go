@@ -112,11 +112,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			}
 		}
 
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpSetGlobal, symbol.Index)
-		} else {
-			c.emit(code.OpSetLocal, symbol.Index)
-		}
+		c.setSymbol(symbol)
 
 	// Expression operators
 	case *ast.PrefixExpression:
@@ -153,11 +149,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("unknown operator %s", n.Operator)
 		}
 
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpSetGlobal, symbol.Index)
-		} else {
-			c.emit(code.OpSetLocal, symbol.Index)
-		}
+		c.setSymbol(symbol)
 	case *ast.IndexExpression:
 		err := c.Compile(n.Left)
 		if err != nil {
@@ -182,6 +174,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.loadSymbol(symbol)
+	case *ast.AssignmentExpression:
+		err := c.compileAssignmentExpression(n)
+		if err != nil {
+			return err
+		}
 
 	// Expression types
 	case *ast.NullLiteral:
@@ -407,7 +404,7 @@ func (c *Compiler) removeLastPop() {
 
 func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
 	switch expr := expr.(type) {
-	case *ast.SuffixExpression, *ast.WhileExpression:
+	case *ast.AssignmentExpression, *ast.SuffixExpression, *ast.WhileExpression:
 		return false
 	case *ast.FunctionLiteral:
 		return expr.Name == nil
@@ -599,11 +596,7 @@ func (c *Compiler) compileFunctionLiteral(node *ast.FunctionLiteral, constructNa
 	c.emit(code.OpClosure, c.addConstant(compiledFn), len(freeSymbols))
 
 	if symbol != nil {
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpSetGlobal, symbol.Index)
-		} else {
-			c.emit(code.OpSetLocal, symbol.Index)
-		}
+		c.setSymbol(*symbol)
 	}
 
 	return nil
@@ -670,6 +663,46 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 	return nil
 }
 
+func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) error {
+	switch left := node.Left.(type) {
+	case *ast.Identifier:
+		symbol, ok := c.symbolTable.Resolve(left.Value)
+		if !ok {
+			return fmt.Errorf("assignment to undeclared variable: %s", left.Value)
+		}
+
+		err := c.Compile(node.Right)
+		if err != nil {
+			return err
+		}
+
+		c.setSymbol(symbol)
+
+	case *ast.IndexExpression:
+		err := c.Compile(left.Left)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(left.Index)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(node.Right)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpIndexAssign)
+
+	default:
+		return fmt.Errorf("left hand side of assignment is not a valid expression: %T", left)
+	}
+
+	return nil
+}
+
 func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) error {
 	for _, arg := range node.Arguments {
 		if err := c.Compile(arg); err != nil {
@@ -680,23 +713,6 @@ func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) error {
 	c.emit(code.OpCall, len(node.Arguments))
 
 	return nil
-}
-
-func (c *Compiler) loadSymbol(symbol Symbol) {
-	switch symbol.Scope {
-	case GlobalScope:
-		c.emit(code.OpGetGlobal, symbol.Index)
-	case LocalScope:
-		c.emit(code.OpGetLocal, symbol.Index)
-	case BuiltinScope:
-		c.emit(code.OpGetBuiltin, symbol.Index)
-	case GlobalBuiltinScope:
-		c.emit(code.OpGetGlobalBuiltin, symbol.Index)
-	case FreeScope:
-		c.emit(code.OpGetFree, symbol.Index)
-	case FunctionScope:
-		c.emit(code.OpCurrentClosure)
-	}
 }
 
 func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) error {
@@ -724,4 +740,29 @@ func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) error {
 	c.changeInstructionOperandAt(jumpNotTruthyPos, endJumpIdx)
 
 	return nil
+}
+
+func (c *Compiler) loadSymbol(symbol Symbol) {
+	switch symbol.Scope {
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, symbol.Index)
+	case LocalScope:
+		c.emit(code.OpGetLocal, symbol.Index)
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, symbol.Index)
+	case GlobalBuiltinScope:
+		c.emit(code.OpGetGlobalBuiltin, symbol.Index)
+	case FreeScope:
+		c.emit(code.OpGetFree, symbol.Index)
+	case FunctionScope:
+		c.emit(code.OpCurrentClosure)
+	}
+}
+
+func (c *Compiler) setSymbol(symbol Symbol) {
+	if symbol.Scope == GlobalScope {
+		c.emit(code.OpSetGlobal, symbol.Index)
+	} else {
+		c.emit(code.OpSetLocal, symbol.Index)
+	}
 }

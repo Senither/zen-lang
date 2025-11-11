@@ -48,6 +48,7 @@ const (
 
 	// Suffixes
 	OpIndex
+	OpIndexAssign
 
 	// Objects
 	OpArray
