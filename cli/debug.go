@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/senither/zen-lang/ast"
+	"github.com/senither/zen-lang/cli/colors"
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/objects"
@@ -47,7 +48,7 @@ var debugCommand = &cobra.Command{
 
 			fmt.Println("=====[ Compiled Bytecode ]=====")
 			if compilerErr != nil {
-				fmt.Printf(BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", Reset, compilerErr.Error())
+				fmt.Printf(colors.BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", colors.Reset, compilerErr.Error())
 			} else {
 				fmt.Println(strings.TrimRight(bytecode.String(), "\n"))
 			}
@@ -71,7 +72,7 @@ var debugCommand = &cobra.Command{
 
 			if evalRes != vmRes {
 				fmt.Println("")
-				fmt.Println(Red + "MISMATCH BETWEEN EVALUATOR AND VM RESULTS" + Reset)
+				fmt.Println(colors.Red + "MISMATCH BETWEEN EVALUATOR AND VM RESULTS" + colors.Reset)
 				fmt.Println("")
 
 				os.Exit(1)

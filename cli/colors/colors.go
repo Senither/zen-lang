@@ -1,4 +1,4 @@
-package cli
+package colors
 
 const (
 	Reset   = "\033[0m"
