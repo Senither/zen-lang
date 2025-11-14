@@ -33,6 +33,20 @@ const (
 	VirtualMachineEngine
 )
 
+func (et EngineType) GetTag() string {
+	switch et {
+	case AllEngines:
+		return colors.Green + "All"
+	case EvaluatorEngine:
+		return colors.Cyan + "Eval"
+	case VirtualMachineEngine:
+		return colors.Magenta + "VM"
+
+	default:
+		return "unknown"
+	}
+}
+
 type RunnerTimings string
 
 const (
@@ -208,7 +222,7 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 			msg = append(msg, fmt.Sprintf("     %s", err.String()))
 		}
 
-		tr.printErrorStatusMessage(test, fullPath, strings.Join(msg, "\n"))
+		tr.printErrorStatusMessage(test, fullPath, strings.Join(msg, "\n"), AllEngines)
 		return
 	}
 
@@ -280,14 +294,21 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 	return test, nil
 }
 
-func (tr *TestRunner) printSuccessStatusMessage(test *Test) {
-	messages = append(messages, fmt.Sprintf("  %s✔%s %s\n", colors.Green, colors.Reset, tr.cleanString(test.message)))
+func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineType) {
+	messages = append(messages, fmt.Sprintf("  %s✔%s %s %s[%s%s]%s\n",
+		colors.Green, colors.Reset, tr.cleanString(test.message),
+		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
+	))
 }
 
-func (tr *TestRunner) printErrorStatusMessage(test *Test, fullPath, message string) {
+func (tr *TestRunner) printErrorStatusMessage(test *Test, fullPath, message string, engineType EngineType) {
 	exitStatusCode = 1
 
-	errorMessage := fmt.Sprintf("%s\n     %s", tr.cleanString(test.message), message)
+	errorMessage := fmt.Sprintf("%s %s[%s%s]%s\n     %s",
+		tr.cleanString(test.message),
+		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
+		message,
+	)
 	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
 
 	messages = append(messages, fmt.Sprintf("  %s✖%s %s\n", colors.Red, colors.Reset, errorMessage))

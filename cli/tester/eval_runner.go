@@ -21,7 +21,7 @@ func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPat
 	tr.setTiming(EvaluatorExecutionTiming, tr.getTiming(EvaluatorExecutionTiming)+time.Since(start))
 
 	if evaluated == nil {
-		tr.printErrorStatusMessage(test, fullPath, "Evaluator returned nil, failed to evaluate the test input")
+		tr.printErrorStatusMessage(test, fullPath, "Evaluator returned nil, failed to evaluate the test input", EvaluatorEngine)
 		return
 	}
 
@@ -45,17 +45,18 @@ func (tr *TestRunner) compareEvaluatedWithExpected(test *Test, fullPath string, 
 				strings.Trim(evaluated.Inspect(), "\n"),
 				test.expect,
 			),
+			EvaluatorEngine,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test)
+	tr.printSuccessStatusMessage(test, EvaluatorEngine)
 }
 
 func (tr *TestRunner) compareStandardOutputWithExpected(test *Test, fullPath string) {
 	messages := evaluator.Stdout.ReadAll()
 	if len(messages) == 0 {
-		tr.printErrorStatusMessage(test, fullPath, "No output captured from standard output")
+		tr.printErrorStatusMessage(test, fullPath, "No output captured from standard output", EvaluatorEngine)
 		return
 	}
 
@@ -70,11 +71,12 @@ func (tr *TestRunner) compareStandardOutputWithExpected(test *Test, fullPath str
 				out,
 				test.expect,
 			),
+			EvaluatorEngine,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test)
+	tr.printSuccessStatusMessage(test, EvaluatorEngine)
 }
 
 func (tr *TestRunner) stripFileLocationsAndPrintError(test *Test, fullPath string, result objects.Object) {
@@ -93,9 +95,10 @@ func (tr *TestRunner) stripFileLocationsAndPrintError(test *Test, fullPath strin
 				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
 				message, err, test.errors,
 			),
+			EvaluatorEngine,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test)
+	tr.printSuccessStatusMessage(test, EvaluatorEngine)
 }
