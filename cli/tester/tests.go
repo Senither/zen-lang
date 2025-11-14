@@ -250,13 +250,13 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 	if test.supportedEngine == AllEngines || test.supportedEngine == EvaluatorEngine {
 		tr.runEvaluatorTest(test, program, fullPath, file)
 	} else {
-		tr.skippedTests++
+		tr.printSkippedStatusMessage(test, EvaluatorEngine)
 	}
 
 	if test.supportedEngine == AllEngines || test.supportedEngine == VirtualMachineEngine {
 		tr.runVMTest(test, program, fullPath, file)
 	} else {
-		tr.skippedTests++
+		tr.printSkippedStatusMessage(test, VirtualMachineEngine)
 	}
 }
 
@@ -317,6 +317,20 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 	tr.setTiming(ReadingFilesTiming, tr.getTiming(ReadingFilesTiming)+time.Since(start))
 
 	return test, nil
+}
+
+func (tr *TestRunner) printSkippedStatusMessage(test *Test, engineType EngineType) {
+	tr.skippedTests++
+
+	messages = append(messages, fmt.Sprintf(strings.Join([]string{
+		"  %s~%s %s %s%s",
+		" %s(%s%sskipped%s%s)%s",
+		" %s[%s%s]%s\n",
+	}, ""),
+		colors.Yellow, colors.Reset, colors.Italic, tr.cleanString(test.message), colors.Reset,
+		colors.Gray, colors.Italic, colors.Yellow, colors.Reset, colors.Gray, colors.Reset,
+		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
+	))
 }
 
 func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineType) {

@@ -2,6 +2,7 @@ package colors
 
 const (
 	Reset   = "\033[0m"
+	Italic  = "\033[3m"
 	Red     = "\033[31m"
 	Green   = "\033[32m"
 	Yellow  = "\033[33m"
@@ -9,6 +10,7 @@ const (
 	Magenta = "\033[35m"
 	Cyan    = "\033[36m"
 	Gray    = "\033[37m"
+	White   = "\033[97m"
 
 	BgBlack   = "\033[40m"
 	BgRed     = "\033[41m"
