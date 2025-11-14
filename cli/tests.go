@@ -9,8 +9,9 @@ import (
 )
 
 func init() {
-	testCommand.Flags().BoolP("verbose", "v", false, "Adds more verbose output to the test runner.")
-	testCommand.Flags().StringP("engine", "e", "all", "Specifies which engine to run the tests against. Options are: all, eval, vm.")
+	testCommand.Flags().BoolP("verbose", "v", false, "Adds more verbose output to the test runner")
+	testCommand.Flags().BoolP("compact", "c", false, "Replace default result output with Compact format")
+	testCommand.Flags().StringP("engine", "e", "all", "Specifies which engine to run the tests against. Options are: all, eval, vm")
 
 	rootCommand.AddCommand(testCommand)
 }
@@ -36,12 +37,14 @@ var testCommand = &cobra.Command{
 		}
 
 		verbose, _ := cmd.Flags().GetBool("verbose")
+		compact, _ := cmd.Flags().GetBool("compact")
 
 		runner := tester.NewTestRunner(
 			absolutePath, testDirectory,
 			tester.RunnerOptions{
 				Engine:  getTestRunnerEngine(cmd),
 				Verbose: verbose,
+				Compact: compact,
 			},
 		)
 
