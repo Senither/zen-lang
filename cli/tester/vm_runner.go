@@ -38,7 +38,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	tr.setTiming(VMExecutionTiming, tr.getTiming(VMExecutionTiming)+time.Since(start))
 
 	if objects.IsError(result) {
-		// tr.compareCompilerErrorWithExpected(test, fullPath, result.Inspect())
+		tr.compareCompilerErrorWithExpected(test, fullPath, result.Inspect())
 	} else if result != nil && result.Type() != objects.NULL_OBJ {
 		// fmt.Printf("RESULT IS NOT A NULL OBJECT\n")
 	} else {
