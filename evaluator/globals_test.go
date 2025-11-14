@@ -98,6 +98,31 @@ func TestArraysPopGlobalFunction(t *testing.T) {
 	}
 }
 
+func TestArraysConcatGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{"arrays.concat([], [])", []int64{}},
+		{"arrays.concat([1], [2])", []int64{1, 2}},
+		{"arrays.concat([1, 2], [3, 4])", []int64{1, 2, 3, 4}},
+		{"arrays.concat([1, 2], [3, 4], [5, 6])", []int64{1, 2, 3, 4, 5, 6}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case []int64:
+			converted := make([]any, len(expected))
+			for i, v := range expected {
+				converted[i] = v
+			}
+			testArrayObject(t, evaluated, converted, tt.input)
+		}
+	}
+}
+
 func TestStringsContainsGlobalFunction(t *testing.T) {
 	tests := []struct {
 		input    string

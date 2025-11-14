@@ -1,0 +1,12 @@
+--TEST--
+Can concat variable arrays
+--FILE--
+var a = [1, 2];
+var b = [3, 4];
+var c = [5, 6];
+
+println(arrays.concat(a, b));
+println(arrays.concat(a, b, c));
+--EXPECT--
+[1, 2, 3, 4]
+[1, 2, 3, 4, 5, 6]

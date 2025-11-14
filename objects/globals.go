@@ -115,6 +115,26 @@ var Globals = []struct {
 					return &Array{Elements: filtered}, nil
 				}},
 			},
+			{
+				Name: "concat",
+				Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+					if len(args) < 2 {
+						return nil, fmt.Errorf("wrong number of arguments. got %d, want at least 2", len(args))
+					}
+
+					var elements []Object
+					for _, arg := range args {
+						array, ok := arg.(*Array)
+						if !ok {
+							return nil, fmt.Errorf("all arguments to `concat` must be arrays, got %s", arg.Type())
+						}
+
+						elements = append(elements, array.Elements...)
+					}
+
+					return &Array{Elements: elements}, nil
+				}},
+			},
 		},
 	},
 
