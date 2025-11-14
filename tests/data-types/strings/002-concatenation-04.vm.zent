@@ -1,0 +1,7 @@
+--TEST--
+Fails when attempting to concatenate non-strings
+--FILE--
+println('Hello' + 42);
+--ERROR--
+unsupported types for binary operation: STRING INTEGER
+    at <unknown>:0:0

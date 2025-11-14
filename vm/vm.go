@@ -560,7 +560,7 @@ func (vm *VM) executeCall(numArgs int) error {
 
 func (vm *VM) callClosure(cl *objects.Closure, numArgs int) error {
 	if numArgs != cl.Fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: got %d, want %d", numArgs, cl.Fn.NumParameters)
+		return fmt.Errorf("wrong number of arguments. got %d, want %d", numArgs, cl.Fn.NumParameters)
 	}
 
 	frame := NewFrame(cl, vm.sp-numArgs)
