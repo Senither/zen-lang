@@ -19,7 +19,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	tr.setTiming(CompilationTiming, tr.getTiming(CompilationTiming)+time.Since(start))
 
 	if compilerErr != nil {
-		// tr.compareCompilerErrorWithExpected(test, fullPath, compilerErr.Error())
+		tr.compareCompilerErrorWithExpected(test, fullPath, compilerErr.Error())
 		return
 	}
 

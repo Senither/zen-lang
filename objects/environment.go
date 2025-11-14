@@ -68,7 +68,7 @@ func (e *Environment) Set(node ast.Node, name string, val Object, mutable bool) 
 			return NewError(
 				node.GetToken(),
 				e.GetFileDescriptorContext(),
-				"Cannot modify immutable variable '%s'",
+				"cannot modify immutable variable: %s",
 				name,
 			)
 		}
