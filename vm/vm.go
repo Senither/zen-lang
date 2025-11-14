@@ -461,14 +461,18 @@ func (vm *VM) executeIndexExpression(left, index objects.Object) error {
 
 func (vm *VM) executeArrayIndex(array, index objects.Object) error {
 	arrayObj := array.(*objects.Array)
-	i := index.(*objects.Integer).Value
+	idx := index.(*objects.Integer).Value
 	max := int64(len(arrayObj.Elements) - 1)
 
-	if i < 0 || i > max {
+	if idx < 0 {
+		idx = int64(len(arrayObj.Elements)) + idx
+	}
+
+	if idx < 0 || idx > max {
 		return vm.push(objects.NULL)
 	}
 
-	return vm.push(arrayObj.Elements[i])
+	return vm.push(arrayObj.Elements[idx])
 }
 
 func (vm *VM) executeHashIndex(hash, index objects.Object) error {
