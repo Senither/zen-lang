@@ -59,17 +59,18 @@ func (tr *TestRunner) compareCompilerErrorWithExpected(test *Test, fullPath stri
 				err,
 				test.errors,
 			),
+			VirtualMachineEngine,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test)
+	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
 }
 
 func (tr *TestRunner) compareStandardOutputWithExpectedVM(test *Test, fullPath string) {
 	messages := vm.Stdout.ReadAll()
 	if len(messages) == 0 {
-		tr.printErrorStatusMessage(test, fullPath, "No output captured from standard output")
+		tr.printErrorStatusMessage(test, fullPath, "No output captured from standard output", VirtualMachineEngine)
 		return
 	}
 
@@ -84,9 +85,10 @@ func (tr *TestRunner) compareStandardOutputWithExpectedVM(test *Test, fullPath s
 				out,
 				test.expect,
 			),
+			VirtualMachineEngine,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test)
+	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
 }
