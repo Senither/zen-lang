@@ -1,0 +1,10 @@
+--TEST--
+Can define a closure function
+--FILE--
+var add = func(a, b) {
+    return a + b;
+}
+
+add;
+--EXPECT--
+Closure[<pointer>]

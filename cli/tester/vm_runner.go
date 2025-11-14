@@ -41,7 +41,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	if objects.IsError(result) {
 		tr.compareCompilerErrorWithExpected(test, fullPath, result.Inspect())
 	} else if result != nil && result.Type() != objects.NULL_OBJ {
-		// fmt.Printf("RESULT IS NOT A NULL OBJECT\n")
+		tr.compareResultWithExpected(test, fullPath, result)
 	} else {
 		tr.compareStandardOutputWithExpectedVM(test, fullPath)
 	}
@@ -59,6 +59,27 @@ func (tr *TestRunner) compareCompilerErrorWithExpected(test *Test, fullPath stri
 				"Test expectation does not match the compiler error",
 				err,
 				test.errors,
+			),
+			VirtualMachineEngine,
+		)
+		return
+	}
+
+	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
+}
+
+func (tr *TestRunner) compareResultWithExpected(test *Test, fullPath string, result objects.Object) {
+	value := tr.stripPointerLocationsFromContent(strings.Trim(result.Inspect(), "\n"))
+
+	if value != test.expect {
+		tr.printErrorStatusMessage(
+			test,
+			fullPath,
+			fmt.Sprintf(
+				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
+				"Test expectation does not match the evaluated result",
+				value,
+				test.expect,
 			),
 			VirtualMachineEngine,
 		)
