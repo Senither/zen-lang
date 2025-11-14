@@ -48,7 +48,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 }
 
 func (tr *TestRunner) compareCompilerErrorWithExpected(test *Test, fullPath string, errorMessage string) {
-	err := tr.stripFileLocationsFromError(test, fullPath, errorMessage)
+	err := tr.stripFileLocationsFromError(errorMessage)
 
 	if err != test.errors {
 		tr.printErrorStatusMessage(

@@ -19,8 +19,7 @@ type TestRunner struct {
 	options   RunnerOptions
 	timings   map[RunnerTimings]time.Duration
 
-	skippedTests int
-	passedTests  int
+	passedTests int
 }
 
 type RunnerOptions struct {
@@ -49,14 +48,6 @@ func (et EngineType) GetTag() string {
 		return "unknown"
 	}
 }
-
-type TestShouldRun int
-
-const (
-	TestShouldRunYes TestShouldRun = iota
-	TestShouldRunSkip
-	TestShouldRunIgnore
-)
 
 type RunnerTimings string
 
@@ -189,10 +180,6 @@ func (tr *TestRunner) getStatusSummary() string {
 		parts = append(parts, fmt.Sprintf("%s%d failed%s", colors.Red, len(collectedErrors), colors.Reset))
 	}
 
-	if tr.skippedTests > 0 {
-		parts = append(parts, fmt.Sprintf("%s%d skipped%s", colors.Yellow, tr.skippedTests, colors.Reset))
-	}
-
 	parts = append(parts, fmt.Sprintf("%s%d passed%s", colors.Green, tr.passedTests, colors.Reset))
 
 	return strings.Join(parts, ", ")
@@ -255,18 +242,12 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 		return
 	}
 
-	switch tr.ShouldRunTest(test, EvaluatorEngine) {
-	case TestShouldRunYes:
+	if tr.ShouldRunTest(test, EvaluatorEngine) {
 		tr.runEvaluatorTest(test, program, fullPath, file)
-	case TestShouldRunSkip:
-		tr.printSkippedStatusMessage(test, EvaluatorEngine)
 	}
 
-	switch tr.ShouldRunTest(test, VirtualMachineEngine) {
-	case TestShouldRunYes:
+	if tr.ShouldRunTest(test, VirtualMachineEngine) {
 		tr.runVMTest(test, program, fullPath, file)
-	case TestShouldRunSkip:
-		tr.printSkippedStatusMessage(test, VirtualMachineEngine)
 	}
 }
 
@@ -329,20 +310,6 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 	return test, nil
 }
 
-func (tr *TestRunner) printSkippedStatusMessage(test *Test, engineType EngineType) {
-	tr.skippedTests++
-
-	messages = append(messages, fmt.Sprintf(strings.Join([]string{
-		"  %s~%s %s %s%s",
-		" %s(%s%sskipped%s%s)%s",
-		" %s[%s%s]%s\n",
-	}, ""),
-		colors.Yellow, colors.Reset, colors.Italic, tr.cleanString(test.message), colors.Reset,
-		colors.Gray, colors.Italic, colors.Yellow, colors.Reset, colors.Gray, colors.Reset,
-		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
-	))
-}
-
 func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineType) {
 	tr.passedTests++
 
@@ -372,7 +339,7 @@ func (tr *TestRunner) cleanString(str string) string {
 	return str
 }
 
-func (tr *TestRunner) stripFileLocationsFromError(test *Test, fullPath string, err string) string {
+func (tr *TestRunner) stripFileLocationsFromError(err string) string {
 	lines := strings.Split(err, "\n")
 
 	for i, line := range lines {
@@ -386,22 +353,22 @@ func (tr *TestRunner) stripFileLocationsFromError(test *Test, fullPath string, e
 	return strings.Trim(strings.Join(lines, "\n"), "\n")
 }
 
-func (tr *TestRunner) ShouldRunTest(test *Test, engine EngineType) TestShouldRun {
+func (tr *TestRunner) ShouldRunTest(test *Test, engine EngineType) bool {
 	if tr.options.Engine != AllEngines {
 		if tr.options.Engine != engine {
-			return TestShouldRunIgnore
+			return false
 		}
 
 		if test.supportedEngine != AllEngines && test.supportedEngine != tr.options.Engine {
-			return TestShouldRunIgnore
+			return false
 		}
 
-		return TestShouldRunYes
+		return true
 	}
 
 	if test.supportedEngine != AllEngines && test.supportedEngine != engine {
-		return TestShouldRunSkip
+		return false
 	}
 
-	return TestShouldRunYes
+	return true
 }

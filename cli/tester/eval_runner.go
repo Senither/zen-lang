@@ -80,7 +80,7 @@ func (tr *TestRunner) compareStandardOutputWithExpected(test *Test, fullPath str
 }
 
 func (tr *TestRunner) stripFileLocationsAndPrintError(test *Test, fullPath string, result objects.Object) {
-	err := tr.stripFileLocationsFromError(test, fullPath, result.Inspect())
+	err := tr.stripFileLocationsFromError(result.Inspect())
 
 	if err != test.errors {
 		var message = "Test expectation does not match the evaluated result"
