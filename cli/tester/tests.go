@@ -18,6 +18,9 @@ type TestRunner struct {
 	path      string
 	options   RunnerOptions
 	timings   map[RunnerTimings]time.Duration
+
+	skippedTests int
+	passedTests  int
 }
 
 type RunnerOptions struct {
@@ -140,7 +143,9 @@ func (tr *TestRunner) RunTests() error {
 		fmt.Println()
 	}
 
-	fmt.Printf("Finished running the test suite in %s\n\n", tr.directory)
+	fmt.Printf("  Finished running the test suite in %s\n", tr.directory)
+	fmt.Printf("  Summary: %s\n\n", tr.getStatusSummary())
+
 	fmt.Printf("     Tests discovery: %s\n", tr.getTiming(FileDiscoveryTiming))
 	fmt.Printf("       Reading files: %s\n", tr.getTiming(ReadingFilesTiming))
 	fmt.Printf("      Lexer + Parser: %s\n", tr.getTiming(LexingAndParsingTiming))
@@ -167,6 +172,22 @@ func (tr *TestRunner) RunTests() error {
 
 	os.Exit(exitStatusCode)
 	return nil
+}
+
+func (tr *TestRunner) getStatusSummary() string {
+	var parts []string
+
+	if len(collectedErrors) > 0 {
+		parts = append(parts, fmt.Sprintf("%s%d failed%s", colors.Red, len(collectedErrors), colors.Reset))
+	}
+
+	if tr.skippedTests > 0 {
+		parts = append(parts, fmt.Sprintf("%s%d skipped%s", colors.Yellow, tr.skippedTests, colors.Reset))
+	}
+
+	parts = append(parts, fmt.Sprintf("%s%d passed%s", colors.Green, tr.passedTests, colors.Reset))
+
+	return strings.Join(parts, ", ")
 }
 
 func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
@@ -226,12 +247,16 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 		return
 	}
 
-	if tr.options.Engine == AllEngines || tr.options.Engine == EvaluatorEngine {
+	if test.supportedEngine == AllEngines || test.supportedEngine == EvaluatorEngine {
 		tr.runEvaluatorTest(test, program, fullPath, file)
+	} else {
+		tr.skippedTests++
 	}
 
-	if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
+	if test.supportedEngine == AllEngines || test.supportedEngine == VirtualMachineEngine {
 		tr.runVMTest(test, program, fullPath, file)
+	} else {
+		tr.skippedTests++
 	}
 }
 
@@ -295,6 +320,8 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 }
 
 func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineType) {
+	tr.passedTests++
+
 	messages = append(messages, fmt.Sprintf("  %s✔%s %s %s[%s%s]%s\n",
 		colors.Green, colors.Reset, tr.cleanString(test.message),
 		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
