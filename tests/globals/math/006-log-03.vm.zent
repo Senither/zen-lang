@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non number as argument
+--FILE--
+println(math.log("string"));
+--ERROR--
+argument to `log` must be a number, got STRING
+    at <unknown>:0:0
