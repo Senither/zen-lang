@@ -24,6 +24,7 @@ type TestRunner struct {
 
 type RunnerOptions struct {
 	Engine  EngineType
+	Filter  string
 	Verbose bool
 	Compact bool
 }
@@ -121,17 +122,17 @@ func (tr *TestRunner) RunTests() error {
 			tr.runTestFile(fullPath, file)
 		}
 
-		if tr.options.Compact {
-			continue
-		}
-
 		if errorsCount == len(collectedErrors) {
-			fmt.Printf("  %s %s\n", PASSED, fullPath)
+			if len(messages) > 0 {
+				fmt.Printf("  %s %s\n", PASSED, fullPath)
+			}
 		} else {
 			fmt.Printf("  %s %s\n", FAILED, fullPath)
 		}
 
-		fmt.Println(strings.Join(messages, ""))
+		if len(messages) > 0 || errorsCount != len(collectedErrors) {
+			fmt.Println(strings.Join(messages, ""))
+		}
 	}
 
 	if tr.options.Compact {
@@ -158,7 +159,7 @@ func (tr *TestRunner) RunTests() error {
 
 	fmt.Printf("  Finished running the test suite in %s\n", tr.directory)
 
-	if tr.options.Compact {
+	if !tr.options.Verbose {
 		fmt.Println()
 		fmt.Printf("  Tests:    %s\n", tr.getStatusSummary())
 		fmt.Printf("  Duration: %s\n\n", totalTimeTake)
@@ -237,6 +238,10 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 	test, err := tr.parseTestFile(file)
 	if err != nil {
 		collectedErrors = append(collectedErrors, fmt.Sprintf("Error parsing test file %s: %s", file, err.Error()))
+		return
+	}
+
+	if tr.options.Filter != "" && !strings.Contains(test.message, tr.options.Filter) {
 		return
 	}
 
