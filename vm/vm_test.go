@@ -158,7 +158,8 @@ func TestIndexExpressions(t *testing.T) {
 		{"[[1, 1, 1]][0][0]", 1},
 		{"[][0]", nil},
 		{"[1, 2, 3][99]", nil},
-		{"[1][-1]", nil},
+		{"[1][-1]", 1},
+		{"[1][-2]", nil},
 		{"{1: 1, 2: 2}[1]", 1},
 		{"{1: 1, 2: 2}[2]", 2},
 		{"{1: 1}[0]", nil},
@@ -472,15 +473,15 @@ func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 	tests := []vmTestCase{
 		{
 			input:    `func() { 1; }(1);`,
-			expected: `wrong number of arguments: got 1, want 0`,
+			expected: `wrong number of arguments. got 1, want 0`,
 		},
 		{
 			input:    `func(a) { a; }();`,
-			expected: `wrong number of arguments: got 0, want 1`,
+			expected: `wrong number of arguments. got 0, want 1`,
 		},
 		{
 			input:    `func(a, b) { a + b; }(1);`,
-			expected: `wrong number of arguments: got 1, want 2`,
+			expected: `wrong number of arguments. got 1, want 2`,
 		},
 	}
 
