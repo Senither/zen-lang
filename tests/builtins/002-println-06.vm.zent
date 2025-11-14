@@ -1,0 +1,16 @@
+--TEST--
+Println functions
+--FILE--
+func example() {
+    return 42;
+}
+
+func example2() {
+    return 43;
+}
+
+println(example);
+println(example2);
+--EXPECT--
+Closure[<pointer>]
+Closure[<pointer>]

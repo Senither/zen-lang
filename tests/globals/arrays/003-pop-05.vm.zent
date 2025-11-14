@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non-arrays as the first argument
+--FILE--
+println(arrays.pop(5));
+--ERROR--
+argument to `pop` must be an array, got INTEGER
+    at <unknown>:0:0

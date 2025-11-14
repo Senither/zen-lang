@@ -2,6 +2,7 @@ package tester
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -42,7 +43,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	} else if result != nil && result.Type() != objects.NULL_OBJ {
 		// fmt.Printf("RESULT IS NOT A NULL OBJECT\n")
 	} else {
-		// tr.compareStandardOutputWithExpectedVM(test, fullPath)
+		tr.compareStandardOutputWithExpectedVM(test, fullPath)
 	}
 }
 
@@ -74,8 +75,13 @@ func (tr *TestRunner) compareStandardOutputWithExpectedVM(test *Test, fullPath s
 		return
 	}
 
-	out := strings.Trim(strings.Join(messages, ""), "\n")
-	if out != test.expect {
+	comparison := test.expect
+	if comparison == "" {
+		comparison = test.errors
+	}
+
+	out := tr.stripPointerLocationsFromContent(strings.Trim(strings.Join(messages, ""), "\n"))
+	if out != comparison {
 		tr.printErrorStatusMessage(
 			test,
 			fullPath,
@@ -83,7 +89,7 @@ func (tr *TestRunner) compareStandardOutputWithExpectedVM(test *Test, fullPath s
 				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
 				"Test expectation does not match the standard output",
 				out,
-				test.expect,
+				comparison,
 			),
 			VirtualMachineEngine,
 		)
@@ -91,4 +97,10 @@ func (tr *TestRunner) compareStandardOutputWithExpectedVM(test *Test, fullPath s
 	}
 
 	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
+}
+
+func (tr *TestRunner) stripPointerLocationsFromContent(content string) string {
+	r, _ := regexp.Compile(`Closure\[0x[a-zA-Z0-9]+\]`)
+
+	return r.ReplaceAllString(content, "Closure[<pointer>]")
 }

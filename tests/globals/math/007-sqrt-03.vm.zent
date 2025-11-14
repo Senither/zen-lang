@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non number as argument
+--FILE--
+println(math.sqrt("string"));
+--ERROR--
+argument to `sqrt` must be a number, got STRING
+    at <unknown>:0:0
