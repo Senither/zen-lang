@@ -25,6 +25,7 @@ type TestRunner struct {
 type RunnerOptions struct {
 	Engine  EngineType
 	Verbose bool
+	Compact bool
 }
 
 type EngineType int
@@ -120,6 +121,10 @@ func (tr *TestRunner) RunTests() error {
 			tr.runTestFile(fullPath, file)
 		}
 
+		if tr.options.Compact {
+			continue
+		}
+
 		if errorsCount == len(collectedErrors) {
 			fmt.Printf("  %s %s\n", PASSED, fullPath)
 		} else {
@@ -127,6 +132,10 @@ func (tr *TestRunner) RunTests() error {
 		}
 
 		fmt.Println(strings.Join(messages, ""))
+	}
+
+	if tr.options.Compact {
+		fmt.Print("\n\n")
 	}
 
 	if len(collectedErrors) > 0 {
@@ -142,32 +151,38 @@ func (tr *TestRunner) RunTests() error {
 		fmt.Println()
 	}
 
-	fmt.Printf("  Finished running the test suite in %s\n", tr.directory)
-	fmt.Printf("  Summary: %s\n\n", tr.getStatusSummary())
-
-	fmt.Printf("     Tests discovery: %s\n", tr.getTiming(FileDiscoveryTiming))
-	fmt.Printf("       Reading files: %s\n", tr.getTiming(ReadingFilesTiming))
-	fmt.Printf("      Lexer + Parser: %s\n", tr.getTiming(LexingAndParsingTiming))
-
-	if tr.options.Engine == AllEngines || tr.options.Engine == EvaluatorEngine {
-		fmt.Printf(" -----------------------------------\n")
-		fmt.Printf("          Evaluation: %s\n", tr.getTiming(EvaluatorExecutionTiming))
-	}
-
-	if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
-		fmt.Printf(" -----------------------------------\n")
-		fmt.Printf("  Compile + Optimize: %s\n", tr.getTiming(CompilationTiming))
-		fmt.Printf("          VM Runtime: %s\n", tr.getTiming(VMExecutionTiming))
-	}
-
 	var totalTimeTake time.Duration
 	for _, timing := range tr.timings {
 		totalTimeTake += timing
 	}
 
-	fmt.Printf(" -----------------------------------\n")
-	fmt.Printf("               Total: %s\n", totalTimeTake)
-	fmt.Printf("\n")
+	fmt.Printf("  Finished running the test suite in %s\n", tr.directory)
+
+	if tr.options.Compact {
+		fmt.Println()
+		fmt.Printf("  Tests:    %s\n", tr.getStatusSummary())
+		fmt.Printf("  Duration: %s\n\n", totalTimeTake)
+	} else {
+		fmt.Printf("  Tests: %s\n\n", tr.getStatusSummary())
+		fmt.Printf("     Tests discovery: %s\n", tr.getTiming(FileDiscoveryTiming))
+		fmt.Printf("       Reading files: %s\n", tr.getTiming(ReadingFilesTiming))
+		fmt.Printf("      Lexer + Parser: %s\n", tr.getTiming(LexingAndParsingTiming))
+
+		if tr.options.Engine == AllEngines || tr.options.Engine == EvaluatorEngine {
+			fmt.Printf(" -----------------------------------\n")
+			fmt.Printf("          Evaluation: %s\n", tr.getTiming(EvaluatorExecutionTiming))
+		}
+
+		if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
+			fmt.Printf(" -----------------------------------\n")
+			fmt.Printf("  Compile + Optimize: %s\n", tr.getTiming(CompilationTiming))
+			fmt.Printf("          VM Runtime: %s\n", tr.getTiming(VMExecutionTiming))
+		}
+
+		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf("               Total: %s\n", totalTimeTake)
+		fmt.Printf("\n")
+	}
 
 	os.Exit(exitStatusCode)
 	return nil
@@ -313,6 +328,11 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineType) {
 	tr.passedTests++
 
+	if tr.options.Compact {
+		fmt.Print(".")
+		return
+	}
+
 	messages = append(messages, fmt.Sprintf("  %s✔%s %s %s[%s%s]%s\n",
 		colors.Green, colors.Reset, tr.cleanString(test.message),
 		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
@@ -327,9 +347,14 @@ func (tr *TestRunner) printErrorStatusMessage(test *Test, fullPath, message stri
 		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
 		message,
 	)
-	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
 
-	messages = append(messages, fmt.Sprintf("  %s✖%s %s\n", colors.Red, colors.Reset, errorMessage))
+	if tr.options.Compact {
+		fmt.Print(colors.Red + "x" + colors.Reset)
+	} else {
+		messages = append(messages, fmt.Sprintf("  %s✖%s %s\n", colors.Red, colors.Reset, errorMessage))
+	}
+
+	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
 }
 
 func (tr *TestRunner) cleanString(str string) string {
