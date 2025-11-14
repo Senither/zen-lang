@@ -50,6 +50,14 @@ func (et EngineType) GetTag() string {
 	}
 }
 
+type TestShouldRun int
+
+const (
+	TestShouldRunYes TestShouldRun = iota
+	TestShouldRunSkip
+	TestShouldRunIgnore
+)
+
 type RunnerTimings string
 
 const (
@@ -247,15 +255,17 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 		return
 	}
 
-	if test.supportedEngine == AllEngines || test.supportedEngine == EvaluatorEngine {
+	switch tr.ShouldRunTest(test, EvaluatorEngine) {
+	case TestShouldRunYes:
 		tr.runEvaluatorTest(test, program, fullPath, file)
-	} else {
+	case TestShouldRunSkip:
 		tr.printSkippedStatusMessage(test, EvaluatorEngine)
 	}
 
-	if test.supportedEngine == AllEngines || test.supportedEngine == VirtualMachineEngine {
+	switch tr.ShouldRunTest(test, VirtualMachineEngine) {
+	case TestShouldRunYes:
 		tr.runVMTest(test, program, fullPath, file)
-	} else {
+	case TestShouldRunSkip:
 		tr.printSkippedStatusMessage(test, VirtualMachineEngine)
 	}
 }
@@ -374,4 +384,24 @@ func (tr *TestRunner) stripFileLocationsFromError(test *Test, fullPath string, e
 	}
 
 	return strings.Trim(strings.Join(lines, "\n"), "\n")
+}
+
+func (tr *TestRunner) ShouldRunTest(test *Test, engine EngineType) TestShouldRun {
+	if tr.options.Engine != AllEngines {
+		if tr.options.Engine != engine {
+			return TestShouldRunIgnore
+		}
+
+		if test.supportedEngine != AllEngines && test.supportedEngine != tr.options.Engine {
+			return TestShouldRunIgnore
+		}
+
+		return TestShouldRunYes
+	}
+
+	if test.supportedEngine != AllEngines && test.supportedEngine != engine {
+		return TestShouldRunSkip
+	}
+
+	return TestShouldRunYes
 }
