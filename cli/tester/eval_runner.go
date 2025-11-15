@@ -17,7 +17,10 @@ func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPat
 		env := objects.NewEnvironment(file)
 		return evaluator.Eval(program, env)
 	})
-	tr.setTiming(EvaluatorExecutionTiming, tr.getTiming(EvaluatorExecutionTiming)+time.Since(start))
+	timeTaken := time.Since(start)
+
+	tr.setTiming(EvaluatorExecutionTiming, tr.getTiming(EvaluatorExecutionTiming)+timeTaken)
+	test.metadata[EvaluatorExecutionTiming] = timeTaken
 
 	if evaluated == nil {
 		tr.printErrorStatusMessage(test, fullPath, "Evaluator returned nil, failed to evaluate the test input", EvaluatorEngine)

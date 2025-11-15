@@ -18,10 +18,31 @@ func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineTyp
 		return
 	}
 
-	messages = append(messages, fmt.Sprintf("  %s✔%s %s %s[%s%s]%s\n",
+	timings := ""
+	if tr.options.Verbose {
+		switch engineType {
+		case EvaluatorEngine:
+			timings = fmt.Sprintf(" %sT:%s%s",
+				colors.Gray, test.metadata[EvaluatorExecutionTiming], colors.Reset,
+			)
+		case VirtualMachineEngine:
+			vmTiming := test.metadata[VMExecutionTiming]
+			if vmTiming == nil {
+				vmTiming = "n/a"
+			}
+
+			timings = fmt.Sprintf(" %sC:%s VM:%s%s",
+				colors.Gray, test.metadata[CompilationTiming], vmTiming, colors.Reset,
+			)
+		}
+	}
+
+	message := fmt.Sprintf("  %s✔%s %s %s[%s%s%s]%s",
 		colors.Green, colors.Reset, tr.normalizeLineEndings(test.message),
-		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
-	))
+		colors.Gray, engineType.GetTag(), timings, colors.Gray, colors.Reset,
+	)
+
+	messages = append(messages, message+"\n")
 }
 
 func (tr *TestRunner) printErrorDoesNotMatchExpectation(

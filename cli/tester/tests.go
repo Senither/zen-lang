@@ -68,6 +68,8 @@ type Test struct {
 	expect          string
 	errors          string
 	supportedEngine EngineType
+
+	metadata map[any]any
 }
 
 var (
@@ -241,6 +243,8 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 		expect:          "",
 		errors:          "",
 		supportedEngine: AllEngines,
+
+		metadata: make(map[any]any),
 	}
 
 	for line := range strings.SplitSeq(string(content), "\n") {
