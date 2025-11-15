@@ -15,7 +15,10 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 
 	c := compiler.New(file)
 	compilerErr := c.Compile(program)
-	tr.setTiming(CompilationTiming, tr.getTiming(CompilationTiming)+time.Since(start))
+	timeTaken := time.Since(start)
+
+	tr.setTiming(CompilationTiming, tr.getTiming(CompilationTiming)+timeTaken)
+	test.metadata[CompilationTiming] = timeTaken
 
 	if compilerErr != nil {
 		tr.compareCompliedVMWithError(test, fullPath, compilerErr.Error())
@@ -34,7 +37,10 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 
 		return runner.LastPoppedStackElem()
 	})
-	tr.setTiming(VMExecutionTiming, tr.getTiming(VMExecutionTiming)+time.Since(start))
+	timeTaken = time.Since(start)
+
+	tr.setTiming(VMExecutionTiming, tr.getTiming(VMExecutionTiming)+timeTaken)
+	test.metadata[VMExecutionTiming] = timeTaken
 
 	if objects.IsError(result) {
 		tr.compareCompliedVMWithError(test, fullPath, result.Inspect())
