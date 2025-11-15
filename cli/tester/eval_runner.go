@@ -19,7 +19,7 @@ func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPat
 	})
 	timeTaken := time.Since(start)
 
-	tr.setTiming(EvaluatorExecutionTiming, tr.getTiming(EvaluatorExecutionTiming)+timeTaken)
+	tr.addTiming(EvaluatorExecutionTiming, timeTaken)
 	test.metadata[EvaluatorExecutionTiming] = timeTaken
 
 	if evaluated == nil {

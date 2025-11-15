@@ -51,8 +51,7 @@ var testCommand = &cobra.Command{
 			},
 		)
 
-		err = runner.RunTests()
-		if err != nil {
+		if err = runner.RunTests(); err != nil {
 			fmt.Printf("Error running tests: %s\n", err)
 		}
 	},

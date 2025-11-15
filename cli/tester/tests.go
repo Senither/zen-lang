@@ -89,8 +89,8 @@ func NewTestRunner(directory, path string, options RunnerOptions) *TestRunner {
 	}
 }
 
-func (tr *TestRunner) setTiming(timingType RunnerTimings, duration time.Duration) {
-	tr.timings[timingType] = duration
+func (tr *TestRunner) addTiming(timingType RunnerTimings, duration time.Duration) {
+	tr.timings[timingType] = tr.getTiming(timingType) + duration
 }
 
 func (tr *TestRunner) getTiming(timingType RunnerTimings) time.Duration {
@@ -98,6 +98,7 @@ func (tr *TestRunner) getTiming(timingType RunnerTimings) time.Duration {
 	if timing <= 0 {
 		return 0
 	}
+
 	return timing
 }
 
@@ -124,16 +125,16 @@ func (tr *TestRunner) RunTests() error {
 			tr.runTestFile(fullPath, file)
 		}
 
-		if errorsCount == len(collectedErrors) {
-			if len(messages) > 0 {
+		if !tr.options.Compact {
+			if errorsCount != len(collectedErrors) {
+				fmt.Printf("  %s %s\n", FAILED, fullPath)
+			} else if len(messages) > 0 {
 				fmt.Printf("  %s %s\n", PASSED, fullPath)
 			}
-		} else {
-			fmt.Printf("  %s %s\n", FAILED, fullPath)
-		}
 
-		if len(messages) > 0 || errorsCount != len(collectedErrors) {
-			fmt.Println(strings.Join(messages, ""))
+			if len(messages) > 0 || errorsCount != len(collectedErrors) {
+				fmt.Println(strings.Join(messages, ""))
+			}
 		}
 	}
 
@@ -154,45 +155,47 @@ func (tr *TestRunner) RunTests() error {
 		fmt.Println()
 	}
 
-	var totalTimeTake time.Duration
-	for _, timing := range tr.timings {
-		totalTimeTake += timing
-	}
-
-	fmt.Printf("  Finished running the test suite in %s\n", tr.directory)
-
-	if !tr.options.Verbose {
-		fmt.Println()
-		fmt.Printf("  Tests:    %s\n", tr.getStatusSummary())
-		fmt.Printf("  Duration: %s\n\n", totalTimeTake)
-	} else {
-		fmt.Printf("  Tests: %s\n\n", tr.getStatusSummary())
-		fmt.Printf("     Tests discovery: %s\n", tr.getTiming(FileDiscoveryTiming))
-		fmt.Printf("       Reading files: %s\n", tr.getTiming(ReadingFilesTiming))
-		fmt.Printf("      Lexer + Parser: %s\n", tr.getTiming(LexingAndParsingTiming))
-
-		if tr.options.Engine == AllEngines || tr.options.Engine == EvaluatorEngine {
-			fmt.Printf(" -----------------------------------\n")
-			fmt.Printf("          Evaluation: %s\n", tr.getTiming(EvaluatorExecutionTiming))
-		}
-
-		if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
-			fmt.Printf(" -----------------------------------\n")
-			fmt.Printf("  Compile + Optimize: %s\n", tr.getTiming(CompilationTiming))
-			fmt.Printf("          VM Runtime: %s\n", tr.getTiming(VMExecutionTiming))
-		}
-
-		fmt.Printf(" -----------------------------------\n")
-		fmt.Printf("               Total: %s\n", totalTimeTake)
-		fmt.Printf("\n")
-	}
+	tr.printFinishedTestSuiteSummary()
 
 	os.Exit(exitStatusCode)
 	return nil
 }
 
+func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
+	start := time.Now()
+	var relativeTestFiles []string
+
+	err := filepath.Walk(tr.path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".zent") {
+			absolutePath, _ := filepath.Abs(path)
+			relativeTestFiles = append(relativeTestFiles, absolutePath)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	groupedTestFiles := make(map[string][]string)
+
+	for _, relativePath := range relativeTestFiles {
+		dir := filepath.Dir(relativePath)
+		groupedTestFiles[dir] = append(groupedTestFiles[dir], relativePath)
+	}
+
+	tr.addTiming(FileDiscoveryTiming, time.Since(start))
+
+	return groupedTestFiles, nil
+}
+
 func (tr *TestRunner) runTestFile(fullPath, file string) {
-	test, err := tr.parseTestFile(file)
+	test, err := tr.readTestFileFromDisk(file)
 	if err != nil {
 		collectedErrors = append(collectedErrors, fmt.Sprintf("Error parsing test file %s: %s", file, err.Error()))
 		return
@@ -207,7 +210,7 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 	p := parser.New(l, file)
 
 	program := p.ParseProgram()
-	tr.setTiming(LexingAndParsingTiming, tr.getTiming(LexingAndParsingTiming)+time.Since(startLexingAndParsing))
+	tr.addTiming(LexingAndParsingTiming, time.Since(startLexingAndParsing))
 
 	if len(p.Errors()) > 0 {
 		msg := []string{"Parser errors found"}
@@ -219,16 +222,16 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 		return
 	}
 
-	if tr.ShouldRunTest(test, EvaluatorEngine) {
+	if tr.shouldRunTest(test, EvaluatorEngine) {
 		tr.runEvaluatorTest(test, program, fullPath, file)
 	}
 
-	if tr.ShouldRunTest(test, VirtualMachineEngine) {
+	if tr.shouldRunTest(test, VirtualMachineEngine) {
 		tr.runVMTest(test, program, fullPath, file)
 	}
 }
 
-func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
+func (tr *TestRunner) readTestFileFromDisk(file string) (*Test, error) {
 	start := time.Now()
 
 	content, err := os.ReadFile(file)
@@ -284,7 +287,7 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 		test.supportedEngine = EvaluatorEngine
 	}
 
-	tr.setTiming(ReadingFilesTiming, tr.getTiming(ReadingFilesTiming)+time.Since(start))
+	tr.addTiming(ReadingFilesTiming, time.Since(start))
 
 	return test, nil
 }
@@ -301,40 +304,44 @@ func (tr *TestRunner) getStatusSummary() string {
 	return strings.Join(parts, ", ")
 }
 
-func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
-	start := time.Now()
-	var relativeTestFiles []string
-
-	err := filepath.Walk(tr.path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".zent") {
-			absolutePath, _ := filepath.Abs(path)
-			relativeTestFiles = append(relativeTestFiles, absolutePath)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
+func (tr *TestRunner) printFinishedTestSuiteSummary() {
+	var totalTimeTake time.Duration
+	for _, timing := range tr.timings {
+		totalTimeTake += timing
 	}
 
-	groupedTestFiles := make(map[string][]string)
+	fmt.Printf("  Finished running the test suite in %s\n", tr.directory)
 
-	for _, relativePath := range relativeTestFiles {
-		dir := filepath.Dir(relativePath)
-		groupedTestFiles[dir] = append(groupedTestFiles[dir], relativePath)
+	if !tr.options.Verbose {
+		fmt.Println()
+		fmt.Printf("  Tests:    %s\n", tr.getStatusSummary())
+		fmt.Printf("  Duration: %s\n\n", totalTimeTake)
+
+		return
 	}
 
-	tr.setTiming(FileDiscoveryTiming, time.Since(start))
+	fmt.Printf("  Tests: %s\n\n", tr.getStatusSummary())
+	fmt.Printf("     Tests discovery: %s\n", tr.getTiming(FileDiscoveryTiming))
+	fmt.Printf("       Reading files: %s\n", tr.getTiming(ReadingFilesTiming))
+	fmt.Printf("      Lexer + Parser: %s\n", tr.getTiming(LexingAndParsingTiming))
 
-	return groupedTestFiles, nil
+	if tr.options.Engine == AllEngines || tr.options.Engine == EvaluatorEngine {
+		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf("          Evaluation: %s\n", tr.getTiming(EvaluatorExecutionTiming))
+	}
+
+	if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
+		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf("  Compile + Optimize: %s\n", tr.getTiming(CompilationTiming))
+		fmt.Printf("          VM Runtime: %s\n", tr.getTiming(VMExecutionTiming))
+	}
+
+	fmt.Printf(" -----------------------------------\n")
+	fmt.Printf("               Total: %s\n", totalTimeTake)
+	fmt.Printf("\n")
 }
 
-func (tr *TestRunner) ShouldRunTest(test *Test, engine EngineType) bool {
+func (tr *TestRunner) shouldRunTest(test *Test, engine EngineType) bool {
 	if tr.options.Engine != AllEngines {
 		if tr.options.Engine != engine {
 			return false
