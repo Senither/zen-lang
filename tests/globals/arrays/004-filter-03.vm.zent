@@ -1,0 +1,12 @@
+--TEST--
+It fails to filter values from an array with mixed types
+--FILE--
+var arr = [1,2,"three",4];
+var result = arrays.filter(arr, func(x) { return x > 2; });
+
+println(result);
+println(arr);
+--ERROR--
+unknown operator: 19 (STRING INTEGER)
+    at <unknown>:0:0
+[1, 2, three, 4]

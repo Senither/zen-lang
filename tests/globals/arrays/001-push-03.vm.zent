@@ -1,0 +1,16 @@
+--TEST--
+Can push mixed values to an array
+--FILE--
+var arr = [1];
+
+println(arrays.push(arr, 5));
+println(arrays.push(arr, 3.14));
+println(arrays.push(arr, "string"));
+println(arrays.push(arr, true));
+println(arrays.push(arr, func () { return 42; }));
+--EXPECT--
+[1, 5]
+[1, 5, 3.140000]
+[1, 5, 3.140000, string]
+[1, 5, 3.140000, string, true]
+[1, 5, 3.140000, string, true, Closure[<pointer>]]

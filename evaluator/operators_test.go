@@ -53,12 +53,12 @@ func TestVarReassignmentFailure(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{`var x = 5; x = 10; x;`, "Cannot modify immutable variable 'x'\n    at <unknown>:1:14"},
-		{`var x = 3.14; x = 4.14; x;`, "Cannot modify immutable variable 'x'\n    at <unknown>:1:17"},
-		{`var x = "hello"; x = "world"; x;`, "Cannot modify immutable variable 'x'\n    at <unknown>:1:20"},
-		{`var name = "Senither"; name = "test"; name;`, "Cannot modify immutable variable 'name'\n    at <unknown>:1:29"},
-		{`var arr = [1,2,3]; arr = ['another', 'array']; arr;`, "Cannot modify immutable variable 'arr'\n    at <unknown>:1:24"},
-		{`var obj = {"key": "value"}; obj = {"key": "new value"}; obj;`, "Cannot modify immutable variable 'obj'\n    at <unknown>:1:33"},
+		{`var x = 5; x = 10; x;`, "cannot modify immutable variable: x\n    at <unknown>:1:14"},
+		{`var x = 3.14; x = 4.14; x;`, "cannot modify immutable variable: x\n    at <unknown>:1:17"},
+		{`var x = "hello"; x = "world"; x;`, "cannot modify immutable variable: x\n    at <unknown>:1:20"},
+		{`var name = "Senither"; name = "test"; name;`, "cannot modify immutable variable: name\n    at <unknown>:1:29"},
+		{`var arr = [1,2,3]; arr = ['another', 'array']; arr;`, "cannot modify immutable variable: arr\n    at <unknown>:1:24"},
+		{`var obj = {"key": "value"}; obj = {"key": "new value"}; obj;`, "cannot modify immutable variable: obj\n    at <unknown>:1:33"},
 	}
 
 	for _, tt := range input {

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given unsupported values
+--FILE--
+len(5);
+--ERROR--
+argument to `len` not supported, got INTEGER
+    at <unknown>:0:0
