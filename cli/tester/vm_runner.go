@@ -1,8 +1,6 @@
 package tester
 
 import (
-	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -20,7 +18,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	tr.setTiming(CompilationTiming, tr.getTiming(CompilationTiming)+time.Since(start))
 
 	if compilerErr != nil {
-		tr.compareCompilerErrorWithExpected(test, fullPath, compilerErr.Error())
+		tr.compareCompliedVMWithError(test, fullPath, compilerErr.Error())
 		return
 	}
 
@@ -39,27 +37,22 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	tr.setTiming(VMExecutionTiming, tr.getTiming(VMExecutionTiming)+time.Since(start))
 
 	if objects.IsError(result) {
-		tr.compareCompilerErrorWithExpected(test, fullPath, result.Inspect())
+		tr.compareCompliedVMWithError(test, fullPath, result.Inspect())
 	} else if result != nil && result.Type() != objects.NULL_OBJ {
-		tr.compareResultWithExpected(test, fullPath, result)
+		tr.compareCompliedVMWithExpected(test, fullPath, result)
 	} else {
-		tr.compareStandardOutputWithExpectedVM(test, fullPath)
+		tr.compareCompliedVMWithStandardOutput(test, fullPath)
 	}
 }
 
-func (tr *TestRunner) compareCompilerErrorWithExpected(test *Test, fullPath string, errorMessage string) {
-	err := tr.stripFileLocationsFromError(errorMessage)
+func (tr *TestRunner) compareCompliedVMWithError(test *Test, fullPath string, errorMessage string) {
+	err := tr.normalizeFileLocations(errorMessage)
 
 	if err != test.errors {
-		tr.printErrorStatusMessage(
-			test,
-			fullPath,
-			fmt.Sprintf(
-				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
-				"Test expectation does not match the compiler error",
-				err,
-				test.errors,
-			),
+		tr.printErrorDoesNotMatchExpectation(
+			test, fullPath,
+			"Test expectation does not match the compiler error",
+			err, test.errors,
 			VirtualMachineEngine,
 		)
 		return
@@ -68,19 +61,14 @@ func (tr *TestRunner) compareCompilerErrorWithExpected(test *Test, fullPath stri
 	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
 }
 
-func (tr *TestRunner) compareResultWithExpected(test *Test, fullPath string, result objects.Object) {
-	value := tr.stripPointerLocationsFromContent(strings.Trim(result.Inspect(), "\n"))
+func (tr *TestRunner) compareCompliedVMWithExpected(test *Test, fullPath string, result objects.Object) {
+	value := tr.normalizeClosurePointers(strings.Trim(result.Inspect(), "\n"))
 
 	if value != test.expect {
-		tr.printErrorStatusMessage(
-			test,
-			fullPath,
-			fmt.Sprintf(
-				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
-				"Test expectation does not match the evaluated result",
-				value,
-				test.expect,
-			),
+		tr.printErrorDoesNotMatchExpectation(
+			test, fullPath,
+			"Test expectation does not match the evaluated result",
+			value, test.expect,
 			VirtualMachineEngine,
 		)
 		return
@@ -89,7 +77,7 @@ func (tr *TestRunner) compareResultWithExpected(test *Test, fullPath string, res
 	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
 }
 
-func (tr *TestRunner) compareStandardOutputWithExpectedVM(test *Test, fullPath string) {
+func (tr *TestRunner) compareCompliedVMWithStandardOutput(test *Test, fullPath string) {
 	messages := vm.Stdout.ReadAll()
 	if len(messages) == 0 {
 		tr.printErrorStatusMessage(test, fullPath, "No output captured from standard output", VirtualMachineEngine)
@@ -101,27 +89,16 @@ func (tr *TestRunner) compareStandardOutputWithExpectedVM(test *Test, fullPath s
 		comparison = test.errors
 	}
 
-	out := tr.stripPointerLocationsFromContent(strings.Trim(strings.Join(messages, ""), "\n"))
+	out := tr.normalizeClosurePointers(strings.Trim(strings.Join(messages, ""), "\n"))
 	if out != comparison {
-		tr.printErrorStatusMessage(
-			test,
-			fullPath,
-			fmt.Sprintf(
-				"%s\n     -----------------[ RESULT ]-----------------\n%s\n     ----------------[ EXPECTED ]-----------------\n%s",
-				"Test expectation does not match the standard output",
-				out,
-				comparison,
-			),
+		tr.printErrorDoesNotMatchExpectation(
+			test, fullPath,
+			"Test expectation does not match the standard output",
+			out, comparison,
 			VirtualMachineEngine,
 		)
 		return
 	}
 
 	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
-}
-
-func (tr *TestRunner) stripPointerLocationsFromContent(content string) string {
-	r, _ := regexp.Compile(`Closure\[0x[a-zA-Z0-9]+\]`)
-
-	return r.ReplaceAllString(content, "Closure[<pointer>]")
 }

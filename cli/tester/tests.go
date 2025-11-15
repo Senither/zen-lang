@@ -189,51 +189,6 @@ func (tr *TestRunner) RunTests() error {
 	return nil
 }
 
-func (tr *TestRunner) getStatusSummary() string {
-	var parts []string
-
-	if len(collectedErrors) > 0 {
-		parts = append(parts, fmt.Sprintf("%s%d failed%s", colors.Red, len(collectedErrors), colors.Reset))
-	}
-
-	parts = append(parts, fmt.Sprintf("%s%d passed%s", colors.Green, tr.passedTests, colors.Reset))
-
-	return strings.Join(parts, ", ")
-}
-
-func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
-	start := time.Now()
-	var relativeTestFiles []string
-
-	err := filepath.Walk(tr.path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".zent") {
-			absolutePath, _ := filepath.Abs(path)
-			relativeTestFiles = append(relativeTestFiles, absolutePath)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	groupedTestFiles := make(map[string][]string)
-
-	for _, relativePath := range relativeTestFiles {
-		dir := filepath.Dir(relativePath)
-		groupedTestFiles[dir] = append(groupedTestFiles[dir], relativePath)
-	}
-
-	tr.setTiming(FileDiscoveryTiming, time.Since(start))
-
-	return groupedTestFiles, nil
-}
-
 func (tr *TestRunner) runTestFile(fullPath, file string) {
 	test, err := tr.parseTestFile(file)
 	if err != nil {
@@ -315,9 +270,9 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 		}
 	}
 
-	test.file = tr.cleanString(test.file)
-	test.expect = tr.cleanString(test.expect)
-	test.errors = tr.cleanString(test.errors)
+	test.file = tr.normalizeLineEndings(test.file)
+	test.expect = tr.normalizeLineEndings(test.expect)
+	test.errors = tr.normalizeLineEndings(test.errors)
 
 	if strings.HasSuffix(file, ".vm.zent") {
 		test.supportedEngine = VirtualMachineEngine
@@ -330,57 +285,49 @@ func (tr *TestRunner) parseTestFile(file string) (*Test, error) {
 	return test, nil
 }
 
-func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineType) {
-	tr.passedTests++
+func (tr *TestRunner) getStatusSummary() string {
+	var parts []string
 
-	if tr.options.Compact {
-		fmt.Print(".")
-		return
+	if len(collectedErrors) > 0 {
+		parts = append(parts, fmt.Sprintf("%s%d failed%s", colors.Red, len(collectedErrors), colors.Reset))
 	}
 
-	messages = append(messages, fmt.Sprintf("  %s✔%s %s %s[%s%s]%s\n",
-		colors.Green, colors.Reset, tr.cleanString(test.message),
-		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
-	))
+	parts = append(parts, fmt.Sprintf("%s%d passed%s", colors.Green, tr.passedTests, colors.Reset))
+
+	return strings.Join(parts, ", ")
 }
 
-func (tr *TestRunner) printErrorStatusMessage(test *Test, fullPath, message string, engineType EngineType) {
-	exitStatusCode = 1
+func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
+	start := time.Now()
+	var relativeTestFiles []string
 
-	errorMessage := fmt.Sprintf("%s %s[%s%s]%s\n     %s",
-		tr.cleanString(test.message),
-		colors.Gray, engineType.GetTag(), colors.Gray, colors.Reset,
-		message,
-	)
-
-	if tr.options.Compact {
-		fmt.Print(colors.Red + "x" + colors.Reset)
-	} else {
-		messages = append(messages, fmt.Sprintf("  %s✖%s %s\n", colors.Red, colors.Reset, errorMessage))
-	}
-
-	collectedErrors = append(collectedErrors, fmt.Sprintf("%s: %s", fullPath, errorMessage))
-}
-
-func (tr *TestRunner) cleanString(str string) string {
-	str = strings.ReplaceAll(str, "\r\n", "\n")
-	str = strings.Trim(str, "\n")
-
-	return str
-}
-
-func (tr *TestRunner) stripFileLocationsFromError(err string) string {
-	lines := strings.Split(err, "\n")
-
-	for i, line := range lines {
-		if strings.Contains(line, "at ") && strings.Contains(line, ".zent:") {
-			fileInfo := strings.Split(line, ".zent:")[1]
-
-			lines[i] = fmt.Sprintf("    at <unknown>:%s", fileInfo)
+	err := filepath.Walk(tr.path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
+
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".zent") {
+			absolutePath, _ := filepath.Abs(path)
+			relativeTestFiles = append(relativeTestFiles, absolutePath)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	return strings.Trim(strings.Join(lines, "\n"), "\n")
+	groupedTestFiles := make(map[string][]string)
+
+	for _, relativePath := range relativeTestFiles {
+		dir := filepath.Dir(relativePath)
+		groupedTestFiles[dir] = append(groupedTestFiles[dir], relativePath)
+	}
+
+	tr.setTiming(FileDiscoveryTiming, time.Since(start))
+
+	return groupedTestFiles, nil
 }
 
 func (tr *TestRunner) ShouldRunTest(test *Test, engine EngineType) bool {
