@@ -17,7 +17,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	compilerErr := c.Compile(program)
 	timeTaken := time.Since(start)
 
-	tr.setTiming(CompilationTiming, tr.getTiming(CompilationTiming)+timeTaken)
+	tr.addTiming(CompilationTiming, timeTaken)
 	test.metadata[CompilationTiming] = timeTaken
 
 	if compilerErr != nil {
@@ -39,7 +39,7 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	})
 	timeTaken = time.Since(start)
 
-	tr.setTiming(VMExecutionTiming, tr.getTiming(VMExecutionTiming)+timeTaken)
+	tr.addTiming(VMExecutionTiming, timeTaken)
 	test.metadata[VMExecutionTiming] = timeTaken
 
 	if objects.IsError(result) {
