@@ -2,7 +2,9 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/senither/zen-lang/cli/tester"
 	"github.com/spf13/cobra"
@@ -59,13 +61,18 @@ var testCommand = &cobra.Command{
 
 func getTestRunnerEngine(cmd *cobra.Command) tester.EngineType {
 	engine, _ := cmd.Flags().GetString("engine")
-	switch engine {
-	case "eval":
+	switch strings.ToLower(engine) {
+	case "evaluator", "eval", "e", "interpreter", "int", "inter":
 		return tester.EvaluatorEngine
-	case "vm":
+	case "virtual", "machine", "vm", "v", "virt", "mach":
 		return tester.VirtualMachineEngine
+	case "all", "a", "both", "b":
+		return tester.AllEngines
 
 	default:
-		return tester.AllEngines
+		fmt.Printf("Unknown engine value: %s\n", engine)
+		os.Exit(0)
 	}
+
+	return tester.AllEngines
 }
