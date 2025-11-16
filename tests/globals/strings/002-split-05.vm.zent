@@ -1,0 +1,7 @@
+--TEST--
+It fails when called with wrong argument types
+--FILE--
+println(strings.split(5, "test"));
+--ERROR--
+argument to `contains` must be a string, got INTEGER
+    at <unknown>:0:0

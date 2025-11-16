@@ -397,6 +397,7 @@ func (vm *VM) executeComparison(op code.Opcode) error {
 		return vm.push(objects.NativeBoolToBooleanObject(left == right))
 	case code.OpNotEqual:
 		return vm.push(objects.NativeBoolToBooleanObject(left != right))
+
 	default:
 		return fmt.Errorf("unknown operator: %d (%s %s)", op, leftType, rightType)
 	}
@@ -460,14 +461,18 @@ func (vm *VM) executeIndexExpression(left, index objects.Object) error {
 
 func (vm *VM) executeArrayIndex(array, index objects.Object) error {
 	arrayObj := array.(*objects.Array)
-	i := index.(*objects.Integer).Value
+	idx := index.(*objects.Integer).Value
 	max := int64(len(arrayObj.Elements) - 1)
 
-	if i < 0 || i > max {
+	if idx < 0 {
+		idx = int64(len(arrayObj.Elements)) + idx
+	}
+
+	if idx < 0 || idx > max {
 		return vm.push(objects.NULL)
 	}
 
-	return vm.push(arrayObj.Elements[i])
+	return vm.push(arrayObj.Elements[idx])
 }
 
 func (vm *VM) executeHashIndex(hash, index objects.Object) error {
@@ -560,7 +565,7 @@ func (vm *VM) executeCall(numArgs int) error {
 
 func (vm *VM) callClosure(cl *objects.Closure, numArgs int) error {
 	if numArgs != cl.Fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: got %d, want %d", numArgs, cl.Fn.NumParameters)
+		return fmt.Errorf("wrong number of arguments. got %d, want %d", numArgs, cl.Fn.NumParameters)
 	}
 
 	frame := NewFrame(cl, vm.sp-numArgs)
