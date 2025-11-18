@@ -11,6 +11,8 @@ import (
 )
 
 func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file string) {
+	tr.incrementTestsFound(VirtualMachineEngine)
+
 	start := time.Now()
 
 	c := compiler.New(file)
@@ -21,14 +23,43 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	test.metadata[CompilationTiming] = timeTaken
 
 	if compilerErr != nil {
-		tr.compareCompliedVMWithError(test, fullPath, compilerErr.Error())
+		tr.compareCompliedVMWithError(test, fullPath, compilerErr.Error(), VirtualMachineEngine)
 		return
 	}
 
-	vm.Stdout.Clear()
+	tr.runCompiledVMTest(test, c.Bytecode(), fullPath, _VirtualMachineEngineUnprocessed)
+
 	start = time.Now()
+	bytes := c.Bytecode().Serialize()
+	timeTaken = time.Since(start)
+
+	tr.addTiming(SerializationTiming, timeTaken)
+	test.metadata[SerializationTiming] = timeTaken
+
+	start = time.Now()
+	deserializedBytecode, err := compiler.Deserialize(bytes)
+	timeTaken = time.Since(start)
+
+	tr.addTiming(DeserializationTiming, timeTaken)
+	test.metadata[DeserializationTiming] = timeTaken
+
+	if err != nil {
+		tr.printErrorStatusMessage(
+			test, fullPath,
+			"Failed to deserialize bytecode: "+err.Error(),
+			_VirtualMachineEngineSerialized,
+		)
+		return
+	}
+
+	tr.runCompiledVMTest(test, deserializedBytecode, fullPath, _VirtualMachineEngineSerialized)
+}
+
+func (tr *TestRunner) runCompiledVMTest(test *Test, bytecode *compiler.Bytecode, fullPath string, engineType EngineType) {
+	vm.Stdout.Clear()
+	start := time.Now()
 	result := vm.Stdout.Mute(func() objects.Object {
-		runner := vm.New(c.Bytecode())
+		runner := vm.New(bytecode)
 		runner.EnableStdoutCapture()
 
 		if runErr := runner.Run(); runErr != nil {
@@ -37,21 +68,26 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 
 		return runner.LastPoppedStackElem()
 	})
-	timeTaken = time.Since(start)
+	timeTaken := time.Since(start)
 
 	tr.addTiming(VMExecutionTiming, timeTaken)
 	test.metadata[VMExecutionTiming] = timeTaken
 
 	if objects.IsError(result) {
-		tr.compareCompliedVMWithError(test, fullPath, result.Inspect())
+		tr.compareCompliedVMWithError(test, fullPath, result.Inspect(), engineType)
 	} else if result != nil && result.Type() != objects.NULL_OBJ {
-		tr.compareCompliedVMWithExpected(test, fullPath, result)
+		tr.compareCompliedVMWithExpected(test, fullPath, result, engineType)
 	} else {
-		tr.compareCompliedVMWithStandardOutput(test, fullPath)
+		tr.compareCompliedVMWithStandardOutput(test, fullPath, engineType)
 	}
 }
 
-func (tr *TestRunner) compareCompliedVMWithError(test *Test, fullPath string, errorMessage string) {
+func (tr *TestRunner) compareCompliedVMWithError(
+	test *Test,
+	fullPath string,
+	errorMessage string,
+	engineType EngineType,
+) {
 	err := tr.normalizeFileLocations(errorMessage)
 
 	if err != test.errors {
@@ -59,15 +95,20 @@ func (tr *TestRunner) compareCompliedVMWithError(test *Test, fullPath string, er
 			test, fullPath,
 			"Test expectation does not match the compiler error",
 			err, test.errors,
-			VirtualMachineEngine,
+			engineType,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
+	tr.printSuccessStatusMessage(test, engineType)
 }
 
-func (tr *TestRunner) compareCompliedVMWithExpected(test *Test, fullPath string, result objects.Object) {
+func (tr *TestRunner) compareCompliedVMWithExpected(
+	test *Test,
+	fullPath string,
+	result objects.Object,
+	engineType EngineType,
+) {
 	value := tr.normalizeClosurePointers(strings.Trim(result.Inspect(), "\n"))
 
 	if value != test.expect {
@@ -75,18 +116,22 @@ func (tr *TestRunner) compareCompliedVMWithExpected(test *Test, fullPath string,
 			test, fullPath,
 			"Test expectation does not match the evaluated result",
 			value, test.expect,
-			VirtualMachineEngine,
+			engineType,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
+	tr.printSuccessStatusMessage(test, engineType)
 }
 
-func (tr *TestRunner) compareCompliedVMWithStandardOutput(test *Test, fullPath string) {
+func (tr *TestRunner) compareCompliedVMWithStandardOutput(
+	test *Test,
+	fullPath string,
+	engineType EngineType,
+) {
 	messages := vm.Stdout.ReadAll()
 	if len(messages) == 0 {
-		tr.printErrorStatusMessage(test, fullPath, "No output captured from standard output", VirtualMachineEngine)
+		tr.printErrorStatusMessage(test, fullPath, "No output captured from standard output", engineType)
 		return
 	}
 
@@ -101,10 +146,10 @@ func (tr *TestRunner) compareCompliedVMWithStandardOutput(test *Test, fullPath s
 			test, fullPath,
 			"Test expectation does not match the standard output",
 			out, comparison,
-			VirtualMachineEngine,
+			engineType,
 		)
 		return
 	}
 
-	tr.printSuccessStatusMessage(test, VirtualMachineEngine)
+	tr.printSuccessStatusMessage(test, engineType)
 }

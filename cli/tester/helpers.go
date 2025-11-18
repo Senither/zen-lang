@@ -25,7 +25,7 @@ func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineTyp
 			timings = fmt.Sprintf(" %sT:%s%s",
 				colors.Gray, test.metadata[EvaluatorExecutionTiming], colors.Reset,
 			)
-		case VirtualMachineEngine:
+		case VirtualMachineEngine, _VirtualMachineEngineUnprocessed, _VirtualMachineEngineSerialized:
 			vmTiming := test.metadata[VMExecutionTiming]
 			if vmTiming == nil {
 				vmTiming = "n/a"

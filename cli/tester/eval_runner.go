@@ -10,6 +10,8 @@ import (
 )
 
 func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPath, file string) {
+	tr.incrementTestsFound(EvaluatorEngine)
+
 	evaluator.Stdout.Clear()
 
 	start := time.Now()

@@ -20,6 +20,8 @@ type TestRunner struct {
 	timings   map[RunnerTimings]time.Duration
 
 	passedTests int
+
+	testsFound map[EngineType]int
 }
 
 type RunnerOptions struct {
@@ -35,6 +37,9 @@ const (
 	AllEngines EngineType = iota
 	EvaluatorEngine
 	VirtualMachineEngine
+
+	_VirtualMachineEngineUnprocessed
+	_VirtualMachineEngineSerialized
 )
 
 func (et EngineType) GetTag() string {
@@ -45,6 +50,10 @@ func (et EngineType) GetTag() string {
 		return colors.Cyan + "Eval"
 	case VirtualMachineEngine:
 		return colors.Magenta + "VM"
+	case _VirtualMachineEngineUnprocessed:
+		return colors.Magenta + "VM-DIRECT"
+	case _VirtualMachineEngineSerialized:
+		return colors.Magenta + "VM-SERIAL"
 
 	default:
 		return "unknown"
@@ -58,6 +67,8 @@ const (
 	ReadingFilesTiming       RunnerTimings = "Reading Files"
 	LexingAndParsingTiming   RunnerTimings = "Lexing + Parsing"
 	CompilationTiming        RunnerTimings = "Compilation"
+	SerializationTiming      RunnerTimings = "Serialization"
+	DeserializationTiming    RunnerTimings = "Deserialization"
 	EvaluatorExecutionTiming RunnerTimings = "Evaluator Execution"
 	VMExecutionTiming        RunnerTimings = "VM Execution"
 )
@@ -82,10 +93,11 @@ var (
 
 func NewTestRunner(directory, path string, options RunnerOptions) *TestRunner {
 	return &TestRunner{
-		directory: directory,
-		path:      path,
-		options:   options,
-		timings:   make(map[RunnerTimings]time.Duration),
+		directory:  directory,
+		path:       path,
+		options:    options,
+		timings:    make(map[RunnerTimings]time.Duration),
+		testsFound: make(map[EngineType]int),
 	}
 }
 
@@ -100,6 +112,14 @@ func (tr *TestRunner) getTiming(timingType RunnerTimings) time.Duration {
 	}
 
 	return timing
+}
+
+func (tr *TestRunner) incrementTestsFound(engineType EngineType) {
+	tr.testsFound[engineType] = tr.testsFound[engineType] + 1
+}
+
+func (tr *TestRunner) getTestsFound(engineType EngineType) int {
+	return tr.testsFound[engineType]
 }
 
 func (tr *TestRunner) RunTests() error {
@@ -326,17 +346,25 @@ func (tr *TestRunner) printFinishedTestSuiteSummary() {
 	fmt.Printf("      Lexer + Parser: %s\n", tr.getTiming(LexingAndParsingTiming))
 
 	if tr.options.Engine == AllEngines || tr.options.Engine == EvaluatorEngine {
-		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf(" ---------------------------------------------\n")
 		fmt.Printf("          Evaluation: %s\n", tr.getTiming(EvaluatorExecutionTiming))
+		fmt.Printf("         Takes on avg %s per test\n",
+			tr.getTiming(EvaluatorExecutionTiming)/time.Duration(tr.getTestsFound(EvaluatorEngine)),
+		)
 	}
 
 	if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
-		fmt.Printf(" -----------------------------------\n")
+		fmt.Printf(" ---------------------------------------------\n")
 		fmt.Printf("  Compile + Optimize: %s\n", tr.getTiming(CompilationTiming))
+		fmt.Printf("       Serialization: %s\n", tr.getTiming(SerializationTiming))
+		fmt.Printf("     Deserialization: %s\n", tr.getTiming(DeserializationTiming))
 		fmt.Printf("          VM Runtime: %s\n", tr.getTiming(VMExecutionTiming))
+		fmt.Printf("         Takes on avg %s per test\n",
+			tr.getTiming(VMExecutionTiming)/time.Duration(tr.getTestsFound(EvaluatorEngine)*2),
+		)
 	}
 
-	fmt.Printf(" -----------------------------------\n")
+	fmt.Printf(" ---------------------------------------------\n")
 	fmt.Printf("               Total: %s\n", totalTimeTake)
 	fmt.Printf("\n")
 }
