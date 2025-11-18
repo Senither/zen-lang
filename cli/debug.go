@@ -17,6 +17,7 @@ import (
 
 func init() {
 	debugCommand.Flags().BoolP("verbose", "v", false, "Disables print capture and panic recoveries so failures show full stack traces.")
+	debugCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
 
 	rootCommand.AddCommand(debugCommand)
 }
@@ -29,6 +30,8 @@ var debugCommand = &cobra.Command{
 	Args:   cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose, _ := cmd.Flags().GetBool("verbose")
+		serialize, _ := cmd.Flags().GetBool("serialize")
+
 		table, globals, constants := createCompilerParameters()
 
 		createREPLRunner(args, []string{}, func(input string, path any) {
@@ -50,7 +53,18 @@ var debugCommand = &cobra.Command{
 			if compilerErr != nil {
 				fmt.Printf(colors.BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", colors.Reset, compilerErr.Error())
 			} else {
-				fmt.Println(strings.TrimRight(bytecode.String(), "\n"))
+				if !serialize {
+					fmt.Print(bytecode.String())
+				} else {
+					series := bytecode.Serialize()
+					deserializedBytecode, err := compiler.Deserialize(series)
+					if err != nil {
+						fmt.Printf("Deserialization Error: %s\n", err)
+						return
+					}
+
+					printBytecodeComparison(bytecode, deserializedBytecode)
+				}
 			}
 
 			evalStart := time.Now()
@@ -69,6 +83,18 @@ var debugCommand = &cobra.Command{
 
 			fmt.Printf("=====[ Virtual Machine Result (Time: %s) ]=====\n", vmDuration)
 			fmt.Println(vmRes)
+
+			if serialize {
+				vmStart := time.Now()
+				series := bytecode.Serialize()
+				deserializedBytecode, _ := compiler.Deserialize(series)
+
+				vmRes = runAndReturnVirtualMachineResult(verbose, deserializedBytecode, globals)
+				vmDuration := time.Since(vmStart)
+
+				fmt.Printf("=====[ Virtual Machine Serializer Result (Time: %s) ]=====\n", vmDuration)
+				fmt.Println(vmRes)
+			}
 
 			if evalRes != vmRes {
 				fmt.Println("")

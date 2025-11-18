@@ -2,12 +2,16 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/senither/zen-lang/cli/colors"
+	"github.com/senither/zen-lang/compiler"
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	rootCommand.AddCommand(codeCommand)
+	codeCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
 }
 
 var codeCommand = &cobra.Command{
@@ -15,6 +19,8 @@ var codeCommand = &cobra.Command{
 	Short: "Run code and get the bytecode instructions as output",
 	Long:  "Runs the code provided and outputs the bytecode instructions it generates.",
 	Run: func(cmd *cobra.Command, args []string) {
+		serialize, _ := cmd.Flags().GetBool("serialize")
+
 		table, _, constants := createCompilerParameters()
 
 		createREPLRunner(args, []string{
@@ -25,8 +31,45 @@ var codeCommand = &cobra.Command{
 			program := lexerToProgram(lexer, path)
 
 			if bytecode := programToBytecode(path, program, table, constants); bytecode != nil {
-				fmt.Print(bytecode.String())
+				if !serialize {
+					fmt.Print(bytecode.String())
+				} else {
+					series := bytecode.Serialize()
+					deserializedBytecode, err := compiler.Deserialize(series)
+					if err != nil {
+						fmt.Printf("Deserialization Error: %s\n", err)
+						return
+					}
+
+					printBytecodeComparison(bytecode, deserializedBytecode)
+				}
 			}
 		})
 	},
+}
+
+func printBytecodeComparison(original, deserialized *compiler.Bytecode) {
+	originalStr := strings.Split(original.String(), "\n")
+	deserializedStr := strings.Split(deserialized.String(), "\n")
+
+	fmt.Printf("%-32s%-32s\n", "ORIGINAL", "SERIALIZED & DESERIALIZED")
+	for i := 0; len(originalStr) > i || len(deserializedStr) > i; i++ {
+		originalLine := "~ empty ~"
+		deserializedLine := "~ empty ~"
+		color := colors.Gray
+
+		if i < len(originalStr) {
+			originalLine = originalStr[i]
+		}
+
+		if i < len(deserializedStr) {
+			deserializedLine = deserializedStr[i]
+		}
+
+		if originalLine != deserializedLine {
+			color = colors.BgRed
+		}
+
+		fmt.Printf("%s%-32s%-32s%s\n", color, originalLine, deserializedLine, colors.Reset)
+	}
 }
