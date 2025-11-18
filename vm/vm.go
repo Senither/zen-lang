@@ -62,12 +62,31 @@ func New(bytecode *compiler.Bytecode) *VM {
 	}
 }
 
+func NewWithSettings(bytecode *compiler.Bytecode, settings VMSettings) *VM {
+	vm := New(bytecode)
+	vm.settings = settings
+
+	return vm
+}
+
 func NewWithGlobalsStore(bytecode *compiler.Bytecode, globals []objects.Object) *VM {
 	vm := New(bytecode)
 
 	vm.globals = globals
 
 	return vm
+}
+
+func (vm *VM) Copy() *VM {
+	return &VM{
+		constants:   vm.constants,
+		stack:       make([]objects.Object, STACK_SIZE),
+		sp:          0,
+		globals:     vm.globals,
+		frames:      make([]*Frame, MAX_FRAMES),
+		framesIndex: 0,
+		settings:    vm.settings,
+	}
 }
 
 func (vm *VM) EnableStdoutCapture() {
@@ -264,6 +283,12 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 
 		return vm.push(definition.Builtin)
 
+	// Imports & Exports
+	case code.OpImport:
+		fileIdx := code.ReadUint16(ins[ip+1:])
+		vm.currentFrame().ip += 2
+
+		return vm.executeFileImport(fileIdx)
 	default:
 		return fmt.Errorf("unsupported opcode in compiled function: %d", op)
 	}
@@ -594,4 +619,24 @@ func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
 	}
 
 	return vm.push(result)
+}
+
+func (vm *VM) executeFileImport(fileIdx uint16) error {
+	definition := vm.constants[fileIdx]
+	if definition.Type() != objects.COMPILED_FILE_IMPORT_OBJ {
+		return fmt.Errorf("expected a compiled file import, got: %T", definition)
+	}
+
+	cfi := definition.(*objects.CompiledFileImport)
+
+	childVM := NewWithSettings(&compiler.Bytecode{
+		Instructions: cfi.OpcodeInstructions,
+		Constants:    cfi.Constants,
+	}, vm.settings)
+
+	if err := childVM.Run(); err != nil {
+		return fmt.Errorf("failed to execute imported file: %w", err)
+	}
+
+	return nil
 }

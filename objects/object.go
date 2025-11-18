@@ -37,6 +37,8 @@ const (
 
 	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
 	CLOSURE_OBJ           = "CLOSURE"
+
+	COMPILED_FILE_IMPORT_OBJ = "COMPILED_FILE_IMPORT"
 )
 
 type Object interface {
@@ -311,3 +313,15 @@ type Closure struct {
 func (c *Closure) Type() ObjectType                { return CLOSURE_OBJ }
 func (c *Closure) Inspect() string                 { return fmt.Sprintf("Closure[%p]", c) }
 func (c *Closure) Instructions() code.Instructions { return c.Fn.OpcodeInstructions }
+
+type CompiledFileImport struct {
+	Name               string
+	OpcodeInstructions code.Instructions
+	Constants          []Object
+}
+
+func (cfi *CompiledFileImport) Type() ObjectType { return COMPILED_FILE_IMPORT_OBJ }
+func (cfi *CompiledFileImport) Inspect() string {
+	return fmt.Sprintf("CompiledFileImport[%s|%p]", cfi.Name, cfi)
+}
+func (cfi *CompiledFileImport) Instructions() code.Instructions { return cfi.OpcodeInstructions }

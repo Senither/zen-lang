@@ -3,11 +3,16 @@ package compiler
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/code"
+	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/parser"
 )
 
 type CompilationScope struct {
@@ -328,6 +333,15 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 
 		loop := c.loops[c.loopIndex-1]
 		c.emit(code.OpJump, loop.startJumpIdx)
+
+	// Import & Export statements
+	case *ast.ImportStatement:
+		err := c.compileImportStatement(n)
+		if err != nil {
+			return err
+		}
+	case *ast.ExportStatement:
+		// ...
 	}
 
 	return nil
@@ -837,6 +851,78 @@ func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) *objects.Er
 	c.leaveLoop(endJumpIdx)
 
 	c.changeInstructionOperandAt(jumpNotTruthyPos, endJumpIdx)
+
+	return nil
+}
+
+func (c *Compiler) compileImportStatement(node *ast.ImportStatement) *objects.Error {
+	if c.file == nil {
+		return objects.NewError(
+			node.Token, c.file,
+			"cannot use import statement without a file context",
+		)
+	}
+
+	filename := node.Path
+	if !strings.HasSuffix(filename, ".zen") {
+		filename += ".zen"
+	}
+
+	relativePath := filepath.Join(c.file.Path, filename)
+	path, ok := filepath.Abs(relativePath)
+	if ok != nil {
+		return objects.NewError(
+			node.Token, c.file,
+			"invalid import path: %q",
+			path,
+		)
+	}
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return objects.NewError(
+			node.Token, c.file,
+			"failed to read imported file: %q",
+			path,
+		)
+	}
+
+	lexer := lexer.New(string(content))
+	parser := parser.New(lexer, path)
+
+	program := parser.ParseProgram()
+	if len(parser.Errors()) > 0 {
+		errors := []string{}
+		for _, err := range parser.Errors() {
+			errors = append(errors, err.String())
+		}
+
+		return objects.NewError(
+			node.Token, c.file,
+			"failed to parse imported file: %q\n%s",
+			path, strings.Join(errors, "\n"),
+		)
+	}
+
+	importCompiler := New(path)
+	err = importCompiler.Compile(program)
+	if err != nil {
+		return objects.NativeErrorToErrorObject(err)
+	}
+
+	var name string
+	if node.Aliased != nil {
+		name = node.Aliased.Value
+	} else {
+		cleanFilename := strings.TrimSuffix(path, ".zen")
+		name = filepath.Base(cleanFilename)
+	}
+
+	c.emit(code.OpImport, c.addConstant(&objects.CompiledFileImport{
+		Name:               name,
+		Constants:          importCompiler.constants,
+		OpcodeInstructions: importCompiler.currentInstructions(),
+	}))
 
 	return nil
 }

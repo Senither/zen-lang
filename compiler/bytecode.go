@@ -23,6 +23,7 @@ const (
 	STRING_CONST  = uint8(13)
 
 	COMPILED_FUNCTION_CONST = uint8(20)
+	COMPILED_IMPORT_CONST   = uint8(21)
 )
 
 type Bytecode struct {
@@ -38,12 +39,14 @@ func (c *Compiler) Bytecode() *Bytecode {
 }
 
 func (b *Bytecode) String() string {
+	return b.stringFromDepth(0)
+}
+
+func (b *Bytecode) stringFromDepth(depth int) string {
 	var out bytes.Buffer
 
-	closureDef, err := code.Lookup(code.OpClosure)
-	if err != nil {
-		return fmt.Sprintf("ERROR: %s\n", err)
-	}
+	closureDef, _ := code.Lookup(code.OpClosure)
+	importDef, _ := code.Lookup(code.OpImport)
 
 	i := 0
 	for i < len(b.Instructions) {
@@ -53,16 +56,29 @@ func (b *Bytecode) String() string {
 			continue
 		}
 
-		if def == closureDef {
+		switch def {
+		case closureDef:
 			constIndex := binary.BigEndian.Uint16(b.Instructions[i+1 : i+3])
 			constant := b.Constants[constIndex]
 
 			if fn, ok := constant.(*objects.CompiledFunction); ok {
-				b.printCompiledFunction(&out, def, fn, 1)
+				b.printCompiledFunction(&out, def, fn, depth+1)
+			}
+		case importDef:
+			constIndex := binary.BigEndian.Uint16(b.Instructions[i+1 : i+3])
+			constant := b.Constants[constIndex]
+
+			if imp, ok := constant.(*objects.CompiledFileImport); ok {
+				nestedBytecode := &Bytecode{
+					Instructions: imp.OpcodeInstructions,
+					Constants:    imp.Constants,
+				}
+
+				out.WriteString(nestedBytecode.stringFromDepth(depth + 1))
 			}
 		}
 
-		i += writeInstructionsToBuffer(&out, i, 0, def, b.Instructions)
+		i += writeInstructionsToBuffer(&out, i, depth, def, b.Instructions)
 	}
 
 	return out.String()
@@ -113,8 +129,14 @@ func (b *Bytecode) Serialize() []byte {
 	write(uint32(len(b.Instructions)))
 	buf.Write(b.Instructions)
 
-	write(uint32(len(b.Constants)))
-	for _, c := range b.Constants {
+	b.writeSerializedConstants(buf, write, b.Constants)
+
+	return buf.Bytes()
+}
+
+func (b *Bytecode) writeSerializedConstants(buf *bytes.Buffer, write func(data any), constants []objects.Object) {
+	write(uint32(len(constants)))
+	for _, c := range constants {
 		switch v := c.(type) {
 		case *objects.Null:
 			buf.WriteByte(NULL_CONST)
@@ -141,12 +163,18 @@ func (b *Bytecode) Serialize() []byte {
 			write(uint32(v.NumParameters))
 			write(uint32(len(v.Instructions())))
 			write(v.Instructions())
+		case *objects.CompiledFileImport:
+			buf.WriteByte(COMPILED_IMPORT_CONST)
+			write(uint32(len(v.Name)))
+			buf.WriteString(v.Name)
+			write(uint32(len(v.Instructions())))
+			write(v.Instructions())
+			b.writeSerializedConstants(buf, write, v.Constants)
+
 		default:
 			panic(fmt.Sprintf("unsupported constant type: %T", v))
 		}
 	}
-
-	return buf.Bytes()
 }
 
 func Deserialize(data []byte) (*Bytecode, error) {
@@ -169,9 +197,18 @@ func Deserialize(data []byte) (*Bytecode, error) {
 		return nil, err
 	}
 
-	// Reads the constants set by first getting the count, then reading each constant
-	// based on its type tag, and then converting it to the appropriate Zen Object
-	// type by reading and then unwrapping the value into the object.
+	consts, err := deserializeConstants(r, read)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Bytecode{
+		Instructions: code.Instructions(ins),
+		Constants:    consts,
+	}, nil
+}
+
+func deserializeConstants(r *bytes.Reader, read func(data any) error) ([]objects.Object, error) {
 	var constCount uint32
 	if err := read(&constCount); err != nil {
 		return nil, err
@@ -243,16 +280,44 @@ func Deserialize(data []byte) (*Bytecode, error) {
 				NumParameters:      int(numParameters),
 				OpcodeInstructions: instructions,
 			})
+		case COMPILED_IMPORT_CONST:
+			var nameLen uint32
+			if err := read(&nameLen); err != nil {
+				return nil, err
+			}
+
+			nameBytes := make([]byte, nameLen)
+			if _, err := io.ReadFull(r, nameBytes); err != nil {
+				return nil, err
+			}
+
+			var insLen uint32
+			if err := read(&insLen); err != nil {
+				return nil, err
+			}
+
+			instructions := make([]byte, insLen)
+			if _, err := io.ReadFull(r, instructions); err != nil {
+				return nil, err
+			}
+
+			nestedConst, err := deserializeConstants(r, read)
+			if err != nil {
+				return nil, err
+			}
+
+			consts = append(consts, &objects.CompiledFileImport{
+				Name:               string(nameBytes),
+				OpcodeInstructions: instructions,
+				Constants:          nestedConst,
+			})
 
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)
 		}
 	}
 
-	return &Bytecode{
-		Instructions: code.Instructions(ins),
-		Constants:    consts,
-	}, nil
+	return consts, nil
 }
 
 func verifyBytecodeHeaders(r *bytes.Reader) error {

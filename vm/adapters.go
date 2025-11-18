@@ -27,15 +27,7 @@ func (ca *CompiledClosureAdapter) Call(args ...objects.Object) objects.Object {
 		)
 	}
 
-	funcVM := &VM{
-		constants:   ca.VM.constants,
-		stack:       make([]objects.Object, STACK_SIZE),
-		sp:          0,
-		globals:     ca.VM.globals,
-		frames:      make([]*Frame, MAX_FRAMES),
-		framesIndex: 0,
-		settings:    ca.VM.settings,
-	}
+	funcVM := ca.VM.Copy()
 
 	frame := NewFrame(ca.Closure, 0)
 	funcVM.pushFrame(frame)

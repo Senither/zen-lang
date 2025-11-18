@@ -70,6 +70,10 @@ const (
 	OpClosure
 	OpGetFree
 	OpCurrentClosure
+
+	// Import/Export
+	OpImport
+	OpExport
 )
 
 type Instructions []byte
