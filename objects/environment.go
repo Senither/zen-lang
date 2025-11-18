@@ -105,6 +105,7 @@ func (e *Environment) Export(val Object) error {
 		}
 
 		e.exports[val.Name.Value] = val
+
 	default:
 		return fmt.Errorf("cannot export object of type %s", val.Type())
 	}

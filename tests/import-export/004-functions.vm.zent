@@ -1,0 +1,10 @@
+--TEST--
+Can import functions
+--FILE--
+import './files/functions'
+
+println(functions.functionOne);
+println(functions.functionTwo);
+--EXPECT--
+ImportedClosure[<pointer>]
+ImportedClosure[<pointer>]

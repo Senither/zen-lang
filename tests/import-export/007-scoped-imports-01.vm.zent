@@ -1,0 +1,12 @@
+--TEST--
+Can import files within a scoped environment
+--FILE--
+func test() {
+    import './files/functions' as fn;
+
+    println(fn)
+}
+
+test();
+--EXPECT--
+{functionTwo: ImportedClosure[<pointer>], functionOne: ImportedClosure[<pointer>]}

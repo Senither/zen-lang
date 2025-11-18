@@ -341,7 +341,10 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 			return err
 		}
 	case *ast.ExportStatement:
-		// ...
+		err := c.compileExportStatement(n)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -664,7 +667,13 @@ func (c *Compiler) compileFunctionLiteral(node *ast.FunctionLiteral, constructNa
 		c.loadSymbol(sym)
 	}
 
+	cfName := ""
+	if node.Name != nil {
+		cfName = node.Name.Value
+	}
+
 	compiledFn := &objects.CompiledFunction{
+		Name:               cfName,
 		OpcodeInstructions: instructions,
 		NumLocals:          numLocals,
 		NumParameters:      len(node.Parameters),
@@ -904,12 +913,6 @@ func (c *Compiler) compileImportStatement(node *ast.ImportStatement) *objects.Er
 		)
 	}
 
-	importCompiler := New(path)
-	err = importCompiler.Compile(program)
-	if err != nil {
-		return objects.NativeErrorToErrorObject(err)
-	}
-
 	var name string
 	if node.Aliased != nil {
 		name = node.Aliased.Value
@@ -918,11 +921,61 @@ func (c *Compiler) compileImportStatement(node *ast.ImportStatement) *objects.Er
 		name = filepath.Base(cleanFilename)
 	}
 
+	symbol := c.symbolTable.Define(name, false)
+
+	importCompiler := New(path)
+	err = importCompiler.Compile(program)
+	if err != nil {
+		return objects.NativeErrorToErrorObject(err)
+	}
+
 	c.emit(code.OpImport, c.addConstant(&objects.CompiledFileImport{
 		Name:               name,
 		Constants:          importCompiler.constants,
 		OpcodeInstructions: importCompiler.currentInstructions(),
 	}))
+
+	c.setSymbol(symbol)
+
+	return nil
+}
+
+func (c *Compiler) compileExportStatement(node *ast.ExportStatement) *objects.Error {
+	switch v := node.Value.(type) {
+	case *ast.Identifier:
+		err := c.compileInstruction(v)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpExport)
+	case *ast.FunctionLiteral:
+		if v.Name == nil {
+			return objects.NewError(
+				node.Token, c.file,
+				"cannot use unnamed function literal in export statement",
+			)
+		}
+
+		symbol := c.symbolTable.Define(v.Name.Value, false)
+
+		err := c.compileFunctionLiteral(v, false)
+		if err != nil {
+			return err
+		}
+
+		c.setSymbol(symbol)
+		c.loadSymbol(symbol)
+
+		c.emit(code.OpExport)
+
+	default:
+		return objects.NewError(
+			node.Token, c.file,
+			"cannot export expression of type %T",
+			node.Value,
+		)
+	}
 
 	return nil
 }

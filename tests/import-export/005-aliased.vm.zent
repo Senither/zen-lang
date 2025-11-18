@@ -1,0 +1,10 @@
+--TEST--
+Can rename exported namespaces
+--FILE--
+import './files/functions' as somethingElse;
+
+println(somethingElse.functionOne);
+println(somethingElse.functionTwo);
+--EXPECT--
+ImportedClosure[<pointer>]
+ImportedClosure[<pointer>]

@@ -38,6 +38,7 @@ const (
 	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
 	CLOSURE_OBJ           = "CLOSURE"
 
+	IMPORTED_CLOSURE_OBJ     = "IMPORTED_CLOSURE"
 	COMPILED_FILE_IMPORT_OBJ = "COMPILED_FILE_IMPORT"
 )
 
@@ -296,13 +297,20 @@ func (b *ASTAwareBuiltin) Type() ObjectType { return BUILTIN_OBJ }
 func (b *ASTAwareBuiltin) Inspect() string  { return "builtin function" }
 
 type CompiledFunction struct {
+	Name               string
 	OpcodeInstructions code.Instructions
 	NumLocals          int
 	NumParameters      int
 }
 
-func (cf *CompiledFunction) Type() ObjectType                { return COMPILED_FUNCTION_OBJ }
-func (cf *CompiledFunction) Inspect() string                 { return fmt.Sprintf("CompiledFunction[%p]", cf) }
+func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
+func (cf *CompiledFunction) Inspect() string {
+	if len(cf.Name) > 0 {
+		return fmt.Sprintf("CompiledFunction[%s|%p]", cf.Name, cf)
+	} else {
+		return fmt.Sprintf("CompiledFunction[%p]", cf)
+	}
+}
 func (cf *CompiledFunction) Instructions() code.Instructions { return cf.OpcodeInstructions }
 
 type Closure struct {
@@ -313,6 +321,15 @@ type Closure struct {
 func (c *Closure) Type() ObjectType                { return CLOSURE_OBJ }
 func (c *Closure) Inspect() string                 { return fmt.Sprintf("Closure[%p]", c) }
 func (c *Closure) Instructions() code.Instructions { return c.Fn.OpcodeInstructions }
+
+type ImportedClosure struct {
+	Closure   *Closure
+	Constants []Object
+}
+
+func (ic *ImportedClosure) Type() ObjectType                { return IMPORTED_CLOSURE_OBJ }
+func (ic *ImportedClosure) Inspect() string                 { return fmt.Sprintf("ImportedClosure[%p]", ic) }
+func (ic *ImportedClosure) Instructions() code.Instructions { return ic.Closure.Fn.OpcodeInstructions }
 
 type CompiledFileImport struct {
 	Name               string

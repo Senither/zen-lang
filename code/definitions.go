@@ -62,7 +62,7 @@ var definitions = map[Opcode]*Definition{
 	OpCurrentClosure: {"OpCurrentClosure", []int{}},
 	// Import/Export
 	OpImport: {"OpImport", []int{2}},
-	OpExport: {"OpExport", []int{2}},
+	OpExport: {"OpExport", []int{}},
 }
 
 func Make(op Opcode, operands ...int) []byte {

@@ -32,6 +32,8 @@ type VM struct {
 	frames      []*Frame
 	framesIndex int
 
+	exports map[string]objects.Object
+
 	settings VMSettings
 }
 
@@ -57,6 +59,8 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 		frames:      frames,
 		framesIndex: 1,
+
+		exports: make(map[string]objects.Object),
 
 		settings: settings,
 	}
@@ -285,10 +289,13 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 
 	// Imports & Exports
 	case code.OpImport:
-		fileIdx := code.ReadUint16(ins[ip+1:])
+		importIdx := code.ReadUint16(ins[ip+1:])
 		vm.currentFrame().ip += 2
 
-		return vm.executeFileImport(fileIdx)
+		return vm.executeImport(int(importIdx))
+	case code.OpExport:
+		return vm.executeExport()
+
 	default:
 		return fmt.Errorf("unsupported opcode in compiled function: %d", op)
 	}
@@ -478,6 +485,9 @@ func (vm *VM) executeIndexExpression(left, index objects.Object) error {
 		return vm.executeArrayIndex(left, index)
 	case left.Type() == objects.HASH_OBJ:
 		return vm.executeHashIndex(left, index)
+	case left.Type() == objects.IMMUTABLE_HASH_OBJ:
+		hash := left.(*objects.ImmutableHash)
+		return vm.executeHashIndex(&hash.Value, index)
 
 	default:
 		return fmt.Errorf("index operator not supported: %s", left.Type())
@@ -580,6 +590,8 @@ func (vm *VM) executeCall(numArgs int) error {
 	switch callee := callee.(type) {
 	case *objects.Closure:
 		return vm.callClosure(callee, numArgs)
+	case *objects.ImportedClosure:
+		return vm.callImportedClosure(callee, numArgs)
 	case *objects.Builtin:
 		return vm.callBuiltin(callee, numArgs)
 
@@ -599,6 +611,48 @@ func (vm *VM) callClosure(cl *objects.Closure, numArgs int) error {
 	vm.sp = frame.basePointer + cl.Fn.NumLocals
 
 	return nil
+}
+
+func (vm *VM) callImportedClosure(icl *objects.ImportedClosure, numArgs int) error {
+	if numArgs != icl.Closure.Fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments. got %d, want %d", numArgs, icl.Closure.Fn.NumParameters)
+	}
+
+	funcVM := vm.Copy()
+	funcVM.constants = icl.Constants
+	funcVM.globals = make([]objects.Object, GLOBALS_SIZE)
+
+	frame := NewFrame(icl.Closure, 0)
+	funcVM.pushFrame(frame)
+
+	vm.pop()
+
+	for funcVM.currentFrame().ip < len(funcVM.currentFrame().Instructions())-1 {
+		funcVM.currentFrame().ip++
+
+		ip := funcVM.currentFrame().ip
+		ins := funcVM.currentFrame().Instructions()
+
+		if ip >= len(ins) {
+			break
+		}
+
+		op := code.Opcode(ins[ip])
+
+		switch op {
+		case code.OpReturnValue:
+			return vm.push(funcVM.pop())
+		case code.OpReturn:
+			return vm.push(objects.NULL)
+		}
+
+		err := funcVM.executeInstructions(op, ins, ip)
+		if err != nil {
+			return vm.push(objects.NativeErrorToErrorObject(err))
+		}
+	}
+
+	return vm.push(objects.NULL)
 }
 
 func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
@@ -621,8 +675,8 @@ func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
 	return vm.push(result)
 }
 
-func (vm *VM) executeFileImport(fileIdx uint16) error {
-	definition := vm.constants[fileIdx]
+func (vm *VM) executeImport(idx int) error {
+	definition := vm.constants[idx]
 	if definition.Type() != objects.COMPILED_FILE_IMPORT_OBJ {
 		return fmt.Errorf("expected a compiled file import, got: %T", definition)
 	}
@@ -636,6 +690,36 @@ func (vm *VM) executeFileImport(fileIdx uint16) error {
 
 	if err := childVM.Run(); err != nil {
 		return fmt.Errorf("failed to execute imported file: %w", err)
+	}
+
+	if len(childVM.exports) == 0 {
+		return nil
+	}
+
+	pairs := make(map[objects.HashKey]objects.HashPair, len(childVM.exports))
+	for k, v := range childVM.exports {
+		if v.Type() != objects.IMPORTED_CLOSURE_OBJ {
+			return fmt.Errorf("expected imported closure in exports, got: %T", v)
+		}
+
+		key := &objects.String{Value: k}
+		pairs[key.HashKey()] = objects.HashPair{Key: key, Value: v}
+	}
+
+	return vm.push(&objects.ImmutableHash{Value: objects.Hash{Pairs: pairs}})
+}
+
+func (vm *VM) executeExport() error {
+	definition := vm.pop()
+
+	closure, ok := definition.(*objects.Closure)
+	if !ok {
+		return fmt.Errorf("expected a closure for export, got: %T", definition)
+	}
+
+	vm.exports[closure.Fn.Name] = &objects.ImportedClosure{
+		Closure:   closure,
+		Constants: vm.constants,
 	}
 
 	return nil
