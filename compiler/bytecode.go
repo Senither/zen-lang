@@ -159,6 +159,8 @@ func (b *Bytecode) writeSerializedConstants(buf *bytes.Buffer, write func(data a
 			buf.WriteString(v.Value)
 		case *objects.CompiledFunction:
 			buf.WriteByte(COMPILED_FUNCTION_CONST)
+			write(uint32(len(v.Name)))
+			buf.WriteString(v.Name)
 			write(uint32(v.NumLocals))
 			write(uint32(v.NumParameters))
 			write(uint32(len(v.Instructions())))
@@ -255,6 +257,16 @@ func deserializeConstants(r *bytes.Reader, read func(data any) error) ([]objects
 
 			consts = append(consts, &objects.String{Value: string(str)})
 		case COMPILED_FUNCTION_CONST:
+			var nameLen uint32
+			if err := read(&nameLen); err != nil {
+				return nil, err
+			}
+
+			nameBytes := make([]byte, nameLen)
+			if _, err := io.ReadFull(r, nameBytes); err != nil {
+				return nil, err
+			}
+
 			var numLocals uint32
 			if err := read(&numLocals); err != nil {
 				return nil, err
@@ -276,6 +288,7 @@ func deserializeConstants(r *bytes.Reader, read func(data any) error) ([]objects
 			}
 
 			consts = append(consts, &objects.CompiledFunction{
+				Name:               string(nameBytes),
 				NumLocals:          int(numLocals),
 				NumParameters:      int(numParameters),
 				OpcodeInstructions: instructions,
