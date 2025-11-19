@@ -1,0 +1,12 @@
+--TEST--
+Can invoke imported functions with arguments
+--FILE--
+import './files/functions-two' as fn;
+
+println(fn.withArgs(1, 2));
+println(fn.withArgs("first", "second"));
+println(fn.withArgs([1, 2, 3], {"key": "value"}));
+--EXPECT--
+Arguments received: 1, 2
+Arguments received: first, second
+Arguments received: [1, 2, 3], {key: value}

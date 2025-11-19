@@ -1,0 +1,10 @@
+var counter = 0;
+
+export func incrementCounter() {
+    counter++
+    return counter;
+}
+
+export func withArgs(arg1, arg2) {
+    return "Arguments received: " + string(arg1) + ", " + string(arg2);
+}

@@ -325,6 +325,7 @@ func (c *Closure) Instructions() code.Instructions { return c.Fn.OpcodeInstructi
 type ImportedClosure struct {
 	Closure   *Closure
 	Constants []Object
+	Globals   []Object
 }
 
 func (ic *ImportedClosure) Type() ObjectType                { return IMPORTED_CLOSURE_OBJ }

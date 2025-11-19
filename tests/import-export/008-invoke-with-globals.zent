@@ -1,0 +1,16 @@
+--TEST--
+Can invoke imported functions with global variables
+--FILE--
+import './files/functions-two' as fn;
+
+println(fn.incrementCounter());
+println(fn.incrementCounter());
+println(fn.incrementCounter());
+println(fn.incrementCounter());
+println(fn.incrementCounter());
+--EXPECT--
+1
+2
+3
+4
+5

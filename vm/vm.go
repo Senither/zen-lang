@@ -620,12 +620,15 @@ func (vm *VM) callImportedClosure(icl *objects.ImportedClosure, numArgs int) err
 
 	funcVM := vm.Copy()
 	funcVM.constants = icl.Constants
-	funcVM.globals = make([]objects.Object, GLOBALS_SIZE)
+	funcVM.globals = icl.Globals
 
 	frame := NewFrame(icl.Closure, 0)
 	funcVM.pushFrame(frame)
 
-	vm.pop()
+	copy(funcVM.stack, vm.stack[vm.sp-numArgs:vm.sp])
+	funcVM.sp = icl.Closure.Fn.NumLocals
+
+	vm.sp = vm.sp - numArgs - 1
 
 	for funcVM.currentFrame().ip < len(funcVM.currentFrame().Instructions())-1 {
 		funcVM.currentFrame().ip++
@@ -720,6 +723,7 @@ func (vm *VM) executeExport() error {
 	vm.exports[closure.Fn.Name] = &objects.ImportedClosure{
 		Closure:   closure,
 		Constants: vm.constants,
+		Globals:   vm.globals,
 	}
 
 	return nil
