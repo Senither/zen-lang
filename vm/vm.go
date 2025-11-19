@@ -19,6 +19,11 @@ type VMSettings struct {
 	CaptureStdout bool
 }
 
+type ImportedFileContext struct {
+	constants []objects.Object
+	globals   []objects.Object
+}
+
 type VM struct {
 	constants []objects.Object
 
@@ -33,6 +38,7 @@ type VM struct {
 	framesIndex int
 
 	exports map[string]objects.Object
+	imports []ImportedFileContext
 
 	settings VMSettings
 }
@@ -79,6 +85,15 @@ func NewWithGlobalsStore(bytecode *compiler.Bytecode, globals []objects.Object) 
 	vm.globals = globals
 
 	return vm
+}
+
+func (vm *VM) addImportContext(importedVM *VM) int {
+	vm.imports = append(vm.imports, ImportedFileContext{
+		constants: importedVM.constants,
+		globals:   importedVM.globals,
+	})
+
+	return len(vm.imports) - 1
 }
 
 func (vm *VM) Copy() *VM {
@@ -618,9 +633,11 @@ func (vm *VM) callImportedClosure(icl *objects.ImportedClosure, numArgs int) err
 		return fmt.Errorf("wrong number of arguments. got %d, want %d", numArgs, icl.Closure.Fn.NumParameters)
 	}
 
+	importCtx := vm.imports[icl.ImportContextIndex]
+
 	funcVM := vm.Copy()
-	funcVM.constants = icl.Constants
-	funcVM.globals = icl.Globals
+	funcVM.constants = importCtx.constants
+	funcVM.globals = importCtx.globals
 
 	frame := NewFrame(icl.Closure, 0)
 	funcVM.pushFrame(frame)
@@ -699,14 +716,19 @@ func (vm *VM) executeImport(idx int) error {
 		return nil
 	}
 
+	importIdx := vm.addImportContext(childVM)
+
 	pairs := make(map[objects.HashKey]objects.HashPair, len(childVM.exports))
 	for k, v := range childVM.exports {
-		if v.Type() != objects.IMPORTED_CLOSURE_OBJ {
+		closure, ok := v.(*objects.ImportedClosure)
+		if !ok {
 			return fmt.Errorf("expected imported closure in exports, got: %T", v)
 		}
 
+		closure.ImportContextIndex = importIdx
+
 		key := &objects.String{Value: k}
-		pairs[key.HashKey()] = objects.HashPair{Key: key, Value: v}
+		pairs[key.HashKey()] = objects.HashPair{Key: key, Value: closure}
 	}
 
 	return vm.push(&objects.ImmutableHash{Value: objects.Hash{Pairs: pairs}})
@@ -720,11 +742,7 @@ func (vm *VM) executeExport() error {
 		return fmt.Errorf("expected a closure for export, got: %T", definition)
 	}
 
-	vm.exports[closure.Fn.Name] = &objects.ImportedClosure{
-		Closure:   closure,
-		Constants: vm.constants,
-		Globals:   vm.globals,
-	}
+	vm.exports[closure.Fn.Name] = &objects.ImportedClosure{Closure: closure}
 
 	return nil
 }

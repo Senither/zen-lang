@@ -323,9 +323,8 @@ func (c *Closure) Inspect() string                 { return fmt.Sprintf("Closure
 func (c *Closure) Instructions() code.Instructions { return c.Fn.OpcodeInstructions }
 
 type ImportedClosure struct {
-	Closure   *Closure
-	Constants []Object
-	Globals   []Object
+	Closure            *Closure
+	ImportContextIndex int
 }
 
 func (ic *ImportedClosure) Type() ObjectType                { return IMPORTED_CLOSURE_OBJ }
