@@ -52,7 +52,7 @@ func printBytecodeComparison(original, deserialized *compiler.Bytecode) {
 	originalStr := strings.Split(original.String(), "\n")
 	deserializedStr := strings.Split(deserialized.String(), "\n")
 
-	fmt.Printf("%-32s%-32s\n", "ORIGINAL", "SERIALIZED & DESERIALIZED")
+	fmt.Printf("%-35s%-35s\n", "ORIGINAL", "SERIALIZED & DESERIALIZED")
 	for i := 0; len(originalStr) > i || len(deserializedStr) > i; i++ {
 		originalLine := "~ empty ~"
 		deserializedLine := "~ empty ~"
@@ -70,6 +70,6 @@ func printBytecodeComparison(original, deserialized *compiler.Bytecode) {
 			color = colors.BgRed
 		}
 
-		fmt.Printf("%s%-32s%-32s%s\n", color, originalLine, deserializedLine, colors.Reset)
+		fmt.Printf("%s%-35s%-35s%s\n", color, originalLine, deserializedLine, colors.Reset)
 	}
 }
