@@ -469,6 +469,78 @@ func TestChainIndexExpressions(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func TestChainIndexAssignments(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "var obj = {'key': 'value'}; obj['key'] = 42;",
+			expectedConstants: []interface{}{"key", "value", "key", 42},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpIndexAssign),
+			},
+		},
+		{
+			input:             "var obj = {'key': 'value'}; obj.key = 42;",
+			expectedConstants: []interface{}{"key", "value", "key", 42},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpIndexAssign),
+			},
+		},
+		{
+			input:             "var obj = {'nested': {'key': 'value'}}; obj['nested']['key'] = 42;",
+			expectedConstants: []interface{}{"nested", "key", "value", "nested", "key", 42},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpIndexAssign),
+			},
+		},
+		{
+			input:             "var obj = {'nested': {'key': 'value'}}; obj.nested.key = 42;",
+			expectedConstants: []interface{}{"nested", "key", "value", "nested", "key", 42},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpIndex),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpIndexAssign),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
 func TestChainCallExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{

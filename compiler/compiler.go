@@ -476,6 +476,11 @@ func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
 	switch expr := expr.(type) {
 	case *ast.AssignmentExpression, *ast.SuffixExpression, *ast.WhileExpression:
 		return false
+	case *ast.ChainExpression:
+		if _, ok := expr.Right.(*ast.AssignmentExpression); ok {
+			return false
+		}
+		return true
 	case *ast.FunctionLiteral:
 		return expr.Name == nil
 
@@ -756,6 +761,34 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 		c.emit(code.OpIndex)
 
 		return c.compileFunctionArguments(right)
+	case *ast.AssignmentExpression:
+		innerAssign, ok := right.Right.(*ast.AssignmentExpression)
+		if !ok {
+			return objects.NewError(
+				right.Token, c.file,
+				"unsupported chain assignment structure: %T",
+				right.Right,
+			)
+		}
+
+		keyIdent, ok := innerAssign.Left.(*ast.Identifier)
+		if !ok {
+			return objects.NewError(
+				innerAssign.Token, c.file,
+				"invalid assignment expression key in chain: %T",
+				innerAssign.Left,
+			)
+		}
+
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: keyIdent.Value}))
+
+		err := c.compileInstruction(innerAssign.Right)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpIndexAssign)
+		return nil
 
 	default:
 		return objects.NewError(

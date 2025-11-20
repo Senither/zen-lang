@@ -226,6 +226,77 @@ func TestChainIndexExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestChainIndexAssignment(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var obj = {'a': 1};
+				obj['a'] = 10;
+				obj['a']
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+				var obj = {'a': 1};
+				obj.a = 10;
+				obj.a
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+				var obj = {'a': 1};
+				obj['b'] = 10;
+				obj['b']
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+				var obj = {'a': 1};
+				obj.b = 10;
+				obj.b
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+				var obj = {'nested': {'key': 'value'}};
+				obj['nested']['key'] = 42;
+				obj['nested']['key']
+			`,
+			expected: 42,
+		},
+		{
+			input: `
+				var obj = {'nested': {'key': 'value'}};
+				obj.nested.key = 42;
+				obj.nested.key
+			`,
+			expected: 42,
+		},
+		{
+			input: `
+				var obj = {'nested': {'key': 'value'}};
+				obj['nested']['newKey'] = 42;
+				obj['nested']['newKey']
+			`,
+			expected: 42,
+		},
+		{
+			input: `
+				var obj = {'nested': {'key': 'value'}};
+				obj.nested.newKey = 42;
+				obj.nested.newKey
+			`,
+			expected: 42,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},
