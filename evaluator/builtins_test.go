@@ -127,3 +127,25 @@ func TestStringBuiltinFunction(t *testing.T) {
 		testStringObject(t, evaluated, tt.expected)
 	}
 }
+
+func TestTypeBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`type(123)`, "INTEGER"},
+		{`type(45.67)`, "FLOAT"},
+		{`type(true)`, "BOOLEAN"},
+		{`type(false)`, "BOOLEAN"},
+		{`type("hello")`, "STRING"},
+		{`type(null)`, "NULL"},
+		{`type([1, 2, 3])`, "ARRAY"},
+		{`type({"key": "value"})`, "HASH"},
+		{`type(func(x) { return x; })`, "FUNCTION"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}

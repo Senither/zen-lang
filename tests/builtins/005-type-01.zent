@@ -1,0 +1,16 @@
+--TEST--
+Can get the type of various objects
+--FILE--
+println(type("hello"))
+println(type(123))
+println(type(3.14))
+println(type(true))
+println(type(null))
+println(type(func() { }))
+--EXPECT--
+STRING
+INTEGER
+FLOAT
+BOOLEAN
+NULL
+FUNCTION

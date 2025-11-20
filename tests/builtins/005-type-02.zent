@@ -1,0 +1,23 @@
+--TEST--
+Can get the type of variables
+--FILE--
+var a = "hello"
+var b = 123
+var c = 3.14
+var d = true
+var e = null
+var f = func() { }
+
+println(type(a))
+println(type(b))
+println(type(c))
+println(type(d))
+println(type(e))
+println(type(f))
+--EXPECT--
+STRING
+INTEGER
+FLOAT
+BOOLEAN
+NULL
+FUNCTION

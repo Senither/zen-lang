@@ -58,6 +58,27 @@ var Builtins = []BuiltinDefinition{
 			return &String{Value: args[0].Inspect()}, nil
 		}},
 	},
+	{
+		Name: "type",
+		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+			if len(args) != 1 {
+				return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+			}
+
+			switch args[0].Type() {
+			case FUNCTION_OBJ, BUILTIN_OBJ, COMPILED_FUNCTION_OBJ, CLOSURE_OBJ:
+				return &String{Value: "FUNCTION"}, nil
+
+			default:
+				_, ok := args[0].(Callable)
+				if ok {
+					return &String{Value: "FUNCTION"}, nil
+				}
+
+				return &String{Value: string(args[0].Type())}, nil
+			}
+		}},
+	},
 }
 
 func BuiltinToASTAwareBuiltin(builtin *Builtin) *ASTAwareBuiltin {

@@ -527,6 +527,14 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`string(45.67)`, "45.670000"},
 		{`string(true)`, "true"},
 		{`string(false)`, "false"},
+		{`type(123)`, "INTEGER"},
+		{`type(45.67)`, "FLOAT"},
+		{`type("hello")`, "STRING"},
+		{`type(true)`, "BOOLEAN"},
+		{`type(false)`, "BOOLEAN"},
+		{`type([1, 2, 3])`, "ARRAY"},
+		{`type({'test': 'value'})`, "HASH"},
+		{`type(func() { })`, "FUNCTION"},
 	}
 
 	runVmTests(t, tests)
