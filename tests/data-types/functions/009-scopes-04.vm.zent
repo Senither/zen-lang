@@ -1,0 +1,17 @@
+--TEST--
+Ensure scoped variables don't leak out to the outer scope
+--FILE--
+var a = 99999;
+
+func add(a, b) {
+    a + b;
+};
+
+add(10, 5);
+
+println(a);
+println(b);
+--ERROR--
+undefined variable b
+    at <unknown>:10:9
+    at <unknown>:10:8
