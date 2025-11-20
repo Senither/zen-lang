@@ -49,7 +49,7 @@ var debugCommand = &cobra.Command{
 			compilerErr := compile.Compile(program)
 			bytecode := compile.Bytecode()
 
-			fmt.Println("=====[ Compiled Bytecode ]=====")
+			fmt.Printf("=====[ Compiled Bytecode (Instructions: %d)]=====\n", len(bytecode.Instructions))
 			if compilerErr != nil {
 				fmt.Printf(colors.BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", colors.Reset, compilerErr.Error())
 			} else {
