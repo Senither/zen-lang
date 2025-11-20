@@ -99,6 +99,12 @@ func TestStringExpressions(t *testing.T) {
 		{`"hello world"`, "hello world"},
 		{`"hello" + " " + "world"`, "hello world"},
 		{`"foo" + "bar"`, "foobar"},
+		{`"foo" + " " + "bar"`, "foo bar"},
+		{`"The answer is: " + 42`, "The answer is: 42"},
+		{`"Pi is approximately " + 3.14`, "Pi is approximately 3.14"},
+		{`"Value: " + true`, "Value: true"},
+		{`"Value: " + false`, "Value: false"},
+		{`"Number: " + (10 + 5)`, "Number: 15"},
 	}
 
 	runVmTests(t, tests)

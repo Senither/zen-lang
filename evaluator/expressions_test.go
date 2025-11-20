@@ -36,6 +36,24 @@ func TestEvalStringConcatenation(t *testing.T) {
 	}
 }
 
+func TestEvalStringCastConcatenation(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"The answer is: " + 42`, "The answer is: 42"},
+		{`"Pi is approximately " + 3.14`, "Pi is approximately 3.14"},
+		{`"Value: " + true`, "Value: true"},
+		{`"Value: " + false`, "Value: false"},
+		{`"Number: " + (10 + 5)`, "Number: 15"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string

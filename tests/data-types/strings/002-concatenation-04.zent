@@ -1,0 +1,14 @@
+--TEST--
+Can cast non-strings to strings when concatenating
+--FILE--
+println("The answer is: " + 42);
+println("Pi is approximately " + 3.14);
+println("Value: " + true);
+println("Value: " + false);
+println("Number: " + (10 + 5));
+--EXPECT--
+The answer is: 42
+Pi is approximately 3.14
+Value: true
+Value: false
+Number: 15

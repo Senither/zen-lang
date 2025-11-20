@@ -350,6 +350,8 @@ func evalInfixExpression(node *ast.InfixExpression, left, right objects.Object, 
 		return objects.NativeBoolToBooleanObject(left == right)
 	case node.Operator == "!=":
 		return objects.NativeBoolToBooleanObject(left != right)
+	case left.Type() == objects.STRING_OBJ && objects.IsStringable(right), right.Type() == objects.STRING_OBJ && objects.IsStringable(left):
+		return evalStringableInfixExpression(node, left, right, env)
 
 	case left.Type() != right.Type():
 		return objects.NewError(
@@ -807,6 +809,27 @@ func evalStringInfixExpression(
 		return objects.NativeBoolToBooleanObject(leftVal == rightVal)
 	case "!=":
 		return objects.NativeBoolToBooleanObject(leftVal != rightVal)
+
+	default:
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unknown operator: %s %s %s",
+			left.Type(), node.Operator, right.Type(),
+		)
+	}
+}
+
+func evalStringableInfixExpression(
+	node *ast.InfixExpression,
+	left, right objects.Object,
+	env *objects.Environment,
+) objects.Object {
+	leftVal := objects.StringifyObject(left)
+	rightVal := objects.StringifyObject(right)
+
+	switch node.Operator {
+	case "+":
+		return &objects.String{Value: leftVal + rightVal}
 
 	default:
 		return objects.NewError(

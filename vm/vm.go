@@ -385,6 +385,8 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 		return vm.executeBinaryNumberOperation(op, left, right)
 	case leftType == objects.STRING_OBJ && rightType == objects.STRING_OBJ:
 		return vm.executeBinaryStringOperation(op, left, right)
+	case leftType == objects.STRING_OBJ && objects.IsStringable(right), rightType == objects.STRING_OBJ && objects.IsStringable(left):
+		return vm.executeBinaryStringableOperation(op, left, right)
 
 	default:
 		return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
@@ -424,6 +426,17 @@ func (vm *VM) executeBinaryStringOperation(op code.Opcode, left, right objects.O
 
 	leftValue := left.(*objects.String).Value
 	rightValue := right.(*objects.String).Value
+
+	return vm.push(&objects.String{Value: leftValue + rightValue})
+}
+
+func (vm *VM) executeBinaryStringableOperation(op code.Opcode, left, right objects.Object) error {
+	if op != code.OpAdd {
+		return fmt.Errorf("unknown stringable operator: %d", op)
+	}
+
+	leftValue := objects.StringifyObject(left)
+	rightValue := objects.StringifyObject(right)
 
 	return vm.push(&objects.String{Value: leftValue + rightValue})
 }

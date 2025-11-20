@@ -1,8 +1,0 @@
---TEST--
-Fails when attempting to concatenate non-strings
---FILE--
-println('Hello' + 42);
---ERROR--
-type mismatch: STRING + INTEGER
-    at <unknown>:1:17
-    at <unknown>:1:8

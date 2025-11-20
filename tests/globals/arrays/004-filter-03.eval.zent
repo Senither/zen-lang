@@ -7,6 +7,6 @@ var result = arrays.filter(arr, func(x) { return x > 2; });
 println(result);
 println(arr);
 --ERROR--
-type mismatch: STRING > INTEGER
+unknown operator: STRING > INTEGER
     at <unknown>:2:52
     at <unknown>:2:27

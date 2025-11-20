@@ -100,6 +100,35 @@ func UnwrapNumberValue(obj Object) float64 {
 	}
 }
 
+func IsStringable(obj Object) bool {
+	switch obj.(type) {
+	case *Integer, *Float, *Boolean:
+		return true
+
+	default:
+		return false
+	}
+}
+
+func StringifyObject(obj Object) string {
+	switch obj := obj.(type) {
+	case *String:
+		return obj.Value
+	case *Integer:
+		return fmt.Sprintf("%d", obj.Value)
+	case *Float:
+		return fmt.Sprintf("%g", obj.Value)
+	case *Boolean:
+		if obj.Value {
+			return "true"
+		}
+		return "false"
+
+	default:
+		return obj.Inspect()
+	}
+}
+
 func UnwrapReturnValue(obj Object) Object {
 	if returnValue, ok := obj.(*ReturnValue); ok {
 		return returnValue.Value

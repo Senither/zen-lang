@@ -1,0 +1,7 @@
+--TEST--
+Fails when attempting to concatenate non-stringable types
+--FILE--
+println("An array: " + [1, 2, 3]);
+--ERROR--
+unsupported types for binary operation: STRING ARRAY
+    at <unknown>:0:0

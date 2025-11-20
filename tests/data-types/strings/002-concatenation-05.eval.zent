@@ -1,0 +1,8 @@
+--TEST--
+Fails when attempting to concatenate non-stringable types
+--FILE--
+println("An array: " + [1, 2, 3]);
+--ERROR--
+type mismatch: STRING + ARRAY
+    at <unknown>:1:22
+    at <unknown>:1:8
