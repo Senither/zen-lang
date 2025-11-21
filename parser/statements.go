@@ -94,8 +94,8 @@ func (p *Parser) parseExportStatement() *ast.ExportStatement {
 func (p *Parser) parseBreakStatement() *ast.BreakStatement {
 	stmt := &ast.BreakStatement{Token: p.curToken}
 
-	if !p.expectPeek(tokens.SEMICOLON) {
-		return nil
+	if p.peekTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
 	}
 
 	return stmt
@@ -104,8 +104,8 @@ func (p *Parser) parseBreakStatement() *ast.BreakStatement {
 func (p *Parser) parseContinueStatement() *ast.ContinueStatement {
 	stmt := &ast.ContinueStatement{Token: p.curToken}
 
-	if !p.expectPeek(tokens.SEMICOLON) {
-		return nil
+	if p.peekTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
 	}
 
 	return stmt

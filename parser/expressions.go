@@ -123,7 +123,6 @@ func (p *Parser) parseChainExpression(left ast.Expression) ast.Expression {
 	switch exp.(type) {
 	case *ast.Identifier, *ast.CallExpression, *ast.ChainExpression, *ast.IndexExpression:
 		chain.Right = exp
-
 	case *ast.AssignmentExpression:
 		chain.Right = &ast.AssignmentExpression{
 			Token: p.curToken,
