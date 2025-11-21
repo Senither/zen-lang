@@ -771,18 +771,27 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 			)
 		}
 
-		keyIdent, ok := innerAssign.Left.(*ast.Identifier)
-		if !ok {
+		assignmentPath, err := c.retrieveAssignmentKeys(innerAssign.Left, innerAssign)
+		if err != nil {
+			return err
+		}
+
+		if len(assignmentPath) == 0 {
 			return objects.NewError(
 				innerAssign.Token, c.file,
-				"invalid assignment expression key in chain: %T",
-				innerAssign.Left,
+				"empty assignment key path in chain",
 			)
 		}
 
-		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: keyIdent.Value}))
+		for i := 0; i < len(assignmentPath)-1; i++ {
+			c.emit(code.OpConstant, c.addConstant(&objects.String{Value: assignmentPath[i]}))
+			c.emit(code.OpIndex)
+		}
 
-		err := c.compileInstruction(innerAssign.Right)
+		finalKey := assignmentPath[len(assignmentPath)-1]
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: finalKey}))
+
+		err = c.compileInstruction(innerAssign.Right)
 		if err != nil {
 			return err
 		}
@@ -800,6 +809,34 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 
 	c.emit(code.OpIndex)
 	return nil
+}
+
+func (c *Compiler) retrieveAssignmentKeys(exp ast.Expression, innerAssign *ast.AssignmentExpression) ([]string, *objects.Error) {
+	switch v := exp.(type) {
+	case *ast.Identifier:
+		return []string{v.Value}, nil
+	case *ast.ChainExpression:
+		leftKeys, err := c.retrieveAssignmentKeys(v.Left, innerAssign)
+		if err != nil {
+			return nil, err
+		}
+
+		rightKeys, err := c.retrieveAssignmentKeys(v.Right, innerAssign)
+		if err != nil {
+			return nil, err
+		}
+
+		return append(leftKeys, rightKeys...), nil
+	case *ast.AssignmentExpression:
+		return c.retrieveAssignmentKeys(v.Left, innerAssign)
+
+	default:
+		return nil, objects.NewError(
+			innerAssign.Token, c.file,
+			"invalid assignment key path element in chain: %T",
+			v,
+		)
+	}
 }
 
 func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) *objects.Error {

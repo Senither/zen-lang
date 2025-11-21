@@ -9,6 +9,8 @@ var obj = {
     }
 };
 
+var innerRef = obj.inner;
+
 obj.string = "new value";
 obj.newKey = "completely new value";
 obj.inner.a = 42;
@@ -16,7 +18,8 @@ obj.anotherInner = {
     "x": 100,
     "y": 200
 };
+obj.newObj = innerRef;
 
 println(obj);
 --EXPECT--
-{inner: {a: 42, b: 2}, string: new value, anotherInner: {y: 200, x: 100}, newKey: completely new value}
+{inner: {a: 42, b: 2}, string: new value, anotherInner: {y: 200, x: 100}, newKey: completely new value, newObj: {a: 42, b: 2}}

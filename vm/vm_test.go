@@ -297,6 +297,19 @@ func TestChainIndexAssignment(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestChainedHashAssignmentExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"var x = {'foo': 5}; x.foo = 10; x.foo;", 10},
+		{"var x = {'foo': 5}; x['foo'] = 10; x.foo;", 10},
+		{"var x = {'foo': {'bar': 5}}; x.foo.bar = 10; x.foo.bar;", 10},
+		{"var x = {'foo': {'bar': 5}}; x['foo']['bar'] = 10; x.foo.bar;", 10},
+		{"var x = {'foo': 5}; var y = {'bar': 10}; x.foo = y.bar; x.foo;", 10},
+		{"var x = {'foo': 5}; var y = {'bar': 10}; x.newKey = y.bar; x.newKey;", 10},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},

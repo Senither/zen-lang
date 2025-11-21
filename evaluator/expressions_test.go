@@ -411,6 +411,44 @@ func TestChainedHashIndexExpressions(t *testing.T) {
 	}
 }
 
+func TestChainedHashAssignmentExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{
+			"var x = {'foo': 5}; x.foo = 10; x.foo;",
+			10,
+		},
+		{
+			"var x = {'foo': 5}; x['foo'] = 10; x.foo;",
+			10,
+		},
+		{
+			"var x = {'foo': {'bar': 5}}; x.foo.bar = 10; x.foo.bar;",
+			10,
+		},
+		{
+			"var x = {'foo': {'bar': 5}}; x['foo']['bar'] = 10; x.foo.bar;",
+			10,
+		},
+		{
+			"var x = {'foo': 5}; var y = {'bar': 10}; x.foo = y.bar; x.foo;",
+			10,
+		},
+		{
+			"var x = {'foo': 5}; var y = {'bar': 10}; x.newKey = y.bar; x.newKey;",
+			10,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestReassigningArrayIndexExpressions(t *testing.T) {
 	tests := []struct {
 		input    string
