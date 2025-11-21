@@ -118,30 +118,51 @@ func (p *Parser) parseChainExpression(left ast.Expression) ast.Expression {
 	chain := &ast.ChainExpression{Token: p.curToken, Left: left}
 
 	p.nextToken()
-	exp := p.parseExpression(LOWEST)
 
-	switch exp.(type) {
-	case *ast.Identifier, *ast.CallExpression, *ast.ChainExpression, *ast.IndexExpression:
-		chain.Right = exp
-	case *ast.AssignmentExpression:
-		chain.Right = &ast.AssignmentExpression{
-			Token: p.curToken,
-			Left:  chain.Left,
-			Right: exp,
+	switch p.curToken.Type {
+	case tokens.IDENT:
+		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+		if p.peekTokenIs(tokens.ASSIGN) {
+			p.nextToken()
+
+			assign := p.parseAssignmentExpression(ident)
+			chain.Right = &ast.AssignmentExpression{
+				Token: assign.GetToken(),
+				Left:  chain.Left,
+				Right: assign,
+			}
+		} else if p.peekTokenIs(tokens.PERIOD) {
+			p.nextToken()
+			chain.Right = p.parseChainExpression(ident)
+		} else if p.peekTokenIs(tokens.LPAREN) {
+			p.nextToken()
+			chain.Right = p.parseCallExpression(ident)
+		} else if p.peekTokenIs(tokens.LBRACKET) {
+			p.nextToken()
+			chain.Right = p.parseIndexExpression(ident)
+		} else {
+			chain.Right = ident
 		}
 
-	default:
-		msg := fmt.Sprintf("unexpected chained expression, got %T", exp)
+		return chain
+
+	case tokens.LPAREN:
 		p.errors = append(p.errors, ParserError{
-			Message:  msg,
+			Message:  fmt.Sprintf("unexpected chained expression, got %s", p.curToken.Literal),
 			FilePath: p.filePath,
 			Token:    p.curToken,
 		})
+		return nil
 
+	default:
+		p.errors = append(p.errors, ParserError{
+			Message:  fmt.Sprintf("unexpected chained expression token: %s", p.curToken.Literal),
+			FilePath: p.filePath,
+			Token:    p.curToken,
+		})
 		return nil
 	}
-
-	return chain
 }
 
 func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {

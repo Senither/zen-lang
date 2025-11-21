@@ -1114,3 +1114,123 @@ func TestChainCallExpressionParsing(t *testing.T) {
 		}
 	}
 }
+
+func TestChainIndexExpressionParsing(t *testing.T) {
+	tests := []struct {
+		input string
+		ident string
+		left  string
+		index any
+	}{
+		{"data.items[0]", "data", "items", 0},
+		{"config.values[key]", "config", "values", "key"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l, nil)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+		}
+
+		chainExp, ok := stmt.Expression.(*ast.ChainExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.ChainExpression. got %T", stmt.Expression)
+		}
+
+		indexExp, ok := chainExp.Right.(*ast.IndexExpression)
+		if !ok {
+			t.Fatalf("chainExp.Right is not ast.IndexExpression. got %T", chainExp.Right)
+		}
+
+		testLiteralExpression(t, chainExp.Left, tt.ident)
+		testLiteralExpression(t, indexExp.Left, tt.left)
+		testLiteralExpression(t, indexExp.Index, tt.index)
+	}
+}
+
+func TestChainAssignmentExpressionParsing(t *testing.T) {
+	input := "obj.prop = 42"
+
+	l := lexer.New(input)
+	p := New(l, nil)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+	}
+
+	chainExp, ok := stmt.Expression.(*ast.ChainExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ChainExpression. got %T", stmt.Expression)
+	}
+
+	assignExp, ok := chainExp.Right.(*ast.AssignmentExpression)
+	if !ok {
+		t.Fatalf("chainExp.Right is not ast.AssignmentExpression. got %T", chainExp.Right)
+	}
+
+	objAssignExp, ok := assignExp.Right.(*ast.AssignmentExpression)
+	if !ok {
+		t.Fatalf("assignExp.Right is not ast.AssignmentExpression. got %T", assignExp.Right)
+	}
+
+	testLiteralExpression(t, assignExp.Left, "obj")
+	testLiteralExpression(t, objAssignExp.Left, "prop")
+	testLiteralExpression(t, objAssignExp.Right, 42)
+}
+
+func TestChainIndexAssignmentExpressionParsing(t *testing.T) {
+	input := "data.items[0] = 100"
+
+	l := lexer.New(input)
+	p := New(l, nil)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got %T", program.Statements[0])
+	}
+
+	chainExp, ok := stmt.Expression.(*ast.ChainExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ChainExpression. got %T", stmt.Expression)
+	}
+
+	assignExp, ok := chainExp.Right.(*ast.AssignmentExpression)
+	if !ok {
+		t.Fatalf("chainExp.Right is not ast.AssignmentExpression. got %T", chainExp.Right)
+	}
+
+	indexExp, ok := assignExp.Left.(*ast.IndexExpression)
+	if !ok {
+		t.Fatalf("assignExp.Left is not ast.IndexExpression. got %T", assignExp.Left)
+	}
+
+	testLiteralExpression(t, chainExp.Left, "data")
+	testLiteralExpression(t, indexExp.Left, "items")
+	testLiteralExpression(t, indexExp.Index, 0)
+	testLiteralExpression(t, assignExp.Right, 100)
+}
