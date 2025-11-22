@@ -610,23 +610,35 @@ func evalHashChainExpression(
 
 		return evalChainExpression(node, pair.Value, right.Right, env)
 	case *ast.AssignmentExpression:
-		assign := right.Right.(*ast.AssignmentExpression)
-		leftKey, ok := assign.Left.(*ast.Identifier)
+		wrapped, ok := right.Right.(*ast.AssignmentExpression)
 		if !ok {
+			if index, ok := right.Left.(*ast.IndexExpression); ok {
+				return evalChainIndexAssignment(hash, right, index, env)
+			}
+
 			return objects.NewError(
-				assign.Token, env.GetFileDescriptorContext(),
-				"invalid assignment expression for %s, expected identifier, got %s",
-				hash.Type(), assign.Left.TokenLiteral(),
+				right.Token, env.GetFileDescriptorContext(),
+				"unsupported chain assignment structure for %s: %T",
+				hash.Type(), right.Left,
 			)
 		}
 
-		obj := Eval(assign.Right, env)
+		leftKey, ok := wrapped.Left.(*ast.Identifier)
+		if !ok {
+			return objects.NewError(
+				wrapped.Token, env.GetFileDescriptorContext(),
+				"invalid assignment expression for %s, expected identifier, got %s",
+				hash.Type(), wrapped.Left.TokenLiteral(),
+			)
+		}
+
+		obj := Eval(wrapped.Right, env)
 		if objects.IsError(obj) {
 			return obj
 		}
 
-		hashKey := (&objects.String{Value: leftKey.Value}).HashKey()
-		hash.Pairs[hashKey] = objects.HashPair{Key: &objects.String{Value: leftKey.Value}, Value: obj}
+		key := &objects.String{Value: leftKey.Value}
+		hash.Pairs[key.HashKey()] = objects.HashPair{Key: key, Value: obj}
 
 		return obj
 
@@ -637,6 +649,70 @@ func evalHashChainExpression(
 			hash.Type(), right.TokenLiteral(),
 		)
 	}
+}
+
+func evalChainIndexAssignment(
+	hash *objects.Hash,
+	assign *ast.AssignmentExpression,
+	index *ast.IndexExpression,
+	env *objects.Environment,
+) objects.Object {
+	propIdent, ok2 := index.Left.(*ast.Identifier)
+	if !ok2 {
+		return objects.NewError(
+			index.Token, env.GetFileDescriptorContext(),
+			"invalid index assignment left side in chain: %s",
+			index.Left.TokenLiteral(),
+		)
+	}
+
+	pair, ok := hash.Pairs[(&objects.String{Value: propIdent.Value}).HashKey()]
+	if !ok {
+		return objects.NewError(
+			index.Token, env.GetFileDescriptorContext(),
+			"invalid chain expression for %s, key not found: %s",
+			hash.Type(), propIdent.Value,
+		)
+	}
+
+	arr, isArr := pair.Value.(*objects.Array)
+	if !isArr {
+		return objects.NewError(
+			index.Token, env.GetFileDescriptorContext(),
+			"expected array at chain index assignment target, got %s",
+			pair.Value.Type(),
+		)
+	}
+
+	indexObj := Eval(index.Index, env)
+	if objects.IsError(indexObj) {
+		return indexObj
+	}
+
+	idxInt, okIdx := indexObj.(*objects.Integer)
+	if !okIdx {
+		return objects.NewError(
+			index.Token, env.GetFileDescriptorContext(),
+			"index operator not supported: %s",
+			indexObj.Type(),
+		)
+	}
+
+	valueObj := Eval(assign.Right, env)
+	if objects.IsError(valueObj) {
+		return valueObj
+	}
+
+	if idxInt.Value < 0 || idxInt.Value >= int64(len(arr.Elements)) {
+		return objects.NewError(
+			index.Token, env.GetFileDescriptorContext(),
+			"array index out of bounds: %d",
+			idxInt.Value,
+		)
+	}
+
+	arr.Elements[idxInt.Value] = valueObj
+	return valueObj
 }
 
 func evalAssignmentExpression(

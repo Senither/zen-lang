@@ -1,0 +1,11 @@
+--TEST--
+Can assign chain object to another chain object
+--FILE--
+var objA = {'foo': {'bar': 'baz'}};
+var objB = {'baz': {'qux': [1, 2, 3]}};
+
+objA.foo = objB.baz;
+
+println(objA)
+--EXPECT--
+{foo: {qux: [1, 2, 3]}}

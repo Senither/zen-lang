@@ -762,42 +762,7 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 
 		return c.compileFunctionArguments(right)
 	case *ast.AssignmentExpression:
-		innerAssign, ok := right.Right.(*ast.AssignmentExpression)
-		if !ok {
-			return objects.NewError(
-				right.Token, c.file,
-				"unsupported chain assignment structure: %T",
-				right.Right,
-			)
-		}
-
-		assignmentPath, err := c.retrieveAssignmentKeys(innerAssign.Left, innerAssign)
-		if err != nil {
-			return err
-		}
-
-		if len(assignmentPath) == 0 {
-			return objects.NewError(
-				innerAssign.Token, c.file,
-				"empty assignment key path in chain",
-			)
-		}
-
-		for i := 0; i < len(assignmentPath)-1; i++ {
-			c.emit(code.OpConstant, c.addConstant(&objects.String{Value: assignmentPath[i]}))
-			c.emit(code.OpIndex)
-		}
-
-		finalKey := assignmentPath[len(assignmentPath)-1]
-		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: finalKey}))
-
-		err = c.compileInstruction(innerAssign.Right)
-		if err != nil {
-			return err
-		}
-
-		c.emit(code.OpIndexAssign)
-		return nil
+		return c.compileChainAssignment(right)
 
 	default:
 		return objects.NewError(
@@ -808,6 +773,76 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 	}
 
 	c.emit(code.OpIndex)
+	return nil
+}
+
+func (c *Compiler) compileChainAssignment(assign *ast.AssignmentExpression) *objects.Error {
+	innerAssign, ok := assign.Right.(*ast.AssignmentExpression)
+	if !ok {
+		if index, ok := assign.Left.(*ast.IndexExpression); ok {
+			return c.compileChainIndexAssignment(assign, index)
+		}
+
+		return objects.NewError(
+			assign.Token, c.file,
+			"unsupported chain assignment structure: %T",
+			assign.Right,
+		)
+	}
+
+	assignmentPath, err := c.retrieveAssignmentKeys(innerAssign.Left, innerAssign)
+	if err != nil {
+		return err
+	}
+
+	if len(assignmentPath) == 0 {
+		return objects.NewError(
+			innerAssign.Token, c.file,
+			"empty assignment key path in chain",
+		)
+	}
+
+	for i := 0; i < len(assignmentPath)-1; i++ {
+		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: assignmentPath[i]}))
+		c.emit(code.OpIndex)
+	}
+
+	finalKey := assignmentPath[len(assignmentPath)-1]
+	c.emit(code.OpConstant, c.addConstant(&objects.String{Value: finalKey}))
+
+	err = c.compileInstruction(innerAssign.Right)
+	if err != nil {
+		return err
+	}
+
+	c.emit(code.OpIndexAssign)
+	return nil
+}
+
+func (c *Compiler) compileChainIndexAssignment(assign *ast.AssignmentExpression, index *ast.IndexExpression) *objects.Error {
+	propIdent, ok := index.Left.(*ast.Identifier)
+	if !ok {
+		return objects.NewError(
+			index.Token, c.file,
+			"unsupported index expression left in chain assignment: %T",
+			index.Left,
+		)
+	}
+
+	c.emit(code.OpConstant, c.addConstant(&objects.String{Value: propIdent.Value}))
+	c.emit(code.OpIndex)
+
+	err := c.compileInstruction(index.Index)
+	if err != nil {
+		return err
+	}
+
+	err = c.compileInstruction(assign.Right)
+	if err != nil {
+		return err
+	}
+
+	c.emit(code.OpIndexAssign)
 	return nil
 }
 

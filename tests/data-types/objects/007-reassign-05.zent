@@ -1,0 +1,10 @@
+--TEST--
+Can reassign values nested arrays and objects via chains
+--FILE--
+var obj = {'foo': {'bar': [5,6]}};
+
+obj.foo.bar[0] = 99;
+
+println(obj);
+--EXPECT--
+{foo: {bar: [99, 6]}}

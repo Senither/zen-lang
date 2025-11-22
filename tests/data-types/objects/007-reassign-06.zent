@@ -1,0 +1,11 @@
+--TEST--
+Can create new array property and assign index
+--FILE--
+var obj = {};
+
+obj.arr = [1,2,3];
+obj.arr[1] = 42;
+
+println(obj)
+--EXPECT--
+{arr: [1, 42, 3]}

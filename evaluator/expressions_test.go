@@ -449,6 +449,32 @@ func TestChainedHashAssignmentExpressions(t *testing.T) {
 	}
 }
 
+func TestChainedArrayIndexAssignmentExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{
+			"var x = {'arr': [1, 2, 3, 4]}; x.arr[2] = x.arr[2] + 40; x.arr;",
+			[]any{1, 2, 43, 4},
+		},
+		{
+			"var x = {'arr': [1, 2, 3]}; x.arr[1] = 42; x.arr;",
+			[]any{1, 42, 3},
+		},
+		{
+			"var x = {'foo': {'bar': [5, 6]}}; x.foo.bar[0] = 99; x.foo.bar;",
+			[]any{99, 6},
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		testArrayObject(t, evaluated, tt.expected, tt.input)
+	}
+}
+
 func TestReassigningArrayIndexExpressions(t *testing.T) {
 	tests := []struct {
 		input    string

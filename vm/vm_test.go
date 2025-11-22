@@ -310,6 +310,37 @@ func TestChainedHashAssignmentExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestChainedArrayIndexAssignments(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+				var obj = {'arr': [1, 2, 3, 4]};
+				obj.arr[2] = obj.arr[2] + 40;
+				obj.arr
+			`,
+			expected: []int{1, 2, 43, 4},
+		},
+		{
+			input: `
+				var obj = {'arr': [1, 2, 3]};
+				obj.arr[1] = 42;
+				obj.arr
+			`,
+			expected: []int{1, 42, 3},
+		},
+		{
+			input: `
+				var obj = {'foo': {'bar': [5, 6]}};
+				obj.foo.bar[0] = 99;
+				obj.foo.bar
+			`,
+			expected: []int{99, 6},
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},

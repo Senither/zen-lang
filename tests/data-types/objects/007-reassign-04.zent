@@ -1,0 +1,10 @@
+--TEST--
+Can reassign values arrays and objects via chains
+--FILE--
+var obj = {'arr': [1,2,3,4]};
+
+obj.arr[2] = obj.arr[2] + 40;
+
+println(obj);
+--EXPECT--
+{arr: [1, 2, 43, 4]}
