@@ -1013,3 +1013,16 @@ func TestAssignmentExpressions(t *testing.T) {
 
 	runVmTests(t, tests)
 }
+
+func TestCompoundAssignments(t *testing.T) {
+	tests := []vmTestCase{
+		{"var mut x = 5; x += 5;", 10},
+		{"var mut x = 5; x -= 5;", 0},
+		{"var mut x = 5; x *= 5;", 25},
+		{"var mut x = 5; x /= 5;", 1},
+		{"var mut x = 5; x %= 5;", 0},
+		{"var mut x = 5; x ^= 5;", 3125},
+	}
+
+	runVmTests(t, tests)
+}

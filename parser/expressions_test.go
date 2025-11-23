@@ -460,6 +460,65 @@ func TestParsingInfixExpressions(t *testing.T) {
 	}
 }
 
+func TestParsingCompoundInfixAssignments(t *testing.T) {
+	tests := []struct {
+		input    string
+		ident    string
+		operator string
+		right    int64
+	}{
+		{"i += 42", "i", "+", 42},
+		{"i -= 42", "i", "-", 42},
+		{"i *= 42", "i", "*", 42},
+		{"i /= 42", "i", "/", 42},
+		{"i %= 42", "i", "%", 42},
+		{"i ^= 42", "i", "^", 42},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l, nil)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement, got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not an ExpressionStatement, got %T", program.Statements[0])
+		}
+
+		assignExp, ok := stmt.Expression.(*ast.AssignmentExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.AssignmentExpression, got %T", stmt.Expression)
+		}
+
+		if !testIdentifier(t, assignExp.Left, tt.ident) {
+			return
+		}
+
+		infixExp, ok := assignExp.Right.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("assignExp.Right is not ast.InfixExpression, got %T", assignExp.Right)
+		}
+
+		if !testIdentifier(t, infixExp.Left, tt.ident) {
+			return
+		}
+
+		if infixExp.Operator != tt.operator {
+			t.Errorf("infixExp.Operator is not '%s', got %q", tt.operator, infixExp.Operator)
+		}
+
+		if !testIntegerLiteral(t, infixExp.Right, tt.right) {
+			return
+		}
+	}
+}
+
 func TestParsingSuffixExpressions(t *testing.T) {
 	tests := []struct {
 		input string

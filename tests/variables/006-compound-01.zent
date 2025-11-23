@@ -1,0 +1,30 @@
+--TEST--
+Variables can be modified with compound assignment operators
+--FILE--
+var mut plus = 42;
+var mut minus = 41;
+var mut divide = 40;
+var mut multiply = 39;
+var mut mod = 38;
+var mut pow = 37;
+
+plus += 8;
+minus -= 31;
+divide /= 8;
+multiply *= 5;
+mod %= 3;
+pow ^= 3;
+
+println(plus);
+println(minus);
+println(divide);
+println(multiply);
+println(mod);
+println(pow);
+--EXPECT--
+50
+10
+5
+195
+2
+50653

@@ -298,6 +298,28 @@ func (p *Parser) noPrefixParseFnError(t tokens.TokenType) {
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	if isCompoundOperator(p.curToken.Type) && p.peekTokenIs(tokens.ASSIGN) {
+		opToken := p.curToken
+		opSymbol := opToken.Literal
+
+		p.nextToken()
+		assignToken := p.curToken
+
+		p.nextToken()
+		rhs := p.parseExpression(LOWEST)
+
+		return &ast.AssignmentExpression{
+			Token: assignToken,
+			Left:  left,
+			Right: &ast.InfixExpression{
+				Token:    opToken,
+				Operator: opSymbol,
+				Left:     left,
+				Right:    rhs,
+			},
+		}
+	}
+
 	expression := &ast.InfixExpression{
 		Token:    p.curToken,
 		Operator: p.curToken.Literal,
@@ -504,4 +526,13 @@ func (p *Parser) parseExpressionList(end tokens.TokenType) []ast.Expression {
 	}
 
 	return expressions
+}
+
+func isCompoundOperator(t tokens.TokenType) bool {
+	switch t {
+	case tokens.PLUS, tokens.MINUS, tokens.ASTERISK, tokens.SLASH, tokens.MOD, tokens.CARET:
+		return true
+	}
+
+	return false
 }

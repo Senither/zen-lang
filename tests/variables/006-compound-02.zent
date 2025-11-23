@@ -1,0 +1,9 @@
+--TEST--
+Immutable variables cannot be modified with compound assignment operators
+--FILE--
+var plus = 42;
+
+plus += 9;
+--ERROR--
+cannot modify immutable variable: plus
+    at <unknown>:3:7
