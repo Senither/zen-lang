@@ -1,0 +1,14 @@
+--TEST--
+Can return closure with arguments
+--FILE--
+func createSum(a) {
+    return func(b) {
+        return a + b;
+    };
+}
+
+var sum = createSum(10);
+
+println(sum(20));
+--EXPECT--
+30
