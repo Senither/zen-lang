@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid argument types
+--FILE--
+strings.startsWith(5, "World")
+--ERROR--
+argument to `startsWith` must be a string, got INTEGER
+    at <unknown>:0:0

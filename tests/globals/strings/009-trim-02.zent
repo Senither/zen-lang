@@ -1,0 +1,10 @@
+--TEST--
+Can trim strings of substrings
+--FILE--
+println(strings.trim("!!Hello, World!!", "!"));
+println(strings.trim("!!Hello, World!", "!"));
+println(strings.trim("121212Hello, World!121212", "12"));
+--EXPECT--
+Hello, World
+Hello, World
+Hello, World!

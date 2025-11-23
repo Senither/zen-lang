@@ -1,0 +1,14 @@
+--TEST--
+Can check if strings starts multiple values
+--FILE--
+println(strings.startsWith("Hello, World", ["Hello", "World"]));
+println(strings.startsWith("Hello, World", ["World", "Hello"]));
+println(strings.startsWith("Hello, World", ["hello", "HELLO"]));
+println(strings.startsWith("Hello, World", ["h", "H"]));
+println(strings.startsWith("Hello, World", ["something", "else"]));
+--EXPECT--
+true
+true
+false
+true
+false

@@ -1,0 +1,16 @@
+--TEST--
+Can check if strings starts with value
+--FILE--
+println(strings.startsWith("Hello, World", "Hello, World"));
+println(strings.startsWith("Hello, World", "Hello"));
+println(strings.startsWith("Hello, World", "H"));
+println(strings.startsWith("Hello, World", ""));
+println(strings.startsWith("Hello, World", "World"));
+println(strings.startsWith("Hello, World", "Something Else"));
+--EXPECT--
+true
+true
+true
+true
+false
+false

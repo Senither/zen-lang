@@ -21,6 +21,11 @@ var Globals = []struct {
 			{Name: "split", Builtin: &Builtin{Fn: globalStringsSplit}},
 			{Name: "join", Builtin: &Builtin{Fn: globalStringsJoin}},
 			{Name: "format", Builtin: &Builtin{Fn: globalStringsFormat}},
+			{Name: "startsWith", Builtin: &Builtin{Fn: globalStringsStartsWith}},
+			{Name: "endsWith", Builtin: &Builtin{Fn: globalStringsEndsWith}},
+			{Name: "toUpper", Builtin: &Builtin{Fn: globalStringsToUpper}},
+			{Name: "toLower", Builtin: &Builtin{Fn: globalStringsToLower}},
+			{Name: "trim", Builtin: &Builtin{Fn: globalStringsTrim}},
 		},
 	},
 	{

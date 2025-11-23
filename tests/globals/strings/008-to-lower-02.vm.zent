@@ -1,0 +1,7 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+strings.toLower()
+--ERROR--
+wrong number of arguments. got 0, want 1
+    at <unknown>:0:0

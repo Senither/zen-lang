@@ -1,0 +1,10 @@
+--TEST--
+Can convert strings to upper case
+--FILE--
+println(strings.toUpper("Hello, World!"));
+println(strings.toUpper("HeLlO, WoRlD!"));
+println(strings.toUpper("hello, world!"));
+--EXPECT--
+HELLO, WORLD!
+HELLO, WORLD!
+HELLO, WORLD!

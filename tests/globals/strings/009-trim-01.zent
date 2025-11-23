@@ -1,0 +1,10 @@
+--TEST--
+Can trim strings of spaces
+--FILE--
+println(strings.trim("  Hello, World!  "));
+println(strings.trim("  Hello, World!"));
+println(strings.trim("Hello, World!  "));
+--EXPECT--
+Hello, World!
+Hello, World!
+Hello, World!

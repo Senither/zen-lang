@@ -1,0 +1,16 @@
+--TEST--
+Can check if strings ends with value
+--FILE--
+println(strings.endsWith("Hello, World", "Hello, World"));
+println(strings.endsWith("Hello, World", "World"));
+println(strings.endsWith("Hello, World", "d"));
+println(strings.endsWith("Hello, World", ""));
+println(strings.endsWith("Hello, World", "Hello"));
+println(strings.endsWith("Hello, World", "Something Else"));
+--EXPECT--
+true
+true
+true
+true
+false
+false

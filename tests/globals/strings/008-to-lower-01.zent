@@ -1,0 +1,10 @@
+--TEST--
+Can convert strings to lower case
+--FILE--
+println(strings.toLower("Hello, World!"));
+println(strings.toLower("HeLlO, WoRlD!"));
+println(strings.toLower("hello, world!"));
+--EXPECT--
+hello, world!
+hello, world!
+hello, world!

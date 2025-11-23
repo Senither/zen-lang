@@ -208,6 +208,110 @@ func TestStringsFormatGlobalFunction(t *testing.T) {
 	}
 }
 
+func TestStringsStartsWithGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{`strings.startsWith("hello", "he")`, true},
+		{`strings.startsWith("hello", "hello")`, true},
+		{`strings.startsWith("hello", "")`, true},
+		{`strings.startsWith("hello", "world")`, false},
+		{`strings.startsWith("hello", ["Hello", "World"])`, false},
+		{`strings.startsWith("hello", ["hello", "world"])`, true},
+		{`var x = "foobar"; strings.startsWith(x, "foo");`, true},
+		{`var x = "foobar"; strings.startsWith(x, "bar");`, false},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case bool:
+			testBooleanObject(t, evaluated, expected, tt.input)
+		}
+	}
+}
+
+func TestStringsEndsWithGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{`strings.endsWith("hello", "lo")`, true},
+		{`strings.endsWith("hello", "hello")`, true},
+		{`strings.endsWith("hello", "")`, true},
+		{`strings.endsWith("hello", "world")`, false},
+		{`strings.endsWith("hello", ["Hello", "World"])`, false},
+		{`strings.endsWith("hello", ["lo", "world"])`, true},
+		{`var x = "foobar"; strings.endsWith(x, "bar");`, true},
+		{`var x = "foobar"; strings.endsWith(x, "foo");`, false},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case bool:
+			testBooleanObject(t, evaluated, expected, tt.input)
+		}
+	}
+}
+
+func TestStringsToUpperGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`strings.toUpper("hello")`, "HELLO"},
+		{`strings.toUpper("Hello World!")`, "HELLO WORLD!"},
+		{`var x = "Test"; strings.toUpper(x);`, "TEST"},
+		{`strings.toUpper("")`, ""},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestStringsToLowerGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`strings.toLower("HELLO")`, "hello"},
+		{`strings.toLower("Hello World!")`, "hello world!"},
+		{`var x = "TeSt"; strings.toLower(x);`, "test"},
+		{`strings.toLower("")`, ""},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestStringsTrimGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`strings.trim("  hello  ")`, "hello"},
+		{"strings.trim(\"\n\thello world \t\n\")", "hello world"},
+		{`strings.trim("hello")`, "hello"},
+		{`var x = "  spaced  "; strings.trim(x);`, "spaced"},
+		{`strings.trim("")`, ""},
+		{`strings.trim("  hello  ", " ")`, "hello"},
+		{`strings.trim("xxhelloxx", "x")`, "hello"},
+		{`strings.trim("!!wow!!", "!")`, "wow"},
+		{`strings.trim("!!!!!wow!!!", "!")`, "wow"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestMathMinGlobalFunction(t *testing.T) {
 	tests := []struct {
 		input    string

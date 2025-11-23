@@ -112,3 +112,119 @@ func globalStringsFormat(args ...Object) (Object, error) {
 
 	return &String{Value: fmt.Sprintf(str.Value, values...)}, nil
 }
+
+func globalStringsStartsWith(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+	}
+
+	str, ok := args[0].(*String)
+	if !ok {
+		return nil, fmt.Errorf("argument to `startsWith` must be a string, got %s", args[0].Type())
+	}
+
+	switch prefix := args[1].(type) {
+	case *String:
+		if strings.HasPrefix(str.Value, prefix.Value) {
+			return TRUE, nil
+		}
+		return FALSE, nil
+	case *Array:
+		for _, elem := range prefix.Elements {
+			prefixStr, ok := elem.(*String)
+			if !ok {
+				return nil, fmt.Errorf("elements of the prefix array must be strings, got %s", elem.Type())
+			}
+
+			if strings.HasPrefix(str.Value, prefixStr.Value) {
+				return TRUE, nil
+			}
+		}
+		return FALSE, nil
+
+	default:
+		return nil, fmt.Errorf("second argument to `startsWith` must be a string or array, got %s", args[1].Type())
+	}
+}
+
+func globalStringsEndsWith(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+	}
+
+	str, ok := args[0].(*String)
+	if !ok {
+		return nil, fmt.Errorf("argument to `endsWith` must be a string, got %s", args[0].Type())
+	}
+
+	switch suffix := args[1].(type) {
+	case *String:
+		if strings.HasSuffix(str.Value, suffix.Value) {
+			return TRUE, nil
+		}
+		return FALSE, nil
+	case *Array:
+		for _, elem := range suffix.Elements {
+			prefixStr, ok := elem.(*String)
+			if !ok {
+				return nil, fmt.Errorf("elements of the suffix array must be strings, got %s", elem.Type())
+			}
+
+			if strings.HasSuffix(str.Value, prefixStr.Value) {
+				return TRUE, nil
+			}
+		}
+		return FALSE, nil
+
+	default:
+		return nil, fmt.Errorf("second argument to `endsWith` must be a string or array, got %s", args[1].Type())
+	}
+}
+
+func globalStringsToUpper(args ...Object) (Object, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	str, ok := args[0].(*String)
+	if !ok {
+		return nil, fmt.Errorf("argument to `toUpper` must be a string, got %s", args[0].Type())
+	}
+
+	return &String{Value: strings.ToUpper(str.Value)}, nil
+}
+
+func globalStringsToLower(args ...Object) (Object, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+	}
+
+	str, ok := args[0].(*String)
+	if !ok {
+		return nil, fmt.Errorf("argument to `toLower` must be a string, got %s", args[0].Type())
+	}
+
+	return &String{Value: strings.ToLower(str.Value)}, nil
+}
+
+func globalStringsTrim(args ...Object) (Object, error) {
+	if len(args) == 0 {
+		return nil, fmt.Errorf("wrong number of arguments. got %d, want at least 1", len(args))
+	}
+
+	str, ok := args[0].(*String)
+	if !ok {
+		return nil, fmt.Errorf("argument to `trim` must be a string, got %s", args[0].Type())
+	}
+
+	if len(args) == 1 {
+		return &String{Value: strings.TrimSpace(str.Value)}, nil
+	}
+
+	chars, ok := args[1].(*String)
+	if !ok {
+		return nil, fmt.Errorf("second argument to `trim` must be a string, got %s", args[1].Type())
+	}
+
+	return &String{Value: strings.Trim(str.Value, chars.Value)}, nil
+}
