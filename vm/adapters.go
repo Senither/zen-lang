@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"fmt"
-
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
 )
@@ -22,8 +20,13 @@ func (ca *CompiledClosureAdapter) Inspect() string {
 
 func (ca *CompiledClosureAdapter) Call(args ...objects.Object) objects.Object {
 	if len(args) != ca.Closure.Fn.NumParameters {
+		fnName := "<anonymous>"
+		if ca.Closure.Fn.Name != "" {
+			fnName = ca.Closure.Fn.Name
+		}
+
 		return objects.NativeErrorToErrorObject(
-			fmt.Errorf("wrong number of arguments: got %d, want %d", len(args), ca.Closure.Fn.NumParameters),
+			objects.NewWrongNumberOfArgumentsError(fnName, ca.Closure.Fn.NumParameters, len(args)),
 		)
 	}
 

@@ -412,6 +412,7 @@ func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.O
 		result = math.Pow(leftValue, rightValue)
 	case code.OpMod:
 		result = math.Mod(leftValue, rightValue)
+
 	default:
 		return fmt.Errorf("unknown number operator: %d", op)
 	}
@@ -629,8 +630,13 @@ func (vm *VM) executeCall(numArgs int) error {
 }
 
 func (vm *VM) callClosure(cl *objects.Closure, numArgs int) error {
+	name := "<anonymous>"
+	if cl.Fn.Name != "" {
+		name = cl.Fn.Name
+	}
+
 	if numArgs != cl.Fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments. got %d, want %d", numArgs, cl.Fn.NumParameters)
+		return objects.NewWrongNumberOfArgumentsError(name, cl.Fn.NumParameters, numArgs)
 	}
 
 	frame := NewFrame(cl, vm.sp-numArgs)
@@ -642,8 +648,13 @@ func (vm *VM) callClosure(cl *objects.Closure, numArgs int) error {
 }
 
 func (vm *VM) callImportedClosure(icl *objects.ImportedClosure, numArgs int) error {
+	name := "<anonymous>"
+	if icl.Closure.Fn.Name != "" {
+		name = icl.Closure.Fn.Name
+	}
+
 	if numArgs != icl.Closure.Fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments. got %d, want %d", numArgs, icl.Closure.Fn.NumParameters)
+		return objects.NewWrongNumberOfArgumentsError(name, icl.Closure.Fn.NumParameters, numArgs)
 	}
 
 	importCtx := vm.imports[icl.ImportContextIndex]

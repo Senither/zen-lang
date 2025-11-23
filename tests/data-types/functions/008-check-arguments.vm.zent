@@ -7,5 +7,5 @@ func add(a, b) {
 
 add(10);
 --ERROR--
-wrong number of arguments. got 1, want 2
+wrong number of arguments to `add`: got 1, want 2
     at <unknown>:0:0

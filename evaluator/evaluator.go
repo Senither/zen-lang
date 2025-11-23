@@ -942,12 +942,21 @@ func evalCallExpression(node *ast.CallExpression, function objects.Object, env *
 		)
 	}
 
-	functionObj, ok := function.(*objects.Function)
-	if ok && len(args) < len(functionObj.Parameters) {
+	fnObj, ok := function.(*objects.Function)
+	if ok && len(args) < len(fnObj.Parameters) {
+		fnName := "<anonymous>"
+		if fnObj.Name != nil {
+			fnName = fnObj.Name.Value
+		}
+
 		return objects.NewError(
 			node.Token, env.GetFileDescriptorContext(),
-			"wrong number of arguments. got %d, want %d",
-			len(args), len(functionObj.Parameters),
+			"%s",
+			objects.NewWrongNumberOfArgumentsError(
+				fnName,
+				len(fnObj.Parameters),
+				len(args),
+			).Error(),
 		)
 	}
 

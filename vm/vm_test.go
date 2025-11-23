@@ -596,15 +596,15 @@ func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 	tests := []vmTestCase{
 		{
 			input:    `func() { 1; }(1);`,
-			expected: `wrong number of arguments. got 1, want 0`,
+			expected: "wrong number of arguments to `<anonymous>`: got 1, want 0",
 		},
 		{
 			input:    `func(a) { a; }();`,
-			expected: `wrong number of arguments. got 0, want 1`,
+			expected: "wrong number of arguments to `<anonymous>`: got 0, want 1",
 		},
 		{
 			input:    `func(a, b) { a + b; }(1);`,
-			expected: `wrong number of arguments. got 1, want 2`,
+			expected: "wrong number of arguments to `<anonymous>`: got 1, want 2",
 		},
 	}
 
@@ -621,7 +621,7 @@ func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 		}
 
 		if err.Error() != tt.expected {
-			t.Fatalf("wrong VM error: want %q, got %q", tt.expected, err)
+			t.Fatalf("wrong VM error:\nwant:\n\t%q\ngot:\n\t%q", tt.expected, err)
 		}
 	}
 }
