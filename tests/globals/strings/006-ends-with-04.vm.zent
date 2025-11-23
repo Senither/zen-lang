@@ -3,5 +3,5 @@ It fails when given one arguments
 --FILE--
 strings.endsWith("Hello, World")
 --ERROR--
-wrong number of arguments. got 1, want 2
+wrong number of arguments to `endsWith`: got 1, want 2
     at <unknown>:0:0

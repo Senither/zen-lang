@@ -79,9 +79,10 @@ func TestLenBuiltinFunction(t *testing.T) {
 		{`len("four")`, 4},
 		{`len("hello world")`, 11},
 		{`len(null)`, 0},
-		{`len(1)`, "argument to `len` not supported, got INTEGER\n    at <unknown>:1:4"},
-		{`len("one", "two")`, "wrong number of arguments. got 2, want 1\n    at <unknown>:1:4"},
+		{`len(1)`, "argument 1 to `len` has invalid type: got INTEGER, want STRING|ARRAY|NULL\n    at <unknown>:1:4"},
+		{`len("one", "two")`, "wrong number of arguments to `len`: got 2, want 1\n    at <unknown>:1:4"},
 	}
+
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 
@@ -96,7 +97,7 @@ func TestLenBuiltinFunction(t *testing.T) {
 			}
 
 			if errObj.Inspect() != expected {
-				t.Errorf("wrong error message. expected %q, got %q", expected, errObj.Inspect())
+				t.Errorf("wrong error message.\nexpected:\n\t%q\ngot:\n\t%q", expected, errObj.Inspect())
 			}
 		}
 	}

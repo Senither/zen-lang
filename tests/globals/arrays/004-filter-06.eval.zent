@@ -3,6 +3,6 @@ It fails when given non-function as second argument
 --FILE--
 println(arrays.filter([1, 2, 3], 5));
 --ERROR--
-second argument to `filter` must be a function, got INTEGER
+argument 2 to `filter` has invalid type: got INTEGER, want FUNCTION|CLOSURE
     at <unknown>:1:22
     at <unknown>:1:8

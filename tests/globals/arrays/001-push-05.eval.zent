@@ -3,6 +3,6 @@ It fails when given non-arrays as the first argument
 --FILE--
 println(arrays.push(5, 5));
 --ERROR--
-argument to `push` must be an array, got INTEGER
+argument 1 to `push` has invalid type: got INTEGER, want ARRAY
     at <unknown>:1:20
     at <unknown>:1:8

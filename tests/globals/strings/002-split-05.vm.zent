@@ -3,5 +3,5 @@ It fails when called with wrong argument types
 --FILE--
 println(strings.split(5, "test"));
 --ERROR--
-argument to `contains` must be a string, got INTEGER
+argument 1 to `split` has invalid type: got INTEGER, want STRING
     at <unknown>:0:0

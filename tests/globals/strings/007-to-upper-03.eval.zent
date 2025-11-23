@@ -3,5 +3,5 @@ It fails when given invalid argument type
 --FILE--
 strings.toUpper(123);
 --ERROR--
-argument to `toUpper` must be a string, got INTEGER
+argument 1 to `toUpper` has invalid type: got INTEGER, want STRING
     at <unknown>:1:16

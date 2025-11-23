@@ -3,5 +3,5 @@ It fails when given non number as argument
 --FILE--
 println(math.floor("string"));
 --ERROR--
-argument to `floor` must be a number, got STRING
+argument 1 to `floor` has invalid type: got STRING, want INTEGER|FLOAT
     at <unknown>:0:0

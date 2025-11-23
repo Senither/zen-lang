@@ -1,21 +1,20 @@
 package objects
 
 import (
-	"fmt"
 	"math"
 )
 
 func globalMathMin(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("min", 2, len(args))
 	}
 
 	if !IsNumber(args[0].Type()) {
-		return nil, fmt.Errorf("argument 1 to `min` must be a number, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypesError("min", GetNumberTypes(), 0, args)
 	}
 
 	if !IsNumber(args[1].Type()) {
-		return nil, fmt.Errorf("argument 2 to `min` must be a number, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypesError("min", GetNumberTypes(), 1, args)
 	}
 
 	return WrapNumberValue(math.Min(
@@ -26,15 +25,15 @@ func globalMathMin(args ...Object) (Object, error) {
 
 func globalMathMax(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("max", 2, len(args))
 	}
 
 	if !IsNumber(args[0].Type()) {
-		return nil, fmt.Errorf("argument 1 to `max` must be a number, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypesError("max", GetNumberTypes(), 0, args)
 	}
 
 	if !IsNumber(args[1].Type()) {
-		return nil, fmt.Errorf("argument 2 to `max` must be a number, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypesError("max", GetNumberTypes(), 1, args)
 	}
 
 	return WrapNumberValue(math.Max(
@@ -45,11 +44,11 @@ func globalMathMax(args ...Object) (Object, error) {
 
 func globalMathCeil(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("ceil", 1, len(args))
 	}
 
 	if !IsNumber(args[0].Type()) {
-		return nil, fmt.Errorf("argument to `ceil` must be a number, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypesError("ceil", GetNumberTypes(), 0, args)
 	}
 
 	return &Float{Value: math.Ceil(UnwrapNumberValue(args[0]))}, nil
@@ -57,11 +56,11 @@ func globalMathCeil(args ...Object) (Object, error) {
 
 func globalMathFloor(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("floor", 1, len(args))
 	}
 
 	if !IsNumber(args[0].Type()) {
-		return nil, fmt.Errorf("argument to `floor` must be a number, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypesError("floor", GetNumberTypes(), 0, args)
 	}
 
 	return &Float{Value: math.Floor(UnwrapNumberValue(args[0]))}, nil
@@ -69,11 +68,11 @@ func globalMathFloor(args ...Object) (Object, error) {
 
 func globalMathRound(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("round", 1, len(args))
 	}
 
 	if !IsNumber(args[0].Type()) {
-		return nil, fmt.Errorf("argument to `round` must be a number, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypesError("round", GetNumberTypes(), 0, args)
 	}
 
 	return &Float{Value: math.Round(UnwrapNumberValue(args[0]))}, nil
@@ -81,11 +80,11 @@ func globalMathRound(args ...Object) (Object, error) {
 
 func globalMathLog(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("log", 1, len(args))
 	}
 
 	if !IsNumber(args[0].Type()) {
-		return nil, fmt.Errorf("argument to `log` must be a number, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypesError("log", GetNumberTypes(), 0, args)
 	}
 
 	return &Float{Value: math.Log10(UnwrapNumberValue(args[0]))}, nil
@@ -93,11 +92,11 @@ func globalMathLog(args ...Object) (Object, error) {
 
 func globalMathSqrt(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("sqrt", 1, len(args))
 	}
 
 	if !IsNumber(args[0].Type()) {
-		return nil, fmt.Errorf("argument to `sqrt` must be a number, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypesError("sqrt", GetNumberTypes(), 0, args)
 	}
 
 	return &Float{Value: math.Sqrt(UnwrapNumberValue(args[0]))}, nil

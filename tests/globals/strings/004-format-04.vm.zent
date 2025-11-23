@@ -3,5 +3,5 @@ It fails when called with wrong number of arguments
 --FILE--
 println(strings.format());
 --ERROR--
-wrong number of arguments. got 0, want at least 2
+wrong number of arguments to `format`: got 0, want 2
     at <unknown>:0:0

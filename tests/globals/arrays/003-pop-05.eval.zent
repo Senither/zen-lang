@@ -3,6 +3,6 @@ It fails when given non-arrays as the first argument
 --FILE--
 println(arrays.pop(5));
 --ERROR--
-argument to `pop` must be an array, got INTEGER
+argument 1 to `pop` has invalid type: got INTEGER, want ARRAY
     at <unknown>:1:19
     at <unknown>:1:8

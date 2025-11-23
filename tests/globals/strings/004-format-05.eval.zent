@@ -3,6 +3,6 @@ It fails when called with wrong object types
 --FILE--
 println(strings.format(42, "World"));
 --ERROR--
-argument to `contains` must be a string, got INTEGER
+argument 1 to `format` has invalid type: got INTEGER, want STRING
     at <unknown>:1:23
     at <unknown>:1:8

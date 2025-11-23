@@ -5,6 +5,6 @@ var a = [1, 2];
 
 println(arrays.concat(a, 'not an array'));
 --ERROR--
-all arguments to `concat` must be arrays, got STRING
+argument 2 to `concat` has invalid type: got STRING, want ARRAY
     at <unknown>:3:22
     at <unknown>:3:8

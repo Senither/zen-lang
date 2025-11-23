@@ -3,5 +3,5 @@ It fails when given invalid argument types
 --FILE--
 strings.endsWith(5, "World")
 --ERROR--
-argument to `endsWith` must be a string, got INTEGER
+argument 1 to `endsWith` has invalid type: got INTEGER, want STRING
     at <unknown>:1:17

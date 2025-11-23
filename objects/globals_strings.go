@@ -7,17 +7,17 @@ import (
 
 func globalStringsContains(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("contains", 2, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `contains` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("contains", STRING_OBJ, 0, args)
 	}
 
 	substr, ok := args[1].(*String)
 	if !ok {
-		return nil, fmt.Errorf("second argument to `contains` must be a string, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypeError("contains", STRING_OBJ, 1, args)
 	}
 
 	if strings.Contains(str.Value, substr.Value) {
@@ -29,17 +29,17 @@ func globalStringsContains(args ...Object) (Object, error) {
 
 func globalStringsSplit(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("split", 2, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `contains` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("split", STRING_OBJ, 0, args)
 	}
 
 	substr, ok := args[1].(*String)
 	if !ok {
-		return nil, fmt.Errorf("second argument to `contains` must be a string, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypeError("split", STRING_OBJ, 1, args)
 	}
 
 	arr := strings.Split(str.Value, substr.Value)
@@ -54,17 +54,17 @@ func globalStringsSplit(args ...Object) (Object, error) {
 
 func globalStringsJoin(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("join", 2, len(args))
 	}
 
 	arr, ok := args[0].(*Array)
 	if !ok {
-		return nil, fmt.Errorf("argument to `join` must be an array, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("join", ARRAY_OBJ, 0, args)
 	}
 
 	sep, ok := args[1].(*String)
 	if !ok {
-		return nil, fmt.Errorf("second argument to `join` must be a string, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypeError("join", STRING_OBJ, 1, args)
 	}
 
 	var elements []string
@@ -83,12 +83,12 @@ func globalStringsJoin(args ...Object) (Object, error) {
 
 func globalStringsFormat(args ...Object) (Object, error) {
 	if len(args) < 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want at least 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("format", 2, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `contains` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("format", STRING_OBJ, 0, args)
 	}
 
 	var values []any
@@ -115,12 +115,12 @@ func globalStringsFormat(args ...Object) (Object, error) {
 
 func globalStringsStartsWith(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("startsWith", 2, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `startsWith` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("startsWith", STRING_OBJ, 0, args)
 	}
 
 	switch prefix := args[1].(type) {
@@ -133,7 +133,7 @@ func globalStringsStartsWith(args ...Object) (Object, error) {
 		for _, elem := range prefix.Elements {
 			prefixStr, ok := elem.(*String)
 			if !ok {
-				return nil, fmt.Errorf("elements of the prefix array must be strings, got %s", elem.Type())
+				return nil, NewErrorf("startsWith", "elements of the prefix array must be %s, got %s", STRING_OBJ, elem.Type())
 			}
 
 			if strings.HasPrefix(str.Value, prefixStr.Value) {
@@ -143,18 +143,18 @@ func globalStringsStartsWith(args ...Object) (Object, error) {
 		return FALSE, nil
 
 	default:
-		return nil, fmt.Errorf("second argument to `startsWith` must be a string or array, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypesError("startsWith", []ObjectType{STRING_OBJ, ARRAY_OBJ}, 1, args)
 	}
 }
 
 func globalStringsEndsWith(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("endsWith", 2, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `endsWith` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("endsWith", STRING_OBJ, 0, args)
 	}
 
 	switch suffix := args[1].(type) {
@@ -167,7 +167,7 @@ func globalStringsEndsWith(args ...Object) (Object, error) {
 		for _, elem := range suffix.Elements {
 			prefixStr, ok := elem.(*String)
 			if !ok {
-				return nil, fmt.Errorf("elements of the suffix array must be strings, got %s", elem.Type())
+				return nil, NewErrorf("endsWith", "elements of the suffix array must be %s, got %s", STRING_OBJ, elem.Type())
 			}
 
 			if strings.HasSuffix(str.Value, prefixStr.Value) {
@@ -177,18 +177,18 @@ func globalStringsEndsWith(args ...Object) (Object, error) {
 		return FALSE, nil
 
 	default:
-		return nil, fmt.Errorf("second argument to `endsWith` must be a string or array, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypesError("endsWith", []ObjectType{STRING_OBJ, ARRAY_OBJ}, 1, args)
 	}
 }
 
 func globalStringsToUpper(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("toUpper", 1, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `toUpper` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("toUpper", STRING_OBJ, 0, args)
 	}
 
 	return &String{Value: strings.ToUpper(str.Value)}, nil
@@ -196,12 +196,12 @@ func globalStringsToUpper(args ...Object) (Object, error) {
 
 func globalStringsToLower(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("toLower", 1, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `toLower` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("toLower", STRING_OBJ, 0, args)
 	}
 
 	return &String{Value: strings.ToLower(str.Value)}, nil
@@ -209,12 +209,12 @@ func globalStringsToLower(args ...Object) (Object, error) {
 
 func globalStringsTrim(args ...Object) (Object, error) {
 	if len(args) == 0 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want at least 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("trim", 1, len(args))
 	}
 
 	str, ok := args[0].(*String)
 	if !ok {
-		return nil, fmt.Errorf("argument to `trim` must be a string, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("trim", STRING_OBJ, 0, args)
 	}
 
 	if len(args) == 1 {
@@ -223,7 +223,7 @@ func globalStringsTrim(args ...Object) (Object, error) {
 
 	chars, ok := args[1].(*String)
 	if !ok {
-		return nil, fmt.Errorf("second argument to `trim` must be a string, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypeError("trim", STRING_OBJ, 1, args)
 	}
 
 	return &String{Value: strings.Trim(str.Value, chars.Value)}, nil

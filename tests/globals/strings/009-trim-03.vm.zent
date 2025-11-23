@@ -3,5 +3,5 @@ It fails when given no arguments
 --FILE--
 strings.trim()
 --ERROR--
-wrong number of arguments. got 0, want at least 1
+wrong number of arguments to `trim`: got 0, want 1
     at <unknown>:0:0

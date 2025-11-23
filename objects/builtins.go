@@ -32,7 +32,7 @@ var Builtins = []BuiltinDefinition{
 		Name: "len",
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
-				return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+				return nil, NewWrongNumberOfArgumentsError("len", 1, len(args))
 			}
 
 			switch arg := args[0].(type) {
@@ -44,7 +44,7 @@ var Builtins = []BuiltinDefinition{
 				return &Integer{Value: 0}, nil
 
 			default:
-				return nil, fmt.Errorf("argument to `len` not supported, got %s", args[0].Type())
+				return nil, NewInvalidArgumentTypesError("len", []ObjectType{STRING_OBJ, ARRAY_OBJ, NULL_OBJ}, 0, args)
 			}
 		}},
 	},
@@ -52,7 +52,7 @@ var Builtins = []BuiltinDefinition{
 		Name: "string",
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
-				return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+				return nil, NewWrongNumberOfArgumentsError("string", 1, len(args))
 			}
 
 			return &String{Value: args[0].Inspect()}, nil
@@ -62,7 +62,7 @@ var Builtins = []BuiltinDefinition{
 		Name: "type",
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
-				return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+				return nil, NewWrongNumberOfArgumentsError("type", 1, len(args))
 			}
 
 			switch args[0].Type() {

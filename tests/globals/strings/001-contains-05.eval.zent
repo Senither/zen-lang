@@ -3,6 +3,6 @@ It fails when given non-strings as arguments
 --FILE--
 println(strings.contains("Hello, World!", 5));
 --ERROR--
-second argument to `contains` must be a string, got INTEGER
+argument 2 to `contains` has invalid type: got INTEGER, want STRING
     at <unknown>:1:25
     at <unknown>:1:8

@@ -3,5 +3,5 @@ It fails when given non-array as first argument
 --FILE--
 println(arrays.filter(5, func(x) { return x > 2; }));
 --ERROR--
-argument to `filter` must be an array, got INTEGER
+argument 1 to `filter` has invalid type: got INTEGER, want ARRAY
     at <unknown>:0:0

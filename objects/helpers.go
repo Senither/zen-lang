@@ -34,7 +34,7 @@ func NativeErrorToErrorObject(err error) *Error {
 	return &Error{Message: err.Error()}
 }
 
-func NewError(token tokens.Token, fileCtx *FileDescriptorContext, format string, a ...interface{}) *Error {
+func NewError(token tokens.Token, fileCtx *FileDescriptorContext, format string, a ...any) *Error {
 	err := Error{
 		Message: fmt.Sprintf(format, a...),
 		Line:    token.Line,
@@ -73,7 +73,17 @@ func IsTruthy(obj Object) bool {
 }
 
 func IsNumber(t ObjectType) bool {
-	return t == INTEGER_OBJ || t == FLOAT_OBJ
+	for _, numberType := range GetNumberTypes() {
+		if t == numberType {
+			return true
+		}
+	}
+
+	return false
+}
+
+func GetNumberTypes() []ObjectType {
+	return []ObjectType{INTEGER_OBJ, FLOAT_OBJ}
 }
 
 func WrapNumberValue(value float64, left, right Object) Object {
@@ -171,10 +181,7 @@ func BuildImmutableHash(args ...HashPair) *ImmutableHash {
 	return &ImmutableHash{Value: Hash{Pairs: pairs}}
 }
 
-func WrapBuiltinFunctionInASTAwareMap(
-	name string,
-	fn *Builtin,
-) HashPair {
+func WrapBuiltinFunctionInASTAwareMap(name string, fn *Builtin) HashPair {
 	return HashPair{
 		Key:   &String{Value: name},
 		Value: BuiltinToASTAwareBuiltin(fn),

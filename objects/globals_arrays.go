@@ -1,15 +1,13 @@
 package objects
 
-import "fmt"
-
 func globalArraysPush(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("push", 2, len(args))
 	}
 
 	array, ok := args[0].(*Array)
 	if !ok {
-		return nil, fmt.Errorf("argument to `push` must be an array, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("push", ARRAY_OBJ, 0, args)
 	}
 
 	array.Elements = append(array.Elements, args[1])
@@ -19,12 +17,12 @@ func globalArraysPush(args ...Object) (Object, error) {
 
 func globalArraysShift(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("shift", 1, len(args))
 	}
 
 	array, ok := args[0].(*Array)
 	if !ok {
-		return nil, fmt.Errorf("argument to `shift` must be an array, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("shift", ARRAY_OBJ, 0, args)
 	}
 
 	if len(array.Elements) == 0 {
@@ -39,12 +37,12 @@ func globalArraysShift(args ...Object) (Object, error) {
 
 func globalArraysPop(args ...Object) (Object, error) {
 	if len(args) != 1 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 1", len(args))
+		return nil, NewWrongNumberOfArgumentsError("pop", 1, len(args))
 	}
 
 	array, ok := args[0].(*Array)
 	if !ok {
-		return nil, fmt.Errorf("argument to `pop` must be an array, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("pop", ARRAY_OBJ, 0, args)
 	}
 
 	if len(array.Elements) == 0 {
@@ -59,21 +57,21 @@ func globalArraysPop(args ...Object) (Object, error) {
 
 func globalArraysFilter(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("filter", 2, len(args))
 	}
 
 	array, ok := args[0].(*Array)
 	if !ok {
-		return nil, fmt.Errorf("argument to `filter` must be an array, got %s", args[0].Type())
+		return nil, NewInvalidArgumentTypeError("filter", ARRAY_OBJ, 0, args)
 	}
 
 	callable, ok := args[1].(Callable)
 	if !ok {
-		return nil, fmt.Errorf("second argument to `filter` must be a function, got %s", args[1].Type())
+		return nil, NewInvalidArgumentTypesError("filter", []ObjectType{FUNCTION_OBJ, CLOSURE_OBJ}, 1, args)
 	}
 
 	if callable.ParametersCount() != 1 {
-		return nil, fmt.Errorf("function passed to `filter` must take exactly one argument")
+		return nil, NewErrorf("filter", "function passed to `filter` must take exactly one argument")
 	}
 
 	filtered := make([]Object, 0)
@@ -89,7 +87,7 @@ func globalArraysFilter(args ...Object) (Object, error) {
 			return rs, nil
 
 		default:
-			return nil, fmt.Errorf("function passed to `filter` must return a boolean, got %s", rs.Type())
+			return nil, NewErrorf("filter", "function passed to `filter` must return a %s, got %s", BOOLEAN_OBJ, rs.Type())
 		}
 	}
 
@@ -98,14 +96,14 @@ func globalArraysFilter(args ...Object) (Object, error) {
 
 func globalArraysConcat(args ...Object) (Object, error) {
 	if len(args) < 2 {
-		return nil, fmt.Errorf("wrong number of arguments. got %d, want at least 2", len(args))
+		return nil, NewWrongNumberOfArgumentsError("concat", 2, len(args))
 	}
 
 	var elements []Object
-	for _, arg := range args {
-		array, ok := arg.(*Array)
+	for i := 0; i < len(args); i++ {
+		array, ok := args[i].(*Array)
 		if !ok {
-			return nil, fmt.Errorf("all arguments to `concat` must be arrays, got %s", arg.Type())
+			return nil, NewInvalidArgumentTypeError("concat", ARRAY_OBJ, i, args)
 		}
 
 		elements = append(elements, array.Elements...)

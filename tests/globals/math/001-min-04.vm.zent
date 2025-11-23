@@ -3,5 +3,5 @@ It fails when given non number argument
 --FILE--
 println(math.min("10", [1, 2, 3]));
 --ERROR--
-argument 1 to `min` must be a number, got STRING
+argument 1 to `min` has invalid type: got STRING, want INTEGER|FLOAT
     at <unknown>:0:0

@@ -3,5 +3,5 @@ It fails when called with wrong number of arguments
 --FILE--
 println(strings.join(5, "test"));
 --ERROR--
-argument to `join` must be an array, got INTEGER
+argument 1 to `join` has invalid type: got INTEGER, want ARRAY
     at <unknown>:0:0

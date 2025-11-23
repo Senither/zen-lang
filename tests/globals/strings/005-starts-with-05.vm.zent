@@ -3,5 +3,5 @@ It fails when given invalid argument types
 --FILE--
 strings.startsWith(5, "World")
 --ERROR--
-argument to `startsWith` must be a string, got INTEGER
+argument 1 to `startsWith` has invalid type: got INTEGER, want STRING
     at <unknown>:0:0

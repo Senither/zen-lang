@@ -3,6 +3,6 @@ It fails when given no arguments
 --FILE--
 println(arrays.push());
 --ERROR--
-wrong number of arguments. got 0, want 2
+wrong number of arguments to `push`: got 0, want 2
     at <unknown>:1:20
     at <unknown>:1:8

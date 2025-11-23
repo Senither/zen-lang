@@ -633,7 +633,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("hello world")`, 11},
 		{`len([])`, 0},
 		{`len([1, 2, 3])`, 3},
-		{`len(1)`, &objects.Error{Message: "argument to `len` not supported, got INTEGER"}},
+		{`len(1)`, &objects.Error{Message: "argument 1 to `len` has invalid type: got INTEGER, want STRING|ARRAY|NULL"}},
 		{`print("Hello, World")`, nil},
 		{`print("Hello", "World")`, nil},
 		{`println("Hello, World")`, nil},

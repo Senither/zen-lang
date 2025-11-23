@@ -3,6 +3,6 @@ It fails when given no arguments
 --FILE--
 println(math.floor());
 --ERROR--
-wrong number of arguments. got 0, want 1
+wrong number of arguments to `floor`: got 0, want 1
     at <unknown>:1:19
     at <unknown>:1:8

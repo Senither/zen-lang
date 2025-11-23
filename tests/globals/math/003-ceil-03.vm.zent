@@ -3,5 +3,5 @@ It fails when given non number as argument
 --FILE--
 println(math.ceil("string"));
 --ERROR--
-argument to `ceil` must be a number, got STRING
+argument 1 to `ceil` has invalid type: got STRING, want INTEGER|FLOAT
     at <unknown>:0:0

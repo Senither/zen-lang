@@ -3,5 +3,5 @@ It fails when given no arguments
 --FILE--
 println(arrays.filter());
 --ERROR--
-wrong number of arguments. got 0, want 2
+wrong number of arguments to `filter`: got 0, want 2
     at <unknown>:0:0

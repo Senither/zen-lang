@@ -3,5 +3,5 @@ It fails when given invalid argument type
 --FILE--
 strings.trim(123)
 --ERROR--
-argument to `trim` must be a string, got INTEGER
+argument 1 to `trim` has invalid type: got INTEGER, want STRING
     at <unknown>:0:0

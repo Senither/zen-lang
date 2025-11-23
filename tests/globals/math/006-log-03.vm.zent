@@ -3,5 +3,5 @@ It fails when given non number as argument
 --FILE--
 println(math.log("string"));
 --ERROR--
-argument to `log` must be a number, got STRING
+argument 1 to `log` has invalid type: got STRING, want INTEGER|FLOAT
     at <unknown>:0:0

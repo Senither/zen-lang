@@ -3,6 +3,6 @@ It fails when given non number argument
 --FILE--
 println(math.max("10", [1, 2, 3]));
 --ERROR--
-argument 1 to `max` must be a number, got STRING
+argument 1 to `max` has invalid type: got STRING, want INTEGER|FLOAT
     at <unknown>:1:17
     at <unknown>:1:8
