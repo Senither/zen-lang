@@ -221,8 +221,13 @@ func (tr *TestRunner) runTestFile(fullPath, file string) {
 		return
 	}
 
-	if tr.options.Filter != "" && !strings.Contains(test.message, tr.options.Filter) {
-		return
+	if tr.options.Filter != "" {
+		match := strings.Contains(test.message, tr.options.Filter) ||
+			strings.Contains(test.file, tr.options.Filter)
+
+		if !match {
+			return
+		}
 	}
 
 	startLexingAndParsing := time.Now()
