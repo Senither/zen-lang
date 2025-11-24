@@ -230,3 +230,24 @@ func TestTypeBuiltinFunction(t *testing.T) {
 		testStringObject(t, evaluated, tt.expected)
 	}
 }
+
+func TestIsNaNBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{`isNaN(0/0)`, true},
+		{`isNaN(1/0)`, false},
+		{`isNaN(-1/0)`, false},
+		{`isNaN(5)`, false},
+		{`isNaN(3.14)`, false},
+		{`isNaN("not a number")`, false},
+		{`isNaN(true)`, false},
+		{`isNaN(null)`, false},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testBooleanObject(t, evaluated, tt.expected, tt.input)
+	}
+}

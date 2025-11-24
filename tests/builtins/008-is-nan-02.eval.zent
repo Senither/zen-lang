@@ -1,0 +1,8 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+println(isNaN());
+--ERROR--
+wrong number of arguments to `isNaN`: got 0, want 1
+    at <unknown>:1:14
+    at <unknown>:1:8

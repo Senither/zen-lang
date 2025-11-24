@@ -151,6 +151,25 @@ var Builtins = []BuiltinDefinition{
 			}
 		}},
 	},
+	{
+		Name: "isNaN",
+		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+			if len(args) != 1 {
+				return nil, NewWrongNumberOfArgumentsError("isNaN", 1, len(args))
+			}
+
+			val, ok := args[0].(*Float)
+			if !ok {
+				return FALSE, nil
+			}
+
+			if val.Value != val.Value {
+				return TRUE, nil
+			}
+
+			return FALSE, nil
+		}},
+	},
 }
 
 func BuiltinToASTAwareBuiltin(builtin *Builtin) *ASTAwareBuiltin {

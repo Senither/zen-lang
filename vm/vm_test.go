@@ -678,6 +678,14 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`type([1, 2, 3])`, "ARRAY"},
 		{`type({'test': 'value'})`, "HASH"},
 		{`type(func() { })`, "FUNCTION"},
+		{`isNaN(0/0)`, true},
+		{`isNaN(1/0)`, false},
+		{`isNaN(-1/0)`, false},
+		{`isNaN(5)`, false},
+		{`isNaN(3.14)`, false},
+		{`isNaN("not a number")`, false},
+		{`isNaN(true)`, false},
+		{`isNaN(null)`, false},
 	}
 
 	runVmTests(t, tests)

@@ -1,0 +1,24 @@
+--TEST--
+Can check for NaN values
+--FILE--
+println(isNaN(0/0))
+println(isNaN(1/0))
+println(isNaN(-1/0))
+println(isNaN(5))
+println(isNaN(3.14))
+println(isNaN("not a number"))
+println(isNaN(true))
+println(isNaN(null))
+println(isNaN([1, 2, 3]))
+println(isNaN({ 'key': 'value' }))
+--EXPECT--
+true
+false
+false
+false
+false
+false
+false
+false
+false
+false
