@@ -98,6 +98,25 @@ func TestArraysPopGlobalFunction(t *testing.T) {
 	}
 }
 
+func TestArraysFilterGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{"arrays.filter([1, 2, 3, 4], func(x) { x % 2 == 0 })", []any{2, 4}},
+		{"arrays.filter([1, 2, 3, 4, 5], func(x) { x > 3 })", []any{4, 5}},
+		{"arrays.filter([], func(x) { x > 0 })", []any{}},
+		{"var x = [1, 2, 3, 4]; arrays.filter(x, func(y) { y < 3 });", []any{1, 2}},
+		{"var x = [10, 15, 20, 25]; arrays.filter(x, func(x) { x >= 20 });", []any{20, 25}},
+		{"arrays.filter([null, 1, null, 2], func(a) { a != null })", []any{1, 2}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testArrayObject(t, evaluated, tt.expected, tt.input)
+	}
+}
+
 func TestArraysConcatGlobalFunction(t *testing.T) {
 	tests := []struct {
 		input    string
