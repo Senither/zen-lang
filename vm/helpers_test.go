@@ -97,7 +97,7 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 		}
 
 		if actualError.Message != expected.Message {
-			t.Errorf("wrong error message. got %q, want %q", actualError.Message, expected.Message)
+			t.Errorf("wrong error message.\ngot:  %q\nwant: %q", actualError.Message, expected.Message)
 		}
 	case error:
 		fmt.Printf("Error")

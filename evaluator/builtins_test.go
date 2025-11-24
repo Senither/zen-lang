@@ -129,6 +129,86 @@ func TestStringBuiltinFunction(t *testing.T) {
 	}
 }
 
+func TestIntBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`int(123)`, int64(123)},
+		{`int(45.67)`, int64(45)},
+		{`int("789")`, int64(789)},
+		{`int(0)`, int64(0)},
+		{`int(-42)`, int64(-42)},
+		{`int(-3.99)`, int64(-3)},
+		{`int("0")`, int64(0)},
+		{`int("   456   ")`, int64(456)},
+		{`int(true)`, int64(1)},
+		{`int(false)`, int64(0)},
+		{`int(null)`, int64(0)},
+		{`int("")`, "error in `int`: failed to convert `` to INTEGER\n    at <unknown>:1:4"},
+		{`int("not a number")`, "error in `int`: failed to convert `not a number` to INTEGER\n    at <unknown>:1:4"},
+		{`int(1, 2)`, "wrong number of arguments to `int`: got 2, want 1\n    at <unknown>:1:4"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int64:
+			testIntegerObject(t, evaluated, expected)
+		case string:
+			errObj, ok := evaluated.(*objects.Error)
+			if !ok {
+				t.Errorf("object is not Error. got %T (%+v)", evaluated, evaluated)
+				continue
+			}
+
+			if errObj.Inspect() != expected {
+				t.Errorf("wrong error message.\ngot:  %q\nwant: %q", errObj.Inspect(), expected)
+			}
+		}
+	}
+}
+
+func TestFloatBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`float(123)`, float64(123)},
+		{`float(45.67)`, float64(45.67)},
+		{`float("789.01")`, float64(789.01)},
+		{`float(0)`, float64(0)},
+		{`float(-42)`, float64(-42)},
+		{`float(-3.99)`, float64(-3.99)},
+		{`float("0")`, float64(0)},
+		{`float("   456.78   ")`, float64(456.78)},
+		{`float(true)`, float64(1)},
+		{`float(false)`, float64(0)},
+		{`float(null)`, float64(0)},
+		{`float("")`, "error in `float`: failed to convert `` to FLOAT\n    at <unknown>:1:6"},
+		{`float("not a number")`, "error in `float`: failed to convert `not a number` to FLOAT\n    at <unknown>:1:6"},
+		{`float(1, 2)`, "wrong number of arguments to `float`: got 2, want 1\n    at <unknown>:1:6"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case float64:
+			testFloatObject(t, evaluated, expected)
+		case string:
+			errObj, ok := evaluated.(*objects.Error)
+			if !ok {
+				t.Errorf("object is not Error. got %T (%+v)", evaluated, evaluated)
+				continue
+			}
+
+			if errObj.Inspect() != expected {
+				t.Errorf("wrong error message.\ngot:  %q\nwant: %q", errObj.Inspect(), expected)
+			}
+		}
+	}
+}
+
 func TestTypeBuiltinFunction(t *testing.T) {
 	tests := []struct {
 		input    string

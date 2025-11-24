@@ -1,0 +1,8 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+println(float());
+--ERROR--
+wrong number of arguments to `float`: got 0, want 1
+    at <unknown>:1:14
+    at <unknown>:1:8

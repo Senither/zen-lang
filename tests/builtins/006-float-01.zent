@@ -1,0 +1,26 @@
+--TEST--
+Can convert different object types to floats
+--FILE--
+println(float(42))
+println(float(9.314159))
+println(float(0))
+println(float(-7))
+println(float(-5.5432))
+println(float("0.001"))
+println(float("12.34"))
+println(float("2e3"))
+println(float(true))
+println(float(false))
+println(float(null))
+--EXPECT--
+42.000000
+9.314159
+0.000000
+-7.000000
+-5.543200
+0.001000
+12.340000
+2000.000000
+1.000000
+0.000000
+0.000000

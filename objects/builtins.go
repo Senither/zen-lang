@@ -59,6 +59,78 @@ var Builtins = []BuiltinDefinition{
 		}},
 	},
 	{
+		Name: "int",
+		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+			if len(args) != 1 {
+				return nil, NewWrongNumberOfArgumentsError("int", 1, len(args))
+			}
+
+			switch arg := args[0].(type) {
+			case *Integer:
+				return arg, nil
+			case *Float:
+				return &Integer{Value: int64(arg.Value)}, nil
+			case *Boolean:
+				if arg.Value {
+					return &Integer{Value: 1}, nil
+				} else {
+					return &Integer{Value: 0}, nil
+				}
+			case *Null:
+				return &Integer{Value: 0}, nil
+			case *String:
+				var intValue int64
+				_, err := fmt.Sscan(arg.Value, &intValue)
+				if err != nil {
+					return nil, NewErrorf("int", "failed to convert `%s` to %s", arg.Value, INTEGER_OBJ)
+				}
+
+				return &Integer{Value: intValue}, nil
+
+			default:
+				return nil, NewInvalidArgumentTypesError("int", []ObjectType{
+					INTEGER_OBJ, FLOAT_OBJ, STRING_OBJ, BOOLEAN_OBJ, NULL_OBJ,
+				}, 0, args)
+			}
+		}},
+	},
+	{
+		Name: "float",
+		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+			if len(args) != 1 {
+				return nil, NewWrongNumberOfArgumentsError("float", 1, len(args))
+			}
+
+			switch arg := args[0].(type) {
+			case *Float:
+				return arg, nil
+			case *Integer:
+				return &Float{Value: float64(arg.Value)}, nil
+			case *Boolean:
+				if arg.Value {
+					return &Float{Value: 1}, nil
+				} else {
+					return &Float{Value: 0}, nil
+				}
+			case *Null:
+				return &Float{Value: 0}, nil
+			case *String:
+				var intValue float64
+				_, err := fmt.Sscan(arg.Value, &intValue)
+				if err != nil {
+					return nil, NewErrorf("float", "failed to convert `%s` to %s", arg.Value, FLOAT_OBJ)
+				}
+
+				return &Float{Value: float64(intValue)}, nil
+
+			default:
+				return nil, NewInvalidArgumentTypesError("float", []ObjectType{
+					INTEGER_OBJ, FLOAT_OBJ, STRING_OBJ, BOOLEAN_OBJ, NULL_OBJ,
+				}, 0, args)
+			}
+		}},
+	},
+	{
 		Name: "type",
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {

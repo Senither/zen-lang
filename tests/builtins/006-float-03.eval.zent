@@ -1,0 +1,8 @@
+--TEST--
+It fails when given unsupported argument types
+--FILE--
+println(float([1, 2, 3]));
+--ERROR--
+argument 1 to `float` has invalid type: got ARRAY, want INTEGER|FLOAT|STRING|BOOLEAN|NULL
+    at <unknown>:1:14
+    at <unknown>:1:8
