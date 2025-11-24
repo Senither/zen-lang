@@ -142,6 +142,33 @@ func TestArraysConcatGlobalFunction(t *testing.T) {
 	}
 }
 
+func TestArraysFirstGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{"arrays.first([100, 200, 300], func (x) { x >= 100 })", 100},
+		{"arrays.first([100, 200, 300], func (x) { x > 100 })", 200},
+		{"arrays.first([100, 200, 300], func (x, i) { i == 2 })", 300},
+		{"arrays.first([100, 200, 300], func (x) { x > 500 })", nil},
+		{"arrays.first(5, func (a) { })", "argument 1 to `first` has invalid type: got INTEGER, want ARRAY\n    at <unknown>:1:13"},
+		{"arrays.first([100, 200, 300], func () { })", "error in `first`: function passed to `first` must take at least one argument\n    at <unknown>:1:13"},
+		{"arrays.first([100, 200, 300], func (a, b, c) { })", "error in `first`: function passed to `first` must take at most two arguments\n    at <unknown>:1:13"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case string:
+			testErrorObject(t, evaluated, expected)
+		case nil:
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func TestStringsContainsGlobalFunction(t *testing.T) {
 	tests := []struct {
 		input    string

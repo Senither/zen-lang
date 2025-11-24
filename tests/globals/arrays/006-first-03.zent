@@ -1,0 +1,6 @@
+--TEST--
+Returns null if no elements match condition
+--FILE--
+println(arrays.first([1, 2, 3, 4], func(x) { return x > 5; }));
+--EXPECT--
+null

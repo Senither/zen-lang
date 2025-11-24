@@ -12,6 +12,7 @@ var Globals = []struct {
 			{Name: "pop", Builtin: &Builtin{Fn: globalArraysPop}},
 			{Name: "filter", Builtin: &Builtin{Fn: globalArraysFilter}},
 			{Name: "concat", Builtin: &Builtin{Fn: globalArraysConcat}},
+			{Name: "first", Builtin: &Builtin{Fn: globalArraysFirst}},
 		},
 	},
 	{

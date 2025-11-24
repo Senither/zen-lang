@@ -111,3 +111,51 @@ func globalArraysConcat(args ...Object) (Object, error) {
 
 	return &Array{Elements: elements}, nil
 }
+
+func globalArraysFirst(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, NewWrongNumberOfArgumentsError("first", 2, len(args))
+	}
+
+	array, ok := args[0].(*Array)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("first", ARRAY_OBJ, 0, args)
+	}
+
+	callable, ok := args[1].(Callable)
+	if !ok {
+		return nil, NewInvalidArgumentTypesError("first", []ObjectType{FUNCTION_OBJ, CLOSURE_OBJ}, 1, args)
+	}
+
+	if callable.ParametersCount() == 0 {
+		return nil, NewErrorf("first", "function passed to `first` must take at least one argument")
+	}
+
+	if callable.ParametersCount() > 2 {
+		return nil, NewErrorf("first", "function passed to `first` must take at most two arguments")
+	}
+
+	for i, elem := range array.Elements {
+		var rs Object
+
+		if callable.ParametersCount() == 1 {
+			rs = callable.Call(elem)
+		} else {
+			rs = callable.Call(elem, &Integer{Value: int64(i)})
+		}
+
+		switch rs := rs.(type) {
+		case *Boolean:
+			if rs == TRUE {
+				return elem, nil
+			}
+		case *Error:
+			return rs, nil
+
+		default:
+			return nil, NewErrorf("first", "function passed to `first` must return a %s, got %s", BOOLEAN_OBJ, rs.Type())
+		}
+	}
+
+	return NULL, nil
+}

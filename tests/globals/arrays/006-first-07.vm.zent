@@ -1,0 +1,7 @@
+--TEST--
+It fails when given callback has more than 2 arguments
+--FILE--
+println(arrays.first([1, 2, 3 ], func(a, b, c) { }));
+--ERROR--
+error in `first`: function passed to `first` must take at most two arguments
+    at <unknown>:0:0

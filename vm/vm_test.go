@@ -727,6 +727,22 @@ func TestGlobalBuiltinFunctions(t *testing.T) {
 		{`arrays.concat([1, 2], [3, 4])`, []int{1, 2, 3, 4}},
 		{`arrays.concat(["a", "b"], ["c", "d"])`, []string{"a", "b", "c", "d"}},
 		{`arrays.concat([1, 2], [3, 4], [5, 6])`, []int{1, 2, 3, 4, 5, 6}},
+		{"arrays.first([100, 200, 300], func (x) { x >= 100 })", 100},
+		{"arrays.first([100, 200, 300], func (x) { x > 100 })", 200},
+		{"arrays.first([100, 200, 300], func (x, i) { i == 2 })", 300},
+		{"arrays.first([100, 200, 300], func (x) { x > 500 })", nil},
+		{
+			"arrays.first(5, func (a) { })",
+			&objects.Error{Message: "argument 1 to `first` has invalid type: got INTEGER, want ARRAY"},
+		},
+		{
+			"arrays.first([100, 200, 300], func () { })",
+			&objects.Error{Message: "error in `first`: function passed to `first` must take at least one argument"},
+		},
+		{
+			"arrays.first([100, 200, 300], func (a, b, c) { })",
+			&objects.Error{Message: "error in `first`: function passed to `first` must take at most two arguments"},
+		},
 		{`math.min(19, 42)`, 19},
 		{`math.max(19, 42)`, 42},
 		{`math.ceil(12.34)`, 13.0},

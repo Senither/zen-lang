@@ -330,7 +330,7 @@ func testErrorObject(t *testing.T, obj objects.Object, expected string) bool {
 	}
 
 	if err.Inspect() != expected {
-		t.Errorf("object has wrong message. got %q, expected %q", err.Inspect(), expected)
+		t.Errorf("object has wrong message.\ngot:  %q\nwant: %q", err.Inspect(), expected)
 		return false
 	}
 

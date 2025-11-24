@@ -1,0 +1,7 @@
+--TEST--
+It fails when given callback has no arguments
+--FILE--
+println(arrays.first([1, 2, 3 ], func() { }));
+--ERROR--
+error in `first`: function passed to `first` must take at least one argument
+    at <unknown>:0:0

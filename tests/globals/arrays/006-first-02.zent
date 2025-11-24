@@ -1,0 +1,6 @@
+--TEST--
+Can get first element of array matching condition with index
+--FILE--
+println(arrays.first([100, 200, 300], func(x, i) { return i == 1; }));
+--EXPECT--
+200
