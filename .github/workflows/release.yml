@@ -1,22 +1,23 @@
-name: Docker Release
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
-  release:
-    types: [published]
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:
   IMAGE_NAME: ghcr.io/senither/zen-lang
 
 jobs:
-  build-and-push:
+  build-docker:
     runs-on: ubuntu-latest
+
+    name: Build and publish Docker image
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,3 +52,52 @@ jobs:
         run: |
           echo "Published: ${IMAGE_NAME}:${VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "Also tagged: ${IMAGE_NAME}:latest" >> $GITHUB_STEP_SUMMARY
+
+  build-binary:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows]
+        goarch: [amd64, arm64]
+
+    name: Build ${{ matrix.goos }} (${{ matrix.goarch }}) binary
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Verify the dependencies
+        run: go mod verify
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          binary_name="zen-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            binary_name="${binary_name}.exe"
+          fi
+          go build -o "${binary_name}" .
+
+      - name: Upload binary to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          binary_name="zen-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            binary_name="${binary_name}.exe"
+          fi
+          gh release upload ${{ github.ref_name }} "${binary_name}" --clobber
+
+      - name: Summary
+        run: |
+          echo "Built binary for ${{ matrix.goos }} (${{ matrix.goarch }})" >> $GITHUB_STEP_SUMMARY
