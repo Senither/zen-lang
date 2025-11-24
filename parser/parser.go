@@ -79,6 +79,8 @@ func New(lexer *lexer.Lexer, filePath interface{}) *Parser {
 	p.registerInfix(tokens.LT_EQ, p.parseInfixExpression)
 	p.registerInfix(tokens.GT, p.parseInfixExpression)
 	p.registerInfix(tokens.GT_EQ, p.parseInfixExpression)
+	p.registerInfix(tokens.AND, p.parseInfixExpression)
+	p.registerInfix(tokens.OR, p.parseInfixExpression)
 	p.registerInfix(tokens.LPAREN, p.parseCallExpression)
 	p.registerInfix(tokens.LBRACKET, p.parseIndexExpression)
 

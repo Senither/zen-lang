@@ -38,6 +38,8 @@ var definitions = map[Opcode]*Definition{
 	OpNotEqual:           {"OpNotEqual", []int{}},
 	OpGreaterThan:        {"OpGreaterThan", []int{}},
 	OpGreaterThanOrEqual: {"OpGreaterThanOrEqual", []int{}},
+	OpAnd:                {"OpAnd", []int{}},
+	OpOr:                 {"OpOr", []int{}},
 	// Prefixes
 	OpMinus: {"OpMinus", []int{}},
 	OpBang:  {"OpBang", []int{}},

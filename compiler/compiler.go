@@ -539,6 +539,10 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) *objects.Er
 		c.emit(code.OpGreaterThan)
 	case ">=", "<=":
 		c.emit(code.OpGreaterThanOrEqual)
+	case "&&":
+		c.emit(code.OpAnd)
+	case "||":
+		c.emit(code.OpOr)
 
 	default:
 		return objects.NewError(

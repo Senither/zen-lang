@@ -342,6 +342,18 @@ func evalMinusPrefixOperatorExpression(
 
 func evalInfixExpression(node *ast.InfixExpression, left, right objects.Object, env *objects.Environment) objects.Object {
 	switch {
+	case node.Operator == "&&":
+		if objects.IsTruthy(left) && objects.IsTruthy(right) {
+			return objects.TRUE
+		} else {
+			return objects.FALSE
+		}
+	case node.Operator == "||":
+		if objects.IsTruthy(left) || objects.IsTruthy(right) {
+			return objects.TRUE
+		} else {
+			return objects.FALSE
+		}
 	case objects.IsNumber(left.Type()) && objects.IsNumber(right.Type()):
 		return evalNumberInfixExpression(node, left, right, env)
 	case left.Type() == objects.STRING_OBJ && right.Type() == objects.STRING_OBJ:

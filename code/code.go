@@ -41,6 +41,8 @@ const (
 	OpNotEqual
 	OpGreaterThan
 	OpGreaterThanOrEqual
+	OpAnd
+	OpOr
 
 	// Prefixes
 	OpMinus

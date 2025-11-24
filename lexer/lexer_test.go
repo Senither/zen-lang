@@ -44,6 +44,7 @@ func TestNextToken(t *testing.T) {
 		=+-!*^%/<>
 		== !=;
 		<= >=;
+		&& ||;
 
 		++ --;
 
@@ -194,6 +195,9 @@ func TestNextToken(t *testing.T) {
 		{tokens.SEMICOLON, ";"},
 		{tokens.LT_EQ, "<="},
 		{tokens.GT_EQ, ">="},
+		{tokens.SEMICOLON, ";"},
+		{tokens.AND, "&&"},
+		{tokens.OR, "||"},
 		{tokens.SEMICOLON, ";"},
 		// Increment & Decrement
 		{tokens.INCREMENT, "++"},

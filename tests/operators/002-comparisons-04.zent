@@ -1,0 +1,32 @@
+--TEST--
+Can compare objects using logical AND and OR operators
+--FILE--
+println(true && true);
+println(true && false);
+println(false && true);
+println(true || true);
+println(true || false);
+println(false || true);
+println(false || false);
+println(true && true || false);
+println(true && (true || false));
+println((true && true) || false);
+println((1 < 2) && (2 < 3));
+println((1 < 2) && (2 > 3));
+println((1 > 2) || (2 < 3));
+println((1 > 2) || (2 > 3));
+--EXPECT--
+true
+false
+false
+true
+true
+true
+false
+true
+true
+true
+true
+false
+true
+false

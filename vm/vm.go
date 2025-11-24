@@ -167,7 +167,7 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 	case code.OpFalse:
 		return vm.push(objects.FALSE)
 
-	case code.OpEqual, code.OpNotEqual, code.OpGreaterThan, code.OpGreaterThanOrEqual:
+	case code.OpEqual, code.OpNotEqual, code.OpGreaterThan, code.OpGreaterThanOrEqual, code.OpAnd, code.OpOr:
 		return vm.executeComparison(op)
 
 	case code.OpBang:
@@ -445,6 +445,17 @@ func (vm *VM) executeBinaryStringableOperation(op code.Opcode, left, right objec
 func (vm *VM) executeComparison(op code.Opcode) error {
 	right := vm.pop()
 	left := vm.pop()
+
+	switch op {
+	case code.OpAnd:
+		return vm.push(objects.NativeBoolToBooleanObject(
+			objects.IsTruthy(left) && objects.IsTruthy(right),
+		))
+	case code.OpOr:
+		return vm.push(objects.NativeBoolToBooleanObject(
+			objects.IsTruthy(left) || objects.IsTruthy(right),
+		))
+	}
 
 	rightType := right.Type()
 	leftType := left.Type()

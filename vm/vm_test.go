@@ -89,6 +89,18 @@ func TestBooleanExpressions(t *testing.T) {
 		{"!!false", false},
 		{"!!5", true},
 		{"!(if (false) { 5; })", true},
+		{"true && true", true},
+		{"true && false", false},
+		{"false && true", false},
+		{"true || true", true},
+		{"true || false", true},
+		{"false || true", true},
+		{"false || false", false},
+		{"true && (false || true)", true},
+		{"(1 < 2) && (2 < 3)", true},
+		{"(1 < 2) && (2 > 3)", false},
+		{"(1 > 2) || (2 < 3)", true},
+		{"(1 > 2) || (2 > 3)", false},
 	}
 
 	runVmTests(t, tests)
