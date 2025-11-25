@@ -68,7 +68,7 @@ var debugCommand = &cobra.Command{
 			}
 
 			evalStart := time.Now()
-			evalRes := runAndReturnEvaluated(program, path)
+			evalRes := runAndReturnEvaluated(verbose, program, path)
 			evalDuration := time.Since(evalStart)
 
 			fmt.Printf("=====[ Evaluator Result (Time: %s) ]=====\n", evalDuration)
@@ -107,16 +107,21 @@ var debugCommand = &cobra.Command{
 	},
 }
 
-func runAndReturnEvaluated(program *ast.Program, path any) string {
+func runAndReturnEvaluated(verbose bool, program *ast.Program, path any) string {
 	evaluator.Stdout.Clear()
 	env := objects.NewEnvironment(path)
 
-	evaluated := evaluator.Stdout.Mute(func() objects.Object {
-		return evaluator.Eval(program, env)
-	})
+	var evaluated objects.Object = nil
+
+	if verbose {
+		evaluated = evaluator.Eval(program, env)
+	} else {
+		evaluated = evaluator.Stdout.Mute(func() objects.Object {
+			return evaluator.Eval(program, env)
+		})
+	}
 
 	var output strings.Builder
-
 	if len(evaluator.Stdout.ReadAll()) > 0 {
 		output.WriteString(strings.Join(evaluator.Stdout.ReadAll(), ""))
 	}
