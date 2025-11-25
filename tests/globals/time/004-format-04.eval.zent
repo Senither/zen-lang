@@ -1,0 +1,8 @@
+--TEST--
+It fails when given invalid time format type
+--FILE--
+println(time.format("test", "%Y-%m-%d"))
+--ERROR--
+argument 1 to `format` has invalid type: got STRING, want INTEGER|FLOAT
+    at <unknown>:1:20
+    at <unknown>:1:8

@@ -11,8 +11,7 @@ import (
 
 func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPath, file string) {
 	tr.incrementTestsFound(EvaluatorEngine)
-
-	evaluator.Stdout.Clear()
+	tr.applyTestEnvVariables(test)
 
 	start := time.Now()
 	evaluated := evaluator.Stdout.Mute(func() objects.Object {
@@ -20,6 +19,8 @@ func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPat
 		return evaluator.Eval(program, env)
 	})
 	timeTaken := time.Since(start)
+
+	tr.clearTestEnvVariables(test)
 
 	tr.addTiming(EvaluatorExecutionTiming, timeTaken)
 	test.metadata[EvaluatorExecutionTiming] = timeTaken

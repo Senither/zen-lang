@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid argument type
+--FILE--
+println(time.parse(123, 123))
+--ERROR--
+argument 1 to `parse` has invalid type: got INTEGER, want STRING
+    at <unknown>:0:0

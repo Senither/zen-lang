@@ -1,0 +1,8 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+println(time.parse())
+--ERROR--
+wrong number of arguments to `parse`: got 0, want 2
+    at <unknown>:1:19
+    at <unknown>:1:8

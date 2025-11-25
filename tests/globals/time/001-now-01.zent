@@ -1,0 +1,8 @@
+--TEST--
+Can get the current time in milliseconds since epoch
+--ENV--
+time=1767606155000
+--FILE--
+println(time.now());
+--EXPECT--
+1767606155000

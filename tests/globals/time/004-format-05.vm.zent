@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid layout format type
+--FILE--
+println(time.format(1767606155000, 1767606155000))
+--ERROR--
+argument 2 to `format` has invalid type: got INTEGER, want STRING
+    at <unknown>:0:0

@@ -1,0 +1,16 @@
+--TEST--
+Can parse timestamp to milliseconds since epoch
+--FILE--
+println(time.parse("02-01-2026 16:23:48", "%d-%m-%Y %h:%i:%s"))
+println(time.parse("2026/03/25 08:45:25 PM", "%Y/%m/%d %H:%i:%s %A"))
+println(time.parse("03-25-2026 08:45:25 am", "%m-%d-%Y %H:%i:%s %a"))
+println(time.parse("Fri, Jan, 26", "%D, %M, %y"))
+println(time.parse("Fri, Jan, 26", "%D, %M, %y"))
+println(time.parse("27 February 1993", "%d %F %Y"))
+--EXPECT--
+1767371028000
+1774471525000
+1774428325000
+1767225600000
+1767225600000
+730771200000

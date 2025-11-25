@@ -41,6 +41,15 @@ var Globals = []struct {
 			{Name: "sqrt", Builtin: &Builtin{Fn: globalMathSqrt}},
 		},
 	},
+	{
+		Name: "time",
+		Builtins: []*BuiltinDefinition{
+			{Name: "now", Builtin: &Builtin{Fn: globalTimeNow}},
+			{Name: "sleep", Builtin: &Builtin{Fn: globalTimeSleep}},
+			{Name: "parse", Builtin: &Builtin{Fn: globalTimeParse}},
+			{Name: "format", Builtin: &Builtin{Fn: globalTimeFormat}},
+		},
+	},
 }
 
 func GetGlobalBuiltinByName(scope, name string) *Builtin {

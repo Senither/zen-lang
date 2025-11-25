@@ -1,0 +1,8 @@
+--TEST--
+It fails when given invalid time format
+--FILE--
+println(time.parse("16:54:61", "%h:%i:%s"))
+--ERROR--
+error in `parse`: date '16:54:61' is out of range for format '%h:%i:%s'
+    at <unknown>:1:19
+    at <unknown>:1:8

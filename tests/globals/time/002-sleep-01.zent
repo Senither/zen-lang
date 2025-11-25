@@ -1,0 +1,20 @@
+--TEST--
+Can sleep for a specified number of milliseconds as integers
+--ENV--
+time=1767606155000
+--FILE--
+println(time.now());
+
+time.sleep(50);
+println(time.now());
+
+time.sleep(180);
+println(time.now());
+
+time.sleep(5000);
+println(time.now());
+--EXPECT--
+1767606155000
+1767606155050
+1767606155230
+1767606160230

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given time with extra data
+--FILE--
+println(time.parse("16:54:26:24", "%h:%i:%s"))
+--ERROR--
+error in `parse`: date '16:54:26:24' has extra text for format '%h:%i:%s'
+    at <unknown>:0:0

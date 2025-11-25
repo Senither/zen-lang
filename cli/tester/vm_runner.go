@@ -56,7 +56,8 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 }
 
 func (tr *TestRunner) runCompiledVMTest(test *Test, bytecode *compiler.Bytecode, fullPath string, engineType EngineType) {
-	vm.Stdout.Clear()
+	tr.applyTestEnvVariables(test)
+
 	start := time.Now()
 	result := vm.Stdout.Mute(func() objects.Object {
 		runner := vm.New(bytecode)
@@ -69,6 +70,8 @@ func (tr *TestRunner) runCompiledVMTest(test *Test, bytecode *compiler.Bytecode,
 		return runner.LastPoppedStackElem()
 	})
 	timeTaken := time.Since(start)
+
+	tr.clearTestEnvVariables(test)
 
 	tr.addTiming(VMExecutionTiming, timeTaken)
 	test.metadata[VMExecutionTiming] = timeTaken

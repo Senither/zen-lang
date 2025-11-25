@@ -1,6 +1,11 @@
 package evaluator
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"github.com/senither/zen-lang/objects/timer"
+)
 
 func TestArraysPushGlobalFunction(t *testing.T) {
 	tests := []struct {
@@ -476,5 +481,83 @@ func TestMathSqrtGlobalFunction(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testFloatObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestTimeNowUnfrozenGlobalFunction(t *testing.T) {
+	evaluated := testEval("time.now()")
+	testIntegerObject(t, evaluated, time.Now().UnixMilli())
+}
+
+func TestTimeNowFrozenGlobalFunction(t *testing.T) {
+	timer.Freeze(1767606155000)
+
+	evaluated := testEval("time.now()")
+	testIntegerObject(t, evaluated, 1767606155000)
+
+	timer.Unfreeze()
+}
+
+func TestTimeSleepUnfrozenGlobalFunction(t *testing.T) {
+	start := time.Now().UnixMilli()
+	testEval("time.sleep(100)")
+	end := time.Now().UnixMilli()
+
+	if end-start < 100 {
+		t.Fatalf("time.sleep did not sleep long enough: expected at least 100ms, got %dms", end-start)
+	}
+}
+
+func TestTimeSleepFrozenGlobalFunction(t *testing.T) {
+	timer.Freeze(1767606155000)
+
+	testEval("time.sleep(10_000)")
+
+	now := timer.Now()
+	timer.Unfreeze()
+
+	if now != 1767606165000 {
+		t.Fatalf("time.sleep did not advance frozen time: expected 1767606165000, got %d", now)
+	}
+}
+
+func TestTimeParseGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{`time.parse("02-01-2026 16:23:48", "%d-%m-%Y %h:%i:%s")`, 1767371028000},
+		{`time.parse("2026/03/25 08:45:25 PM", "%Y/%m/%d %H:%i:%s %A")`, 1774471525000},
+		{`time.parse("03-25-2026 08:45:25 am", "%m-%d-%Y %H:%i:%s %a")`, 1774428325000},
+		{`time.parse("Fri, Jan, 26", "%D, %M, %y")`, 1767225600000},
+		{`time.parse("Fri, Jan, 26", "%D, %M, %y")`, 1767225600000},
+		{`time.parse("27 February 1993", "%d %F %Y")`, 730771200000},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestTimeFormatGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`(time.format(1767371028000, "%Y-%m-%d %H:%i:%s"))`, "2026-01-02 05:23:48"},
+		{`(time.format(1774471525000, "%Y/%m/%d %H-%i-%s"))`, "2026/03/25 09-45-25"},
+		{`(time.format(1774428325000, "%d-%m-%Y %s:%i:%H"))`, "25-03-2026 25:45:09"},
+		{`(time.format(1767225600000, "%Y-%m-%d"))`, "2026-01-01"},
+		{`(time.format(1767225600000, "%Y/%m/%d"))`, "2026/01/01"},
+		{`(time.format(730771200000, "%Y"))`, "1993"},
+		{`(time.format(730771200000, "%D %d, %F, %y"))`, "Sat 27, February, 93"},
+		{`(time.format(1767606155000, "%H:%i:%s %a"))`, "10:42:35 am"},
+		{`(time.format(1767606155000, "%H:%i:%s %A"))`, "10:42:35 AM"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
 	}
 }

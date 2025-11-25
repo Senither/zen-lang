@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid argument types
+--FILE--
+time.sleep("123");
+--ERROR--
+argument 1 to `sleep` has invalid type: got STRING, want INTEGER|FLOAT
+    at <unknown>:0:0

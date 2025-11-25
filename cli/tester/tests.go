@@ -78,6 +78,7 @@ type Test struct {
 	file            string
 	expect          string
 	errors          string
+	envs            map[string]string
 	supportedEngine EngineType
 
 	metadata map[any]any
@@ -270,6 +271,7 @@ func (tr *TestRunner) readTestFileFromDisk(file string) (*Test, error) {
 		file:            "",
 		expect:          "",
 		errors:          "",
+		envs:            make(map[string]string),
 		supportedEngine: AllEngines,
 
 		metadata: make(map[any]any),
@@ -284,6 +286,8 @@ func (tr *TestRunner) readTestFileFromDisk(file string) (*Test, error) {
 			key = "expect"
 		} else if strings.HasPrefix(line, "--ERROR--") || strings.HasPrefix(line, "---ERROR---") {
 			key = "errors"
+		} else if strings.HasPrefix(line, "--ENV--") || strings.HasPrefix(line, "---ENV---") {
+			key = "env"
 		}
 
 		if strings.HasPrefix(line, "--") {
@@ -299,6 +303,11 @@ func (tr *TestRunner) readTestFileFromDisk(file string) (*Test, error) {
 			test.expect += line + "\n"
 		case "errors":
 			test.errors += line + "\n"
+		case "env":
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				test.envs[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+			}
 		}
 	}
 

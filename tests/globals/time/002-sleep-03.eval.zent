@@ -1,0 +1,7 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+time.sleep();
+--ERROR--
+wrong number of arguments to `sleep`: got 0, want 1
+    at <unknown>:1:11

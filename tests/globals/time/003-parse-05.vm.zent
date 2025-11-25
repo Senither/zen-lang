@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid format layout
+--FILE--
+println(time.parse("25-06-2026", "invalid-format"))
+--ERROR--
+error in `parse`: cannot parse '25-06-2026' as 'invalid-format'
+    at <unknown>:0:0

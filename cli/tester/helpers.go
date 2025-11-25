@@ -3,9 +3,13 @@ package tester
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/senither/zen-lang/cli/colors"
+	"github.com/senither/zen-lang/evaluator"
+	"github.com/senither/zen-lang/objects/timer"
+	"github.com/senither/zen-lang/vm"
 )
 
 var closureRegex = regexp.MustCompile(`Closure\[0x[a-fA-F0-9]+\]`)
@@ -103,4 +107,31 @@ func (tr *TestRunner) normalizeFileLocations(err string) string {
 
 func (tr *TestRunner) normalizeClosurePointers(content string) string {
 	return closureRegex.ReplaceAllString(content, "Closure[<pointer>]")
+}
+
+func (tr *TestRunner) applyTestEnvVariables(test *Test) {
+	evaluator.Stdout.Clear()
+	vm.Stdout.Clear()
+
+	for key, value := range test.envs {
+		switch key {
+		case "time":
+			time, err := strconv.ParseInt(value, 10, 64)
+			if err != nil {
+				fmt.Printf("Invalid time env variable: %s\n", value)
+				continue
+			}
+
+			timer.Freeze(time)
+		}
+	}
+}
+
+func (tr *TestRunner) clearTestEnvVariables(test *Test) {
+	for key := range test.envs {
+		switch key {
+		case "time":
+			timer.Unfreeze()
+		}
+	}
 }
