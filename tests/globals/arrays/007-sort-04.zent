@@ -1,0 +1,6 @@
+--TEST--
+Can sort an array of strings
+--FILE--
+println(arrays.sort(['banana', 'apple', 'orange', 'grape', 'kiwi', 'mango']));
+--EXPECT--
+[apple, banana, grape, kiwi, mango, orange]

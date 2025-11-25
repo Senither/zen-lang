@@ -1,5 +1,7 @@
 package objects
 
+import "sort"
+
 func globalArraysPush(args ...Object) (Object, error) {
 	if len(args) != 2 {
 		return nil, NewWrongNumberOfArgumentsError("push", 2, len(args))
@@ -158,4 +160,47 @@ func globalArraysFirst(args ...Object) (Object, error) {
 	}
 
 	return NULL, nil
+}
+
+func globalArraysSort(args ...Object) (Object, error) {
+	if len(args) == 0 {
+		return nil, NewWrongNumberOfArgumentsError("sort", 1, len(args))
+	}
+
+	arr, ok := args[0].(*Array)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("sort", ARRAY_OBJ, 0, args)
+	}
+
+	sortedArr := &Array{Elements: make([]Object, len(arr.Elements))}
+	copy(sortedArr.Elements, arr.Elements)
+	arr = sortedArr
+
+	if len(args) == 1 {
+		sort.Sort(sortedArr)
+		return sortedArr, nil
+	}
+
+	callable, ok := args[1].(Callable)
+	if !ok {
+		return nil, NewInvalidArgumentTypesError("sort", []ObjectType{FUNCTION_OBJ, CLOSURE_OBJ}, 1, args)
+	}
+
+	if callable.ParametersCount() != 2 {
+		return nil, NewErrorf("sort", "function passed to `sort` must take exactly two arguments")
+	}
+
+	sort.SliceStable(sortedArr.Elements, func(i, j int) bool {
+		rs := callable.Call(sortedArr.Elements[i], sortedArr.Elements[j])
+
+		switch rs := rs.(type) {
+		case *Boolean:
+			return rs == TRUE
+
+		default:
+			return false
+		}
+	})
+
+	return sortedArr, nil
 }

@@ -142,6 +142,19 @@ func (a *Array) Inspect() string {
 	return out.String()
 }
 
+func (a *Array) Len() int      { return len(a.Elements) }
+func (a *Array) Swap(i, j int) { a.Elements[i], a.Elements[j] = a.Elements[j], a.Elements[i] }
+func (a *Array) Less(i, j int) bool {
+	if IsNumber(a.Elements[i].Type()) && IsNumber(a.Elements[j].Type()) {
+		leftValue := UnwrapNumberValue(a.Elements[i])
+		rightValue := UnwrapNumberValue(a.Elements[j])
+
+		return leftValue < rightValue
+	}
+
+	return a.Elements[i].Inspect() < a.Elements[j].Inspect()
+}
+
 type HashPair struct {
 	Key   Object
 	Value Object

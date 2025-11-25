@@ -272,6 +272,8 @@ func testArrayObject(t *testing.T, obj objects.Object, expected []any, input str
 			testIntegerObject(t, array.Elements[i], int64(elem))
 		case int64:
 			testIntegerObject(t, array.Elements[i], elem)
+		case float64:
+			testFloatObject(t, array.Elements[i], elem)
 		case bool:
 			testBooleanObject(t, array.Elements[i], elem, input)
 		case nil:

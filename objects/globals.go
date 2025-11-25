@@ -13,6 +13,7 @@ var Globals = []struct {
 			{Name: "filter", Builtin: &Builtin{Fn: globalArraysFilter}},
 			{Name: "concat", Builtin: &Builtin{Fn: globalArraysConcat}},
 			{Name: "first", Builtin: &Builtin{Fn: globalArraysFirst}},
+			{Name: "sort", Builtin: &Builtin{Fn: globalArraysSort}},
 		},
 	},
 	{

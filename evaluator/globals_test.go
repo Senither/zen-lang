@@ -174,6 +174,32 @@ func TestArraysFirstGlobalFunction(t *testing.T) {
 	}
 }
 
+func TestArraysSortGlobalFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []any
+	}{
+		{"arrays.sort([5, 3, 1, 4, 2])", []any{1, 2, 3, 4, 5}},
+		{"arrays.sort([-1, 0, 3, -5, 2, 1])", []any{-5, -1, 0, 1, 2, 3}},
+		{"arrays.sort([])", []any{}},
+		{"var x = [3, 2, 1]; arrays.sort(x);", []any{1, 2, 3}},
+		{"var x = [10, 5, -5, -10, 0]; arrays.sort(x);", []any{-10, -5, 0, 5, 10}},
+		{"arrays.sort([1.5, 2.2, 0.3, -1.1])", []any{-1.1, 0.3, 1.5, 2.2}},
+		{"arrays.sort(['banana', 'apple', 'cherry'])", []any{"apple", "banana", "cherry"}},
+		{"var x = ['zen', 'lang', 'is', 'awesome']; arrays.sort(x);", []any{"awesome", "is", "lang", "zen"}},
+		{"arrays.sort([true, false, true, false])", []any{false, false, true, true}},
+		{"arrays.sort([5, 3, 1, 4, 2], func (a, b) { a < b })", []any{1, 2, 3, 4, 5}},
+		{"arrays.sort([5, 3, 1, 4, 2], func (a, b) { a > b })", []any{5, 4, 3, 2, 1}},
+		{"arrays.sort(['bb', 'a', 'ccc'], func (a, b) { len(a) < len(b) })", []any{"a", "bb", "ccc"}},
+		{"arrays.sort(['bb', 'a', 'ccc'], func (a, b) { len(a) > len(b) })", []any{"ccc", "bb", "a"}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testArrayObject(t, evaluated, tt.expected, tt.input)
+	}
+}
+
 func TestStringsContainsGlobalFunction(t *testing.T) {
 	tests := []struct {
 		input    string

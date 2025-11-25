@@ -1,0 +1,6 @@
+--TEST--
+Can sort an array of mixed numbers
+--FILE--
+println(arrays.sort([4, -2.5, 3.0, 0, -1.5, 2, -3.3, -3, 1.1, -2]));
+--EXPECT--
+[-3.300000, -3, -2.500000, -2, -1.500000, 0, 1.100000, 2, 3.000000, 4]

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non-array as first argument
+--FILE--
+println(arrays.sort(123));
+--ERROR--
+argument 1 to `sort` has invalid type: got INTEGER, want ARRAY
+    at <unknown>:0:0

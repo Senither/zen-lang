@@ -1,0 +1,7 @@
+--TEST--
+It fails when comparator function doesn't have two parameters
+--FILE--
+println(arrays.sort([1, 2, 3], func () { 0 }));
+--ERROR--
+error in `sort`: function passed to `sort` must take exactly two arguments
+    at <unknown>:0:0

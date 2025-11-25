@@ -74,6 +74,16 @@ func testExpectedObject(t *testing.T, expected interface{}, actual objects.Objec
 		if err != nil {
 			t.Errorf("testIntegerArrayObject failed: %s", err)
 		}
+	case []float64:
+		err := testFloatArrayObject(expected, actual)
+		if err != nil {
+			t.Errorf("testFloatArrayObject failed: %s", err)
+		}
+	case []bool:
+		err := testBooleanArrayObject(expected, actual)
+		if err != nil {
+			t.Errorf("testBooleanArrayObject failed: %s", err)
+		}
 	case []string:
 		err := testStringArrayObject(expected, actual)
 		if err != nil {
@@ -176,6 +186,46 @@ func testIntegerArrayObject(expected []int, actual objects.Object) error {
 
 	for i, expectedElem := range expected {
 		err := testIntegerObject(int64(expectedElem), array.Elements[i])
+		if err != nil {
+			return fmt.Errorf("array[%d] - %s", i, err)
+		}
+	}
+
+	return nil
+}
+
+func testFloatArrayObject(expected []float64, actual objects.Object) error {
+	array, ok := actual.(*objects.Array)
+	if !ok {
+		return fmt.Errorf("object is not Array. got %T (%+v)", actual, actual)
+	}
+
+	if len(array.Elements) != len(expected) {
+		return fmt.Errorf("array has wrong length. got %d, want %d", len(array.Elements), len(expected))
+	}
+
+	for i, expectedElem := range expected {
+		err := testFloatObject(float64(expectedElem), array.Elements[i])
+		if err != nil {
+			return fmt.Errorf("array[%d] - %s", i, err)
+		}
+	}
+
+	return nil
+}
+
+func testBooleanArrayObject(expected []bool, actual objects.Object) error {
+	array, ok := actual.(*objects.Array)
+	if !ok {
+		return fmt.Errorf("object is not Array. got %T (%+v)", actual, actual)
+	}
+
+	if len(array.Elements) != len(expected) {
+		return fmt.Errorf("array has wrong length. got %d, want %d", len(array.Elements), len(expected))
+	}
+
+	for i, expectedElem := range expected {
+		err := testBooleanObject(bool(expectedElem), array.Elements[i])
 		if err != nil {
 			return fmt.Errorf("array[%d] - %s", i, err)
 		}
