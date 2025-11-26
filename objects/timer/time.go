@@ -3,6 +3,7 @@ package timer
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
@@ -24,6 +25,20 @@ var layoutReplacements = map[string]string{
 	"%i": "04", "%s": "05",
 	// AM/PM
 	"%a": "pm", "%A": "PM",
+}
+
+func init() {
+	timezone := os.Getenv("TZ")
+	if timezone == "" {
+		timezone = "UTC"
+	}
+
+	local, err := time.LoadLocation(timezone)
+	if err != nil {
+		panic("invalid timezone set in ZEN_TZ environment variable: " + timezone)
+	}
+
+	time.Local = local
 }
 
 func Freeze(time int64) {
