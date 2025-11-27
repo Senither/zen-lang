@@ -1,0 +1,7 @@
+--TEST--
+It fails when given none-string argument
+--FILE--
+println(process.env(123))
+--ERROR--
+argument 1 to `env` has invalid type: got INTEGER, want STRING
+    at <unknown>:0:0

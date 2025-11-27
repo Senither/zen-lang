@@ -1,0 +1,12 @@
+--TEST--
+Can get multiple environment variables by name
+--ENV--
+process.envs=test=Hello Zen;OS=Linux;date=2 158 992.M2
+--FILE--
+println(process.env("test"))
+println(process.env("OS"))
+println(process.env("date"))
+--EXPECT--
+Hello Zen
+Linux
+2 158 992.M2

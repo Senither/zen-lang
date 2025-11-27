@@ -1,0 +1,8 @@
+--TEST--
+It fails when given any arguments
+--FILE--
+println(process.argv(1))
+--ERROR--
+wrong number of arguments to `argv`: got 1, want 0
+    at <unknown>:1:21
+    at <unknown>:1:8

@@ -1,0 +1,8 @@
+--TEST--
+Can get empty process arguments
+--ENV--
+process.args=
+--FILE--
+println(process.argv())
+--EXPECT--
+[]

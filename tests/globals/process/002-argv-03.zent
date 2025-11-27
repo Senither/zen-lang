@@ -1,0 +1,8 @@
+--TEST--
+Can get mixed process argument types
+--ENV--
+process.args=1,true,3.14,false,hello
+--FILE--
+println(process.argv())
+--EXPECT--
+[1, true, 3.14, false, hello]

@@ -27,7 +27,7 @@ var debugCommand = &cobra.Command{
 	Short:  "Takes a file as input and produces the bytecode, evaluated, and VM results.",
 	Long:   "Runs the provided file and outputs the compiled bytecode, the result from the evaluator, and the result from the virtual machine.",
 	Hidden: true,
-	Args:   cobra.ExactArgs(1),
+	Args:   cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose, _ := cmd.Flags().GetBool("verbose")
 		serialize, _ := cmd.Flags().GetBool("serialize")

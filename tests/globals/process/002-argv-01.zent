@@ -1,0 +1,8 @@
+--TEST--
+Can get process arguments
+--ENV--
+process.args=1,2,3,4,5
+--FILE--
+println(process.argv())
+--EXPECT--
+[1, 2, 3, 4, 5]

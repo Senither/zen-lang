@@ -8,6 +8,7 @@ import (
 
 	"github.com/senither/zen-lang/cli/colors"
 	"github.com/senither/zen-lang/evaluator"
+	"github.com/senither/zen-lang/objects/process"
 	"github.com/senither/zen-lang/objects/timer"
 	"github.com/senither/zen-lang/vm"
 )
@@ -129,6 +130,20 @@ func (tr *TestRunner) applyTestEnvVariables(test *Test) {
 				fmt.Printf("Invalid timezone env variable: %s\n", value)
 				continue
 			}
+		case "process":
+			process.Fake()
+		case "process.args":
+			process.FakeArgs(strings.Split(value, ","))
+		case "process.envs":
+			envPairs := strings.Split(value, ";")
+			for _, pair := range envPairs {
+				kv := strings.SplitN(pair, "=", 2)
+				if len(kv) != 2 {
+					fmt.Printf("Invalid process.envs variable: %s\n", pair)
+					continue
+				}
+				process.FakeEnv(kv[0], kv[1])
+			}
 		}
 	}
 }
@@ -140,6 +155,8 @@ func (tr *TestRunner) clearTestEnvVariables(test *Test) {
 			timer.Unfreeze()
 		case "timezone":
 			timer.ResetTimezone()
+		case "process", "process.args", "process.envs":
+			process.RestoreFromFake()
 		}
 	}
 }

@@ -52,6 +52,14 @@ var Globals = []struct {
 			{Name: "timezone", Builtin: &Builtin{Fn: globalTimeTimezone}},
 		},
 	},
+	{
+		Name: "process",
+		Builtins: []*BuiltinDefinition{
+			{Name: "exit", Builtin: &Builtin{Fn: globalProcessExit}},
+			{Name: "argv", Builtin: &Builtin{Fn: globalProcessArgv}},
+			{Name: "env", Builtin: &Builtin{Fn: globalProcessEnv}},
+		},
+	},
 }
 
 func GetGlobalBuiltinByName(scope, name string) *Builtin {

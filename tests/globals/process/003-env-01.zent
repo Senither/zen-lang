@@ -1,0 +1,8 @@
+--TEST--
+Can get single environment variable by name
+--ENV--
+process.envs=test=Hello Zen
+--FILE--
+println(process.env("test"))
+--EXPECT--
+Hello Zen

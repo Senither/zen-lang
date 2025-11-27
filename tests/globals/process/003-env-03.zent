@@ -1,0 +1,6 @@
+--TEST--
+It returns null for unset environment variables
+--FILE--
+println(process.env("invalid-variable-key"))
+--EXPECT--
+null

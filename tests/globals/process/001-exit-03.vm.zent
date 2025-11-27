@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non integer argument
+--FILE--
+process.exit("123")
+--ERROR--
+argument 1 to `exit` has invalid type: got STRING, want INTEGER
+    at <unknown>:0:0

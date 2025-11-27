@@ -43,6 +43,8 @@ var rootCommand = &cobra.Command{
 			bytecode = programToBytecode(path, program, table, constants)
 		}
 
+		os.Args = args[1:]
+
 		vm := vm.New(bytecode)
 		if err := vm.Run(); err != nil {
 			fmt.Println(err)
@@ -62,6 +64,8 @@ func createREPLRunner(
 	callback func(input string, path interface{}),
 ) {
 	if len(args) > 0 {
+		os.Args = args[1:]
+
 		content, err := loadFileContents(args[0])
 		if err != nil {
 			fmt.Println(err)
