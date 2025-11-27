@@ -567,6 +567,8 @@ func TestTimeParseGlobalFunction(t *testing.T) {
 }
 
 func TestTimeFormatGlobalFunction(t *testing.T) {
+	timer.SetTimezone("UTC")
+
 	tests := []struct {
 		input    string
 		expected string
@@ -586,4 +588,6 @@ func TestTimeFormatGlobalFunction(t *testing.T) {
 		evaluated := testEval(tt.input)
 		testStringObject(t, evaluated, tt.expected)
 	}
+
+	timer.ResetTimezone()
 }

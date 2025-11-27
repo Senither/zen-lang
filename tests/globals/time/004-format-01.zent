@@ -1,5 +1,7 @@
 --TEST--
 Can format timestamps to various date strings
+--ENV--
+timezone=UTC
 --FILE--
 println(time.format(1767371028000, "%Y-%m-%d %H:%i:%s"))
 println(time.format(1774471525000, "%Y/%m/%d %H-%i-%s"))

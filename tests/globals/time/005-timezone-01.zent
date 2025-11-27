@@ -1,0 +1,21 @@
+--TEST--
+Can set and change timezones
+--FILE--
+var timestamp = 1767371028000
+
+time.timezone("America/New_York")
+println(time.format(timestamp, "%Y-%m-%d %H:%i:%s"))
+
+time.timezone("Asia/Tokyo")
+println(time.format(timestamp, "%Y-%m-%d %H:%i:%s"))
+
+time.timezone("Europe/Copenhagen")
+println(time.format(timestamp, "%Y-%m-%d %H:%i:%s"))
+
+time.timezone("UTC")
+println(time.format(timestamp, "%Y-%m-%d %H:%i:%s"))
+--EXPECT--
+2026-01-02 11:23:48
+2026-01-03 01:23:48
+2026-01-02 05:23:48
+2026-01-02 04:23:48

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid timezone string
+--FILE--
+time.timezone("Invalid/Timezone")
+--ERROR--
+error in `timezone`: unknown time zone `Invalid/Timezone`
+    at <unknown>:0:0

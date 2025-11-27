@@ -123,6 +123,12 @@ func (tr *TestRunner) applyTestEnvVariables(test *Test) {
 			}
 
 			timer.Freeze(time)
+		case "timezone":
+			err := timer.SetTimezone(value)
+			if err != nil {
+				fmt.Printf("Invalid timezone env variable: %s\n", value)
+				continue
+			}
 		}
 	}
 }
@@ -132,6 +138,8 @@ func (tr *TestRunner) clearTestEnvVariables(test *Test) {
 		switch key {
 		case "time":
 			timer.Unfreeze()
+		case "timezone":
+			timer.ResetTimezone()
 		}
 	}
 }

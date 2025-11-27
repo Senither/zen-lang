@@ -80,3 +80,21 @@ func globalTimeFormat(args ...Object) (Object, error) {
 
 	return &String{Value: timer.Format(timestamp, format.Value)}, nil
 }
+
+func globalTimeTimezone(args ...Object) (Object, error) {
+	if len(args) != 1 {
+		return nil, NewWrongNumberOfArgumentsError("timezone", 1, len(args))
+	}
+
+	timezone, ok := args[0].(*String)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("timezone", STRING_OBJ, 0, args)
+	}
+
+	err := timer.SetTimezone(timezone.Value)
+	if err != nil {
+		return nil, NewErrorf("timezone", "%s", err.Error())
+	}
+
+	return NULL, nil
+}

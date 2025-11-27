@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid argument type
+--FILE--
+time.timezone(123)
+--ERROR--
+argument 1 to `timezone` has invalid type: got INTEGER, want STRING
+    at <unknown>:1:14

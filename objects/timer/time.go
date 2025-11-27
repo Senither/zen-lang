@@ -9,6 +9,7 @@ import (
 )
 
 var fakeTime *int64 = nil
+var localTimezone *time.Location = time.Local
 
 // Maps formatting tokens to Go time layout equivalents, right now
 // it supports a limited set of tokens from PHP's date function
@@ -28,17 +29,10 @@ var layoutReplacements = map[string]string{
 }
 
 func init() {
-	timezone := os.Getenv("TZ")
-	if timezone == "" {
-		timezone = "UTC"
-	}
-
-	local, err := time.LoadLocation(timezone)
+	err := SetTimezone(os.Getenv("TZ"))
 	if err != nil {
-		panic("invalid timezone set in ZEN_TZ environment variable: " + timezone)
+		panic("invalid timezone set in TZ environment variable: " + err.Error())
 	}
-
-	time.Local = local
 }
 
 func Freeze(time int64) {
@@ -106,4 +100,23 @@ func Format(timestamp int64, layout string) string {
 	}
 
 	return time.Format(layout)
+}
+
+func ResetTimezone() {
+	time.Local = localTimezone
+}
+
+func SetTimezone(timezone string) error {
+	if timezone == "" || strings.ToLower(timezone) == "local" {
+		ResetTimezone()
+		return nil
+	}
+
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		return fmt.Errorf("unknown time zone `%s`", timezone)
+	}
+
+	time.Local = loc
+	return nil
 }

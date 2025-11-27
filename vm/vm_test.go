@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/objects/timer"
 )
 
 type vmTestCase struct {
@@ -704,6 +705,8 @@ func TestBuiltinFunctions(t *testing.T) {
 }
 
 func TestGlobalBuiltinFunctions(t *testing.T) {
+	timer.SetTimezone("UTC")
+
 	tests := []vmTestCase{
 		{`strings.contains("Hello, World", "World")`, true},
 		{`strings.contains("Hello, World", "world")`, false},
@@ -794,6 +797,8 @@ func TestGlobalBuiltinFunctions(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+
+	timer.ResetTimezone()
 }
 
 func TestClosures(t *testing.T) {

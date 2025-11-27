@@ -1,0 +1,7 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+time.timezone()
+--ERROR--
+wrong number of arguments to `timezone`: got 0, want 1
+    at <unknown>:0:0
