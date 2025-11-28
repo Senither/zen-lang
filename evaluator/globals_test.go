@@ -591,3 +591,12 @@ func TestTimeFormatGlobalFunction(t *testing.T) {
 
 	timer.ResetTimezone()
 }
+
+func TestTimeSetTimezoneGlobalFunction(t *testing.T) {
+	timer.SetTimezone("America/New_York")
+
+	evaluated := testEval(`time.format(1767606155000, "%Y-%m-%d %H:%i:%s")`)
+	testStringObject(t, evaluated, "2026-01-05 04:42:35")
+
+	timer.ResetTimezone()
+}
