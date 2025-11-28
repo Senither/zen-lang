@@ -187,11 +187,9 @@ func evalBlockStatement(block *ast.BlockStatement, env *objects.Environment) obj
 	for _, stmt := range block.Statements {
 		result = Eval(stmt, env)
 
-		if result != nil {
-			rt := result.Type()
-			if rt == objects.RETURN_VALUE_OBJ || rt == objects.ERROR_OBJ {
-				return result
-			}
+		switch result := result.(type) {
+		case *objects.ReturnValue, *objects.Error:
+			return result
 		}
 	}
 
@@ -743,7 +741,7 @@ func evalAssignmentExpression(
 			)
 		}
 
-		return env.Set(node, left.Value, right, false)
+		return env.Assign(node, left.Value, right)
 	case *ast.IndexExpression:
 		leftObj := Eval(left.Left, env)
 		if objects.IsError(leftObj) {

@@ -84,6 +84,27 @@ func (e *Environment) Set(node ast.Node, name string, val Object, mutable bool) 
 	return val
 }
 
+func (e *Environment) Assign(node ast.Node, name string, new Object) Object {
+	val, ok := e.store[name]
+	if !ok && e.outer != nil {
+		return e.outer.Assign(node, name, new)
+	}
+
+	if !val.mutable {
+		return NewError(
+			node.GetToken(),
+			e.GetFileDescriptorContext(),
+			"cannot modify immutable variable: %s",
+			name,
+		)
+	}
+
+	val.value = new
+	e.store[name] = val
+
+	return val.value
+}
+
 func (e *Environment) SetImmutableForcefully(name string, val Object) Object {
 	e.store[name] = EnvironmentStateItem{
 		value:   val,
