@@ -7,6 +7,7 @@ import (
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/objects/timer"
 )
 
 func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPath, file string) {
@@ -20,6 +21,7 @@ func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPat
 	})
 	timeTaken := time.Since(start)
 
+	timer.ClearTimers()
 	tr.clearTestEnvVariables(test)
 
 	tr.addTiming(EvaluatorExecutionTiming, timeTaken)

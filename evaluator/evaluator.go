@@ -1094,6 +1094,8 @@ func applyFunction(
 		extendedEnv := extendFunctionEnv(fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
 		return objects.UnwrapReturnValue(evaluated)
+	case *objects.Builtin:
+		return applyFunction(node, objects.BuiltinToASTAwareBuiltin(fn), args, env)
 	case *objects.ASTAwareBuiltin:
 		for i, arg := range args {
 			args[i] = WrapFunctionIfNeeded(arg)

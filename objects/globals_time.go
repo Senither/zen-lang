@@ -1,6 +1,8 @@
 package objects
 
 import (
+	"fmt"
+
 	"github.com/senither/zen-lang/objects/timer"
 )
 
@@ -97,4 +99,79 @@ func globalTimeTimezone(args ...Object) (Object, error) {
 	}
 
 	return NULL, nil
+}
+
+func globalTimeDelayTimer(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, NewWrongNumberOfArgumentsError("delayTimer", 2, len(args))
+	}
+
+	callable, ok := args[0].(Callable)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("delayTimer", FUNCTION_OBJ, 0, args)
+	}
+
+	delayTime, ok := args[1].(*Integer)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("delayTimer", INTEGER_OBJ, 1, args)
+	}
+
+	if delayTime.Value < 0 {
+		return nil, NewErrorf("delayTimer", "delay time must be non-negative")
+	}
+
+	time := timer.StartDelayedTimer(func() { callable.Call() }, delayTime.Value)
+
+	return BuildImmutableHash(
+		HashPair{
+			Key: &String{Value: "stop"},
+			Value: &Builtin{Fn: func(args ...Object) (Object, error) {
+				if timer.StopDelayedTimer(time) {
+					return TRUE, nil
+				}
+
+				return FALSE, nil
+			}},
+		},
+		HashPair{
+			Key:   &String{Value: "timer"},
+			Value: &String{Value: fmt.Sprintf("%p", time)},
+		},
+	), nil
+}
+
+func globalTimeScheduleTimer(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, NewWrongNumberOfArgumentsError("scheduleTimer", 3, len(args))
+	}
+
+	callable, ok := args[0].(Callable)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("scheduleTimer", FUNCTION_OBJ, 0, args)
+	}
+
+	intervalTime, ok := args[1].(*Integer)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("scheduleTimer", INTEGER_OBJ, 1, args)
+	}
+
+	if intervalTime.Value < 0 {
+		return nil, NewErrorf("scheduleTimer", "interval time must be non-negative")
+	}
+
+	ticker := timer.StartScheduledTimer(func() { callable.Call() }, intervalTime.Value)
+
+	return BuildImmutableHash(
+		HashPair{
+			Key: &String{Value: "stop"},
+			Value: &Builtin{Fn: func(args ...Object) (Object, error) {
+				timer.StopScheduledTimer(ticker)
+				return TRUE, nil
+			}},
+		},
+		HashPair{
+			Key:   &String{Value: "timer"},
+			Value: &String{Value: fmt.Sprintf("%p", ticker)},
+		},
+	), nil
 }
