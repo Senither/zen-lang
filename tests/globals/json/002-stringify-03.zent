@@ -1,0 +1,19 @@
+--TEST--
+Can stringify mixed arrays and objects
+--FILE--
+println(json.stringify({
+    "arr1": [1, 2, 3],
+    "obj1": {
+        "key1": "value1",
+        "key2": 42
+    },
+    "arr2": [true, false, null],
+}))
+
+println(json.stringify([
+    {"name": "Alice", "age": 30},
+    {"name": "Bob", "age": 25}
+]))
+--EXPECT--
+{"arr1":[1,2,3],"arr2":[true,false,null],"obj1":{"key1":"value1","key2":42}}
+[{"age":30,"name":"Alice"},{"age":25,"name":"Bob"}]

@@ -1,0 +1,8 @@
+--TEST--
+It fails when given unsupported argument type
+--FILE--
+println(json.stringify(123))
+--ERROR--
+argument 1 to `stringify` has invalid type: got INTEGER, want HASH|ARRAY
+    at <unknown>:1:23
+    at <unknown>:1:8

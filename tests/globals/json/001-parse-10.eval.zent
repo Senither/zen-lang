@@ -1,0 +1,7 @@
+--TEST--
+It fails when given malformed JSON input (object with trailing comma)
+--FILE--
+json.parse("{\"key\": \"value\",}")
+--ERROR--
+error in `parse`: invalid character '}' looking for beginning of object key string
+    at <unknown>:1:11

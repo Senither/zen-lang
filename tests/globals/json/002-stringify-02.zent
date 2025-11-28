@@ -1,0 +1,12 @@
+--TEST--
+Can stringify objects
+--FILE--
+println(json.stringify({
+    "number": 1,
+    "string": "hello world",
+    "float": 3.42,
+    "boolean": true,
+    "null": null
+}))
+--EXPECT--
+{"boolean":true,"float":3.42,"null":null,"number":1,"string":"hello world"}

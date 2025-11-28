@@ -1,0 +1,8 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+println(json.stringify())
+--ERROR--
+wrong number of arguments to `stringify`: got 0, want 1
+    at <unknown>:1:23
+    at <unknown>:1:8

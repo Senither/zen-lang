@@ -1,0 +1,7 @@
+--TEST--
+It fails when given malformed JSON input (prefix before JSON)
+--FILE--
+json.parse("a{\"key\": \"value\"}")
+--ERROR--
+error in `parse`: failed to parse `a{"key": "value"}` as JSON
+    at <unknown>:0:0

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given malformed JSON input (suffix after JSON)
+--FILE--
+json.parse("{\"key\": \"value\"}a")
+--ERROR--
+error in `parse`: invalid character 'a' after top-level value
+    at <unknown>:0:0

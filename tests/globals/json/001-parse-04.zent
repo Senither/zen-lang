@@ -1,0 +1,21 @@
+--TEST--
+Can parse JSON mixed arrays and objects (arrays inside objects)
+--FILE--
+var obj = json.parse('{"array":[{"string":"hello world","number":1},{"float":3.14159,"boolean":true,"null":null}]}')
+
+println("Object #1")
+println(obj.array[0]['string'])
+println(obj.array[0]['number'])
+
+println("Object #2")
+println(obj.array[1]['float'])
+println(obj.array[1]['boolean'])
+println(obj.array[1]['null'])
+--EXPECT--
+Object #1
+hello world
+1
+Object #2
+3.141590
+true
+null

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given malformed JSON input (value with trailing comma)
+--FILE--
+json.parse("[1,2,3,4,]")
+--ERROR--
+error in `parse`: invalid character ']' looking for beginning of value
+    at <unknown>:1:11

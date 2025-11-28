@@ -1,0 +1,16 @@
+--TEST--
+Can parse JSON objects
+--FILE--
+var obj = json.parse('{"string":"hello world","number":1,"float":3.14159,"boolean":true,"null":null}')
+
+println(obj.string)
+println(obj.number)
+println(obj.float)
+println(obj.boolean)
+println(obj['null'])
+--EXPECT--
+hello world
+1
+3.141590
+true
+null

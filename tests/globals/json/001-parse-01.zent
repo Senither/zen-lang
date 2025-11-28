@@ -1,0 +1,6 @@
+--TEST--
+Can parse JSON arrays
+--FILE--
+println(json.parse('[1,"hello world",3.42,true,null]'))
+--EXPECT--
+[1, hello world, 3.420000, true, null]

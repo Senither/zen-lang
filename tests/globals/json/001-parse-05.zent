@@ -1,0 +1,8 @@
+--TEST--
+Can parse deep JSON objects
+--FILE--
+var obj = json.parse('{"first":{"second":{"third":{"fourth":{"fifth":{"sixth":{"seventh":{"eighth":{"ninth":{"tenth":"deep value"}}}}}}}}}}')
+
+println(obj)
+--EXPECT--
+{first: {second: {third: {fourth: {fifth: {sixth: {seventh: {eighth: {ninth: {tenth: deep value}}}}}}}}}}

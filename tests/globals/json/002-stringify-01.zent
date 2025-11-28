@@ -1,0 +1,6 @@
+--TEST--
+Can stringify arrays
+--FILE--
+println(json.stringify([1, "hello world", 3.42, true, null]))
+--EXPECT--
+[1,"hello world",3.42,true,null]

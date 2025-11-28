@@ -60,6 +60,13 @@ var Globals = []struct {
 			{Name: "env", Builtin: &Builtin{Fn: globalProcessEnv}},
 		},
 	},
+	{
+		Name: "json",
+		Builtins: []*BuiltinDefinition{
+			{Name: "parse", Builtin: &Builtin{Fn: globalJSONParse}},
+			{Name: "stringify", Builtin: &Builtin{Fn: globalJSONStringify}},
+		},
+	},
 }
 
 func GetGlobalBuiltinByName(scope, name string) *Builtin {

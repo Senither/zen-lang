@@ -1,0 +1,26 @@
+--TEST--
+Can stringify deep nested structures
+--FILE--
+println(json.stringify({
+    "first": {
+        "second":{
+            "third":{
+                "fourth":{
+                    "fifth":{
+                        "sixth":{
+                            "seventh":{
+                                "eighth":{
+                                    "ninth":{
+                                        "tenth":"deep value"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}))
+--EXPECT--
+{"first":{"second":{"third":{"fourth":{"fifth":{"sixth":{"seventh":{"eighth":{"ninth":{"tenth":"deep value"}}}}}}}}}}

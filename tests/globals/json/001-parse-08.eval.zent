@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non-string argument
+--FILE--
+json.parse(123)
+--ERROR--
+argument 1 to `parse` has invalid type: got INTEGER, want STRING
+    at <unknown>:1:11
