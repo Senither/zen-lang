@@ -2,6 +2,7 @@ package objects
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/senither/zen-lang/objects/timer"
 )
@@ -120,7 +121,11 @@ func globalTimeDelayTimer(args ...Object) (Object, error) {
 		return nil, NewErrorf("delayTimer", "delay time must be non-negative")
 	}
 
-	time := timer.StartDelayedTimer(func() { callable.Call() }, delayTime.Value)
+	time := timer.StartDelayedTimer(func() {
+		if rs := callable.Call(); IsError(rs) {
+			fmt.Fprintf(os.Stdout, "%s\n", rs.Inspect())
+		}
+	}, delayTime.Value)
 
 	return BuildImmutableHash(
 		HashPair{
@@ -159,7 +164,11 @@ func globalTimeScheduleTimer(args ...Object) (Object, error) {
 		return nil, NewErrorf("scheduleTimer", "interval time must be non-negative")
 	}
 
-	ticker := timer.StartScheduledTimer(func() { callable.Call() }, intervalTime.Value)
+	ticker := timer.StartScheduledTimer(func() {
+		if rs := callable.Call(); IsError(rs) {
+			fmt.Fprintf(os.Stdout, "%s\n", rs.Inspect())
+		}
+	}, intervalTime.Value)
 
 	return BuildImmutableHash(
 		HashPair{

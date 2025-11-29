@@ -1,0 +1,25 @@
+--TEST--
+Can get the factorial of 12
+--FILE--
+var counter = 0;
+
+var timer = time.scheduleTimer(func () {
+    println("The count is: " + counter);
+    counter = counter + 1;
+    println("Incremented counter to: " + counter);
+}, 10)
+
+time.sleep(45);
+--EXPECT--
+The count is: 0
+The count is: 0
+The count is: 0
+The count is: 0
+cannot modify immutable variable: counter
+    at C:\Code\zen-lang\tests\test.eval.zent:5:13
+cannot modify immutable variable: counter
+    at C:\Code\zen-lang\tests\test.eval.zent:5:13
+cannot modify immutable variable: counter
+    at C:\Code\zen-lang\tests\test.eval.zent:5:13
+cannot modify immutable variable: counter
+    at C:\Code\zen-lang\tests\test.eval.zent:5:13
