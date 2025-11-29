@@ -146,6 +146,8 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 			if err != nil {
 				return err
 			}
+
+			c.setSymbolKind(symbol, n.Value)
 		}
 
 		c.setSymbol(symbol)
@@ -513,6 +515,17 @@ func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) *objects.
 }
 
 func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) *objects.Error {
+	switch node.Operator {
+	case ">", "<", ">=", "<=":
+		if c.isArrayOrHashExpression(node.Left) || c.isArrayOrHashExpression(node.Right) {
+			return objects.NewError(
+				node.Token, c.file,
+				"cannot use comparison operator %s with arrays or hashes",
+				node.Operator,
+			)
+		}
+	}
+
 	err := c.compileInfixExpressionOperands(node)
 	if err != nil {
 		return err
@@ -903,6 +916,7 @@ func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) *
 			return err
 		}
 
+		c.setSymbolKind(symbol, node.Right)
 		c.setSymbol(symbol)
 
 	case *ast.IndexExpression:
@@ -1089,6 +1103,24 @@ func (c *Compiler) compileExportStatement(node *ast.ExportStatement) *objects.Er
 	return nil
 }
 
+func (c *Compiler) isArrayOrHashExpression(exp ast.Expression) bool {
+	switch v := exp.(type) {
+	case *ast.ArrayLiteral, *ast.HashLiteral:
+		return true
+
+	case *ast.Identifier:
+		sym, ok := c.symbolTable.Resolve(v.Value)
+		if !ok {
+			return false
+		}
+
+		return sym.Kind == ArrayKind || sym.Kind == HashKind
+
+	default:
+		return false
+	}
+}
+
 func (c *Compiler) loadSymbol(symbol Symbol) {
 	switch symbol.Scope {
 	case GlobalScope:
@@ -1111,5 +1143,17 @@ func (c *Compiler) setSymbol(symbol Symbol) {
 		c.emit(code.OpSetGlobal, symbol.Index)
 	} else {
 		c.emit(code.OpSetLocal, symbol.Index)
+	}
+}
+
+func (c *Compiler) setSymbolKind(symbol Symbol, node ast.Expression) error {
+	switch node.(type) {
+	case *ast.ArrayLiteral:
+		return c.symbolTable.UpdateKind(symbol.Name, ArrayKind)
+	case *ast.HashLiteral:
+		return c.symbolTable.UpdateKind(symbol.Name, HashKind)
+
+	default:
+		return nil
 	}
 }

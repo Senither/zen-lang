@@ -4,13 +4,13 @@ import "testing"
 
 func TestDefine(t *testing.T) {
 	expected := map[string]Symbol{
-		"a": {Name: "a", Mutable: false, Scope: GlobalScope, Index: 0},
-		"b": {Name: "b", Mutable: true, Scope: GlobalScope, Index: 1},
-		"c": {Name: "c", Mutable: false, Scope: GlobalScope, Index: 2},
-		"d": {Name: "d", Mutable: true, Scope: LocalScope, Index: 0},
-		"e": {Name: "e", Mutable: false, Scope: LocalScope, Index: 1},
-		"f": {Name: "f", Mutable: false, Scope: LocalScope, Index: 0},
-		"g": {Name: "g", Mutable: false, Scope: LocalScope, Index: 1},
+		"a": {Name: "a", Mutable: false, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+		"b": {Name: "b", Mutable: true, Scope: GlobalScope, Index: 1, Kind: NativeKind},
+		"c": {Name: "c", Mutable: false, Scope: GlobalScope, Index: 2, Kind: NativeKind},
+		"d": {Name: "d", Mutable: true, Scope: LocalScope, Index: 0, Kind: NativeKind},
+		"e": {Name: "e", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
+		"f": {Name: "f", Mutable: false, Scope: LocalScope, Index: 0, Kind: NativeKind},
+		"g": {Name: "g", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
 	}
 
 	global := NewSymbolTable()
@@ -63,9 +63,9 @@ func TestResolveGlobal(t *testing.T) {
 	global.Define("c", false)
 
 	expected := []Symbol{
-		{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0},
-		{Name: "b", Mutable: true, Scope: GlobalScope, Index: 1},
-		{Name: "c", Mutable: false, Scope: GlobalScope, Index: 2},
+		{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+		{Name: "b", Mutable: true, Scope: GlobalScope, Index: 1, Kind: NativeKind},
+		{Name: "c", Mutable: false, Scope: GlobalScope, Index: 2, Kind: NativeKind},
 	}
 
 	for _, sym := range expected {
@@ -90,10 +90,10 @@ func TestResolveLocal(t *testing.T) {
 	local.Define("d", true)
 
 	expected := []Symbol{
-		{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0},
-		{Name: "b", Mutable: true, Scope: GlobalScope, Index: 1},
-		{Name: "c", Mutable: false, Scope: LocalScope, Index: 0},
-		{Name: "d", Mutable: true, Scope: LocalScope, Index: 1},
+		{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+		{Name: "b", Mutable: true, Scope: GlobalScope, Index: 1, Kind: NativeKind},
+		{Name: "c", Mutable: false, Scope: LocalScope, Index: 0, Kind: NativeKind},
+		{Name: "d", Mutable: true, Scope: LocalScope, Index: 1, Kind: NativeKind},
 	}
 
 	for _, sym := range expected {
@@ -129,19 +129,19 @@ func TestResolveNestedLocal(t *testing.T) {
 		{
 			firstLocal,
 			[]Symbol{
-				Symbol{Name: "a", Mutable: true, Scope: GlobalScope, Index: 0},
-				Symbol{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1},
-				Symbol{Name: "c", Mutable: true, Scope: LocalScope, Index: 0},
-				Symbol{Name: "d", Mutable: false, Scope: LocalScope, Index: 1},
+				{Name: "a", Mutable: true, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+				{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1, Kind: NativeKind},
+				{Name: "c", Mutable: true, Scope: LocalScope, Index: 0, Kind: NativeKind},
+				{Name: "d", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
 			},
 		},
 		{
 			secondLocal,
 			[]Symbol{
-				Symbol{Name: "a", Mutable: true, Scope: GlobalScope, Index: 0},
-				Symbol{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1},
-				Symbol{Name: "e", Mutable: true, Scope: LocalScope, Index: 0},
-				Symbol{Name: "f", Mutable: false, Scope: LocalScope, Index: 1},
+				{Name: "a", Mutable: true, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+				{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1, Kind: NativeKind},
+				{Name: "e", Mutable: true, Scope: LocalScope, Index: 0, Kind: NativeKind},
+				{Name: "f", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
 			},
 		},
 	}
@@ -166,9 +166,9 @@ func TestDefineResolveBuiltins(t *testing.T) {
 	secondLocal := NewEnclosedSymbolTable(firstLocal)
 
 	expected := []Symbol{
-		{Name: "a", Mutable: false, Scope: BuiltinScope, Index: 0},
-		{Name: "b", Mutable: true, Scope: BuiltinScope, Index: 1},
-		{Name: "c", Mutable: false, Scope: BuiltinScope, Index: 2},
+		{Name: "a", Mutable: false, Scope: BuiltinScope, Index: 0, Kind: NativeKind},
+		{Name: "b", Mutable: true, Scope: BuiltinScope, Index: 1, Kind: NativeKind},
+		{Name: "c", Mutable: false, Scope: BuiltinScope, Index: 2, Kind: NativeKind},
 	}
 
 	for i, v := range expected {
@@ -213,26 +213,26 @@ func TestResolveFree(t *testing.T) {
 		{
 			firstLocal,
 			[]Symbol{
-				{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0},
-				{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1},
-				{Name: "c", Mutable: false, Scope: LocalScope, Index: 0},
-				{Name: "d", Mutable: false, Scope: LocalScope, Index: 1},
+				{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+				{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1, Kind: NativeKind},
+				{Name: "c", Mutable: false, Scope: LocalScope, Index: 0, Kind: NativeKind},
+				{Name: "d", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
 			},
 			[]Symbol{},
 		},
 		{
 			secondLocal,
 			[]Symbol{
-				{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0},
-				{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1},
-				{Name: "c", Mutable: false, Scope: FreeScope, Index: 0},
-				{Name: "d", Mutable: false, Scope: FreeScope, Index: 1},
-				{Name: "e", Mutable: false, Scope: LocalScope, Index: 0},
-				{Name: "f", Mutable: false, Scope: LocalScope, Index: 1},
+				{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+				{Name: "b", Mutable: false, Scope: GlobalScope, Index: 1, Kind: NativeKind},
+				{Name: "c", Mutable: false, Scope: FreeScope, Index: 0, Kind: NativeKind},
+				{Name: "d", Mutable: false, Scope: FreeScope, Index: 1, Kind: NativeKind},
+				{Name: "e", Mutable: false, Scope: LocalScope, Index: 0, Kind: NativeKind},
+				{Name: "f", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
 			},
 			[]Symbol{
-				{Name: "c", Mutable: false, Scope: LocalScope, Index: 0},
-				{Name: "d", Mutable: false, Scope: LocalScope, Index: 1},
+				{Name: "c", Mutable: false, Scope: LocalScope, Index: 0, Kind: NativeKind},
+				{Name: "d", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
 			},
 		},
 	}
@@ -276,10 +276,10 @@ func TestResolveUnresolvableFree(t *testing.T) {
 	secondLocal.Define("f", false)
 
 	expected := []Symbol{
-		{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0},
-		{Name: "c", Mutable: false, Scope: FreeScope, Index: 0},
-		{Name: "e", Mutable: false, Scope: LocalScope, Index: 0},
-		{Name: "f", Mutable: false, Scope: LocalScope, Index: 1},
+		{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0, Kind: NativeKind},
+		{Name: "c", Mutable: false, Scope: FreeScope, Index: 0, Kind: NativeKind},
+		{Name: "e", Mutable: false, Scope: LocalScope, Index: 0, Kind: NativeKind},
+		{Name: "f", Mutable: false, Scope: LocalScope, Index: 1, Kind: NativeKind},
 	}
 
 	for _, sym := range expected {
@@ -306,8 +306,7 @@ func TestDefineAndResolveFunctionName(t *testing.T) {
 	global := NewSymbolTable()
 	global.DefineFunctionName("a", false)
 
-	expected := Symbol{Name: "a", Mutable: false, Scope: FunctionScope, Index: 0}
-
+	expected := Symbol{Name: "a", Mutable: false, Scope: FunctionScope, Index: 0, Kind: NativeKind}
 	result, ok := global.Resolve(expected.Name)
 	if !ok {
 		t.Fatalf("function name %s not resolvable", expected.Name)
@@ -323,7 +322,7 @@ func TestShadowingFunctionName(t *testing.T) {
 	global.DefineFunctionName("a", false)
 	global.Define("a", false)
 
-	expected := Symbol{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0}
+	expected := Symbol{Name: "a", Mutable: false, Scope: GlobalScope, Index: 0, Kind: NativeKind}
 
 	result, ok := global.Resolve(expected.Name)
 	if !ok {
@@ -332,5 +331,128 @@ func TestShadowingFunctionName(t *testing.T) {
 
 	if result != expected {
 		t.Errorf("expected %s to resolve to %+v, got %+v", expected.Name, expected, result)
+	}
+}
+
+func TestUpdateKind(t *testing.T) {
+	table := NewSymbolTable()
+	s := table.Define("obj", false)
+
+	if s.Kind != NativeKind {
+		t.Fatalf("expected initial kind NativeKind, got %s", s.Kind)
+	}
+
+	if err := table.UpdateKind("obj", ArrayKind); err != nil {
+		t.Fatalf("unexpected error updating kind: %v", err)
+	}
+
+	got, ok := table.Resolve("obj")
+	if !ok {
+		t.Fatalf("expected to resolve symbol obj")
+	}
+
+	if got.Kind != ArrayKind {
+		t.Fatalf("expected kind ArrayKind after update, got %s", got.Kind)
+	}
+
+	if err := table.UpdateKind("obj", HashKind); err != nil {
+		t.Fatalf("unexpected error updating kind: %v", err)
+	}
+
+	got, _ = table.Resolve("obj")
+	if got.Kind != HashKind {
+		t.Fatalf("expected kind HashKind after second update, got %s", got.Kind)
+	}
+}
+
+func TestUpdateKindUnknownSymbol(t *testing.T) {
+	table := NewSymbolTable()
+	if err := table.UpdateKind("missing", ArrayKind); err == nil {
+		t.Fatalf("expected error when updating unknown symbol, got nil")
+	}
+}
+
+func TestUpdateKindPropagatesToEnclosedScopes(t *testing.T) {
+	global := NewSymbolTable()
+	global.Define("shared", false)
+
+	if err := global.UpdateKind("shared", ArrayKind); err != nil {
+		t.Fatalf("unexpected error updating kind on global: %v", err)
+	}
+
+	local := NewEnclosedSymbolTable(global)
+
+	resolved, ok := local.Resolve("shared")
+	if !ok {
+		t.Fatalf("expected to resolve shared in local")
+	}
+
+	if resolved.Scope != GlobalScope {
+		t.Fatalf("expected resolved symbol scope GlobalScope, got %s", resolved.Scope)
+	}
+
+	if resolved.Kind != ArrayKind {
+		t.Fatalf("expected symbol to inherit ArrayKind, got %s", resolved.Kind)
+	}
+}
+
+func TestUpdateKindReflectsInEnclosedAfterUpdate(t *testing.T) {
+	global := NewSymbolTable()
+	global.Define("shared", false)
+
+	local := NewEnclosedSymbolTable(global)
+	resolved, ok := local.Resolve("shared")
+	if !ok {
+		t.Fatalf("expected to resolve shared in local")
+	}
+
+	if resolved.Scope != GlobalScope {
+		t.Fatalf("expected resolved symbol scope GlobalScope, got %s", resolved.Scope)
+	}
+
+	if resolved.Kind != NativeKind {
+		t.Fatalf("expected initial symbol kind NativeKind, got %s", resolved.Kind)
+	}
+
+	if err := global.UpdateKind("shared", HashKind); err != nil {
+		t.Fatalf("unexpected error updating kind on global: %v", err)
+	}
+
+	resolved2, ok := local.Resolve("shared")
+	if !ok {
+		t.Fatalf("expected to resolve shared in local after update")
+	}
+
+	if resolved2.Scope != GlobalScope {
+		t.Fatalf("expected resolved symbol scope GlobalScope, got %s", resolved2.Scope)
+	}
+
+	if resolved2.Kind != HashKind {
+		t.Fatalf("expected symbol to reflect updated HashKind, got %s", resolved2.Kind)
+	}
+}
+
+func TestUpdateKindFollowsFreeDefinition(t *testing.T) {
+	global := NewSymbolTable()
+	global.Define("a", false)
+
+	local := NewEnclosedSymbolTable(global)
+	local.Define("b", false)
+	local.UpdateKind("b", ArrayKind)
+
+	second := NewEnclosedSymbolTable(local)
+	second.Define("c", false)
+
+	sym, ok := second.Resolve("b")
+	if !ok {
+		t.Fatalf("expected to resolve shared in local")
+	}
+
+	if sym.Scope != FreeScope {
+		t.Fatalf("expected resolved symbol scope FreeScope, got %s", sym.Scope)
+	}
+
+	if sym.Kind != ArrayKind {
+		t.Fatalf("expected initial symbol kind ArrayKind, got %s", sym.Kind)
 	}
 }

@@ -1,0 +1,37 @@
+--TEST--
+The compiler throws an error for unsupported comparison operators on arrays and hashes
+--FILE--
+println([] < [])
+println([] <= [])
+println([] > [])
+println([] >= [])
+
+println({} < {})
+println({} <= {})
+println({} > {})
+println({} >= {})
+--ERROR--
+cannot use comparison operator < with arrays or hashes
+    at <unknown>:1:12
+    at <unknown>:1:8
+cannot use comparison operator <= with arrays or hashes
+    at <unknown>:2:11
+    at <unknown>:2:8
+cannot use comparison operator > with arrays or hashes
+    at <unknown>:3:12
+    at <unknown>:3:8
+cannot use comparison operator >= with arrays or hashes
+    at <unknown>:4:11
+    at <unknown>:4:8
+cannot use comparison operator < with arrays or hashes
+    at <unknown>:6:12
+    at <unknown>:6:8
+cannot use comparison operator <= with arrays or hashes
+    at <unknown>:7:11
+    at <unknown>:7:8
+cannot use comparison operator > with arrays or hashes
+    at <unknown>:8:12
+    at <unknown>:8:8
+cannot use comparison operator >= with arrays or hashes
+    at <unknown>:9:11
+    at <unknown>:9:8

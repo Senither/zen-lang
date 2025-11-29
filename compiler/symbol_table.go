@@ -17,11 +17,20 @@ const (
 	FunctionScope      SymbolScope = "FUNCTION"
 )
 
+type SymbolKind string
+
+const (
+	NativeKind SymbolKind = "NATIVE"
+	ArrayKind  SymbolKind = "ARRAY"
+	HashKind   SymbolKind = "HASH"
+)
+
 type Symbol struct {
 	Name    string
 	Mutable bool
 	Scope   SymbolScope
 	Index   int
+	Kind    SymbolKind
 }
 
 func (s *Symbol) isEligibleForFreeing() bool {
@@ -70,25 +79,25 @@ func WriteBuiltinSymbols(table *SymbolTable) {
 }
 
 func (s *SymbolTable) DefineBuiltin(index int, name string) Symbol {
-	symbol := Symbol{Name: name, Mutable: false, Scope: BuiltinScope, Index: index}
+	symbol := Symbol{Name: name, Mutable: false, Scope: BuiltinScope, Index: index, Kind: NativeKind}
 	s.store[name] = symbol
 	return symbol
 }
 
 func (s *SymbolTable) DefineGlobalBuiltin(index int, name string) Symbol {
-	symbol := Symbol{Name: name, Mutable: false, Scope: GlobalBuiltinScope, Index: index}
+	symbol := Symbol{Name: name, Mutable: false, Scope: GlobalBuiltinScope, Index: index, Kind: NativeKind}
 	s.store[name] = symbol
 	return symbol
 }
 
 func (s *SymbolTable) DefineFunctionName(name string, mutable bool) Symbol {
-	symbol := Symbol{Name: name, Mutable: mutable, Index: 0, Scope: FunctionScope}
+	symbol := Symbol{Name: name, Mutable: mutable, Index: 0, Scope: FunctionScope, Kind: NativeKind}
 	s.store[name] = symbol
 	return symbol
 }
 
 func (s *SymbolTable) Define(name string, mutable bool) Symbol {
-	symbol := Symbol{Name: name, Mutable: mutable, Index: s.numDefinitions}
+	symbol := Symbol{Name: name, Mutable: mutable, Index: s.numDefinitions, Kind: NativeKind}
 
 	if s.Outer == nil {
 		symbol.Scope = GlobalScope
@@ -110,11 +119,24 @@ func (s *SymbolTable) defineFree(original Symbol) Symbol {
 		Mutable: original.Mutable,
 		Scope:   FreeScope,
 		Index:   len(s.FreeSymbols) - 1,
+		Kind:    original.Kind,
 	}
 
 	s.store[original.Name] = symbol
 
 	return symbol
+}
+
+func (s *SymbolTable) UpdateKind(name string, kind SymbolKind) error {
+	symbol, ok := s.store[name]
+	if !ok {
+		return fmt.Errorf("symbol %s not found", name)
+	}
+
+	symbol.Kind = kind
+	s.store[name] = symbol
+
+	return nil
 }
 
 func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
