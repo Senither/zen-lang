@@ -7,7 +7,6 @@ import (
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/objects"
-	"github.com/senither/zen-lang/objects/timer"
 	"github.com/senither/zen-lang/vm"
 )
 
@@ -72,8 +71,8 @@ func (tr *TestRunner) runCompiledVMTest(test *Test, bytecode *compiler.Bytecode,
 	})
 	timeTaken := time.Since(start)
 
-	timer.ClearTimers()
-	tr.clearTestEnvVariables(test)
+	objects.RestoreObjectsState()
+	tr.clearTestEnvVariables()
 
 	tr.addTiming(VMExecutionTiming, timeTaken)
 	test.metadata[VMExecutionTiming] = timeTaken

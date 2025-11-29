@@ -11,7 +11,6 @@ import (
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/objects"
-	"github.com/senither/zen-lang/objects/timer"
 	"github.com/senither/zen-lang/vm"
 	"github.com/spf13/cobra"
 )
@@ -122,7 +121,7 @@ func runAndReturnEvaluated(verbose bool, program *ast.Program, path any) string 
 		})
 	}
 
-	timer.ClearTimers()
+	objects.RestoreObjectsState()
 
 	var output strings.Builder
 	if len(evaluator.Stdout.ReadAll()) > 0 {
@@ -162,7 +161,7 @@ func runAndReturnVirtualMachineResult(verbose bool, bytecode *compiler.Bytecode,
 		return machine.LastPoppedStackElem()
 	})
 
-	timer.ClearTimers()
+	objects.RestoreObjectsState()
 
 	var output strings.Builder
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/senither/zen-lang/cli/colors"
 	"github.com/senither/zen-lang/evaluator"
+	"github.com/senither/zen-lang/objects"
 	"github.com/senither/zen-lang/objects/process"
 	"github.com/senither/zen-lang/objects/timer"
 	"github.com/senither/zen-lang/vm"
@@ -148,15 +149,6 @@ func (tr *TestRunner) applyTestEnvVariables(test *Test) {
 	}
 }
 
-func (tr *TestRunner) clearTestEnvVariables(test *Test) {
-	for key := range test.envs {
-		switch key {
-		case "time":
-			timer.Unfreeze()
-		case "timezone":
-			timer.ResetTimezone()
-		case "process", "process.args", "process.envs":
-			process.RestoreFromFake()
-		}
-	}
+func (tr *TestRunner) clearTestEnvVariables() {
+	objects.RestoreObjectsState()
 }
