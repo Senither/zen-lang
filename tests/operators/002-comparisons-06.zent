@@ -1,0 +1,20 @@
+--TEST--
+Can compare hashes using EQ and NEQ operators
+--FILE--
+println({} == {});
+println({} != {});
+println({'a': 1, 'b': 2, 'c': 3} == {'a': 1, 'b': 2, 'c': 3});
+println({'a': 1, 'b': 2, 'c': 3} != {'a': 1, 'b': 2, 'c': 3});
+println({'a': 1, 'b': 2, 'c': 3} == {'a': 1, 'b': 3, 'c': 3});
+println({'a': 1, 'b': 2, 'c': 3} != {'a': 1, 'b': 3, 'c': 3});
+println({'a': 1.23, 'b': true, 'c': null, 'd': [1, 2, 3]} == {'a': 1.23, 'b': true, 'c': null, 'd': [1, 2, 3]});
+println({'a': 1.23, 'b': true, 'c': null, 'd': [1, 2, 3]} != {'a': 1.23, 'b': true, 'c': null, 'd': [1, 2, 3]});
+--EXPECT--
+true
+false
+false
+true
+false
+true
+false
+true

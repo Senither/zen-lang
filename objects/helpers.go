@@ -155,6 +155,50 @@ func NativeBoolToBooleanObject(input bool) *Boolean {
 	return FALSE
 }
 
+func Equals(left, right Object) *Boolean {
+	if left.Type() != right.Type() {
+		return FALSE
+	}
+
+	switch left := left.(type) {
+	case *String:
+		return NativeBoolToBooleanObject(left.Value == right.(*String).Value)
+	case *Array:
+		rightArr := right.(*Array)
+		if len(left.Elements) != len(rightArr.Elements) {
+			return FALSE
+		}
+
+		for i, leftElem := range left.Elements {
+			rightElem := rightArr.Elements[i]
+			if Equals(leftElem, rightElem) != TRUE {
+				return FALSE
+			}
+		}
+
+		return TRUE
+	case *Hash:
+		rightHash := right.(*Hash)
+		if len(left.Pairs) != len(rightHash.Pairs) {
+			return FALSE
+		}
+
+		for key, leftPair := range left.Pairs {
+			rightPair, ok := rightHash.Pairs[key]
+			if !ok || Equals(leftPair.Value, rightPair.Value) != TRUE {
+				return FALSE
+			}
+		}
+
+		return TRUE
+	case *Null:
+		return TRUE
+
+	default:
+		return NativeBoolToBooleanObject(left == right)
+	}
+}
+
 func CreateImmutableHashFromEnvExports(env *Environment) *ImmutableHash {
 	hashPairs := []HashPair{}
 

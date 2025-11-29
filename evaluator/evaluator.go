@@ -359,9 +359,13 @@ func evalInfixExpression(node *ast.InfixExpression, left, right objects.Object, 
 	case left.Type() == objects.STRING_OBJ && right.Type() == objects.STRING_OBJ:
 		return evalStringInfixExpression(node, left, right, env)
 	case node.Operator == "==":
-		return objects.NativeBoolToBooleanObject(left == right)
+		return objects.Equals(left, right)
 	case node.Operator == "!=":
-		return objects.NativeBoolToBooleanObject(left != right)
+		if objects.Equals(left, right) == objects.TRUE {
+			return objects.FALSE
+		} else {
+			return objects.TRUE
+		}
 	case left.Type() == objects.STRING_OBJ && objects.IsStringable(right), right.Type() == objects.STRING_OBJ && objects.IsStringable(left):
 		return evalStringableInfixExpression(node, left, right, env)
 

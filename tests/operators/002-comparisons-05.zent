@@ -1,0 +1,20 @@
+--TEST--
+Can compare arrays using EQ and NEQ operators
+--FILE--
+println([] == []);
+println([] != []);
+println([1, 2, 3] == [1, 2, 3]);
+println([1, 2, 3] != [1, 2, 3]);
+println([1, 2, 3] == [1, 2, 4]);
+println([1, 2, 3] != [1, 2, 4]);
+println([1, true, "three"] == [1, true, "three"]);
+println([1, true, "three"] != [1, true, "three"]);
+--EXPECT--
+true
+false
+false
+true
+false
+true
+false
+true

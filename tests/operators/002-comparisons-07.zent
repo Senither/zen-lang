@@ -1,0 +1,39 @@
+--TEST--
+Can compare mixed deep objects using EQ and NEQ operators
+--FILE--
+var a = {'a': {'b': {'c': {'d': {'e': {'f': {'g': {'h': {'i': {'j': true}}}}}}}}}};
+var b = {'a': {'b': {'c': {'d': {'e': {'f': {'g': {'h': {'i': {'j': false}}}}}}}}}};
+
+println(a == a);
+println(a != a);
+println(a == b);
+println(a != b);
+
+var c = {'x': [1, 2, {'y': [3, 4, {'z': [5, 6, 7]}], 'w': [8, 9]}]};
+var d = {'x': [1, 2, {'y': [3, 4, {'z': [5, 0, 7]}], 'w': [8, 9]}]};
+
+println(c == c);
+println(c != c);
+println(c == d);
+println(c != d);
+
+var e = {'a': [ {'b': {'c': [1, 2, 3]}}, {'d': {'e': [4, 5, 6]}} ] };
+var f = {'a': [ {'b': {'c': [1, 2, 0]}}, {'d': {'e': [4, 5, 6]}} ] };
+
+println(e == e);
+println(e != e);
+println(e == f);
+println(e != f);
+--EXPECT--
+true
+false
+false
+true
+true
+false
+false
+true
+true
+false
+false
+true

@@ -7,6 +7,8 @@ println(10 != 10);
 println(5 != 10);
 println(3.14 == 3.14);
 println(3.14 != 3.13);
+println(5 == 5.0);
+println(5 == 5.00000000001);
 --EXPECT--
 false
 true
@@ -14,3 +16,5 @@ false
 true
 true
 true
+true
+false

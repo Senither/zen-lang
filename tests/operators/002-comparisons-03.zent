@@ -1,5 +1,5 @@
 --TEST--
-Can compare objects using LTE and GTE operators
+Can compare numbers using LTE and GTE operators
 --FILE--
 println(5 <= 10);
 println(9 <= 10);
