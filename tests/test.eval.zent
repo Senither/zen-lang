@@ -16,10 +16,10 @@ The count is: 0
 The count is: 0
 The count is: 0
 cannot modify immutable variable: counter
-    at C:\Code\zen-lang\tests\test.eval.zent:5:13
+    at <unknown>:5:13
 cannot modify immutable variable: counter
-    at C:\Code\zen-lang\tests\test.eval.zent:5:13
+    at <unknown>:5:13
 cannot modify immutable variable: counter
-    at C:\Code\zen-lang\tests\test.eval.zent:5:13
+    at <unknown>:5:13
 cannot modify immutable variable: counter
-    at C:\Code\zen-lang\tests\test.eval.zent:5:13
+    at <unknown>:5:13

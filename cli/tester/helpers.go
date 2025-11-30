@@ -93,8 +93,8 @@ func (tr *TestRunner) normalizeLineEndings(str string) string {
 	return str
 }
 
-func (tr *TestRunner) normalizeFileLocations(err string) string {
-	lines := strings.Split(err, "\n")
+func (tr *TestRunner) normalizeFileLocations(input string) string {
+	lines := strings.Split(input, "\n")
 
 	for i, line := range lines {
 		if strings.Contains(line, "at ") && strings.Contains(line, ".zent:") {
