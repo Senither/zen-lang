@@ -21,14 +21,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          fetch-depth: 0
 
-      - name: Extract version
-        run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+      - name: Set build metadata
+        run: |
+          echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          echo "GIT_COMMIT=$(git rev-parse --short=12 HEAD)" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date -u +'%b %d %Y %H:%M:%S')" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -44,6 +44,9 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
+            --build-arg VERSION=${VERSION} \
+            --build-arg GIT_COMMIT=${GIT_COMMIT} \
+            --build-arg BUILD_DATE=${BUILD_DATE} \
             -t ${IMAGE_NAME}:${VERSION} \
             -t ${IMAGE_NAME}:latest \
             --push .
@@ -65,11 +68,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
+
+      - name: Set build metadata
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          GIT_COMMIT=$(git rev-parse --short=12 HEAD)
+          BUILD_DATE=$(date -u +'%b %d %Y %H:%M:%S')
+          LDFLAGS="-s -w -X github.com/senither/zen-lang/cli.Version=$VERSION -X github.com/senither/zen-lang/cli.GitCommit=$GIT_COMMIT -X github.com/senither/zen-lang/cli.BuildDate=$BUILD_DATE"
+          echo "LDFLAGS=${LDFLAGS}" >> $GITHUB_ENV
+
+      - name: Compute binary name
+        run: |
+          base="zen-${GITHUB_REF_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}"; \
+          if [ "${{ matrix.goos }}" = "windows" ]; then base="${base}.exe"; fi; \
+          echo "BINARY_NAME=${base}" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: go mod download
@@ -81,22 +100,16 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
+          LDFLAGS: ${{ env.LDFLAGS }}
         run: |
-          binary_name="zen-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}"
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            binary_name="${binary_name}.exe"
-          fi
-          go build -o "${binary_name}" .
+          go build -trimpath -ldflags "$LDFLAGS" -o "$BINARY_NAME" .
 
       - name: Upload binary to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BINARY_NAME: ${{ env.BINARY_NAME }}
         run: |
-          binary_name="zen-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}"
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            binary_name="${binary_name}.exe"
-          fi
-          gh release upload ${{ github.ref_name }} "${binary_name}" --clobber
+          gh release upload ${{ github.ref_name }} "$BINARY_NAME" --clobber
 
       - name: Summary
         run: |
