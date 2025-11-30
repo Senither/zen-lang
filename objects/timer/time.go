@@ -11,6 +11,9 @@ import (
 var fakeTime *int64 = nil
 var localTimezone *time.Location = time.Local
 
+var timers = map[string]*time.Timer{}
+var tickers = map[string]*time.Ticker{}
+
 // Maps formatting tokens to Go time layout equivalents, right now
 // it supports a limited set of tokens from PHP's date function
 // See: https://www.php.net/manual/en/datetime.format.php
@@ -41,6 +44,19 @@ func Freeze(time int64) {
 
 func Unfreeze() {
 	fakeTime = nil
+}
+
+func ClearTimers() {
+	for _, timer := range timers {
+		timer.Stop()
+	}
+
+	for _, ticker := range tickers {
+		ticker.Stop()
+	}
+
+	timers = map[string]*time.Timer{}
+	tickers = map[string]*time.Ticker{}
 }
 
 func Now() int64 {
@@ -119,4 +135,40 @@ func SetTimezone(timezone string) error {
 
 	time.Local = loc
 	return nil
+}
+
+func StartDelayedTimer(callback func(), delay int64) *time.Timer {
+	timer := time.AfterFunc(time.Millisecond*time.Duration(delay), func() {
+		callback()
+	})
+
+	timers[fmt.Sprintf("%p", timer)] = timer
+
+	return timer
+}
+
+func StopDelayedTimer(timer *time.Timer) bool {
+	stopped := timer.Stop()
+	delete(timers, fmt.Sprintf("%p", timer))
+
+	return stopped
+}
+
+func StartScheduledTimer(callback func(), interval int64) *time.Ticker {
+	ticker := time.NewTicker(time.Millisecond * time.Duration(interval))
+
+	go func() {
+		for range ticker.C {
+			callback()
+		}
+	}()
+
+	tickers[fmt.Sprintf("%p", ticker)] = ticker
+
+	return ticker
+}
+
+func StopScheduledTimer(ticker *time.Ticker) {
+	ticker.Stop()
+	delete(tickers, fmt.Sprintf("%p", ticker))
 }

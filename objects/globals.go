@@ -50,6 +50,8 @@ var Globals = []struct {
 			{Name: "parse", Builtin: &Builtin{Fn: globalTimeParse}},
 			{Name: "format", Builtin: &Builtin{Fn: globalTimeFormat}},
 			{Name: "timezone", Builtin: &Builtin{Fn: globalTimeTimezone}},
+			{Name: "delayTimer", Builtin: &Builtin{Fn: globalTimeDelayTimer}},
+			{Name: "scheduleTimer", Builtin: &Builtin{Fn: globalTimeScheduleTimer}},
 		},
 	},
 	{

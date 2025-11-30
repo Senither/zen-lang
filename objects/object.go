@@ -10,6 +10,8 @@ import (
 
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/code"
+	"github.com/senither/zen-lang/objects/process"
+	"github.com/senither/zen-lang/objects/timer"
 )
 
 type ObjectType string
@@ -355,3 +357,10 @@ func (cfi *CompiledFileImport) Inspect() string {
 	return fmt.Sprintf("CompiledFileImport[%s|%p]", cfi.Name, cfi)
 }
 func (cfi *CompiledFileImport) Instructions() code.Instructions { return cfi.OpcodeInstructions }
+
+func RestoreObjectsState() {
+	timer.ClearTimers()
+	timer.Unfreeze()
+
+	process.RestoreFromFake()
+}
