@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ var versionCommand = &cobra.Command{
 	Short:   "Get the current version of the CLI.",
 	Long:    "Displays the current version, build date, and commit hash of the CLI.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Zen %s (built: %s)\n", Version, BuildDate)
+		fmt.Printf("Zen %s (built: %s)\n", Version, strings.ReplaceAll(BuildDate, "_", " "))
 		fmt.Printf("Commit: %s\n", GitCommit)
 	},
 }
