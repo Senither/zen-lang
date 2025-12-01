@@ -1,0 +1,24 @@
+--TEST--
+Can have multiple delayed functions
+--ENV--
+time=1767606155000
+--FILE--
+time.delayTimer(func () {
+    println("Delayed function executed 1")
+}, 5)
+
+time.delayTimer(func () {
+    println("Delayed function executed 2")
+}, 10)
+
+println("Before delay")
+time.sleep(5)
+println("Middle of delay")
+time.sleep(5)
+println("After delay")
+--EXPECT--
+Before delay
+Delayed function executed 1
+Middle of delay
+Delayed function executed 2
+After delay

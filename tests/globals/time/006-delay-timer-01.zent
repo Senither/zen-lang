@@ -1,0 +1,16 @@
+--TEST--
+Can call function with a delay
+--ENV--
+time=1767606155000
+--FILE--
+time.delayTimer(func () {
+    println("Delayed function executed")
+}, 5)
+
+println("Before delay")
+time.sleep(10)
+println("After delay")
+--EXPECT--
+Before delay
+Delayed function executed
+After delay

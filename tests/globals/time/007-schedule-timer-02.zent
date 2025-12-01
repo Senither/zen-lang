@@ -1,0 +1,27 @@
+--TEST--
+Can multiple scheduled timers that repeats after a delay
+--ENV--
+time=1767606155000
+--FILE--
+time.scheduleTimer(func () {
+    println("Delayed function executed 1")
+}, 5)
+
+time.scheduleTimer(func () {
+    println("Delayed function executed 2")
+}, 7)
+
+println("Before delay")
+time.sleep(25)
+println("After delay")
+--EXPECT--
+Before delay
+Delayed function executed 1
+Delayed function executed 2
+Delayed function executed 1
+Delayed function executed 2
+Delayed function executed 1
+Delayed function executed 1
+Delayed function executed 2
+Delayed function executed 1
+After delay

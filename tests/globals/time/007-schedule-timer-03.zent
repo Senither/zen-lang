@@ -1,0 +1,12 @@
+--TEST--
+Can skip scheduled functions if program terminates early
+--ENV--
+time=1767606155000
+--FILE--
+time.scheduleTimer(func () {
+    println("Delayed function executed 1")
+}, 5)
+
+println("Done")
+--EXPECT--
+Done

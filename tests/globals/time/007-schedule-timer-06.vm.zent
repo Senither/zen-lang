@@ -1,0 +1,7 @@
+--TEST--
+It fails when given callback with arguments
+--FILE--
+time.scheduleTimer(func (a) { }, "123")
+--ERROR--
+error in `scheduleTimer`: function passed to `scheduleTimer` must take zero arguments
+    at <unknown>:0:0

@@ -8,11 +8,23 @@ import (
 	"time"
 )
 
+type FakeTime struct {
+	callback func()
+	lastCall int64
+	delay    int64
+	interval int64
+	isTicker bool
+	stopped  bool
+	id       string
+}
+
 var fakeTime *int64 = nil
 var localTimezone *time.Location = time.Local
 
 var timers = map[string]*time.Timer{}
 var tickers = map[string]*time.Ticker{}
+
+var fakeTimers = []*FakeTime{}
 
 // Maps formatting tokens to Go time layout equivalents, right now
 // it supports a limited set of tokens from PHP's date function
@@ -46,6 +58,36 @@ func Unfreeze() {
 	fakeTime = nil
 }
 
+func TimeTravel(duration int64) error {
+	if fakeTime == nil {
+		return errors.New("cannot time travel outside of testing environments, time must be frozen")
+	}
+
+	for range duration {
+		*fakeTime += 1
+
+		for _, ft := range fakeTimers {
+			if ft.stopped {
+				continue
+			}
+
+			if !ft.isTicker {
+				if (*fakeTime - ft.lastCall) >= ft.delay {
+					ft.callback()
+					ft.stopped = true
+				}
+			} else if ft.interval > 0 {
+				elapsed := *fakeTime - ft.lastCall
+				if elapsed > 0 && (elapsed%ft.interval) == 0 {
+					ft.callback()
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func ClearTimers() {
 	for _, timer := range timers {
 		timer.Stop()
@@ -57,6 +99,7 @@ func ClearTimers() {
 
 	timers = map[string]*time.Timer{}
 	tickers = map[string]*time.Ticker{}
+	fakeTimers = []*FakeTime{}
 }
 
 func Now() int64 {
@@ -69,7 +112,7 @@ func Now() int64 {
 
 func Sleep(milliseconds int64) {
 	if fakeTime != nil {
-		*fakeTime += milliseconds
+		TimeTravel(milliseconds)
 		return
 	}
 
@@ -138,6 +181,20 @@ func SetTimezone(timezone string) error {
 }
 
 func StartDelayedTimer(callback func(), delay int64) *time.Timer {
+	if fakeTime != nil {
+		timer := time.AfterFunc(time.Millisecond*time.Duration(delay), func() {})
+
+		fakeTimers = append(fakeTimers, &FakeTime{
+			callback: callback,
+			lastCall: *fakeTime,
+			delay:    delay,
+			isTicker: false,
+			id:       fmt.Sprintf("%p", timer),
+		})
+
+		return timer
+	}
+
 	timer := time.AfterFunc(time.Millisecond*time.Duration(delay), func() {
 		callback()
 	})
@@ -148,14 +205,40 @@ func StartDelayedTimer(callback func(), delay int64) *time.Timer {
 }
 
 func StopDelayedTimer(timer *time.Timer) bool {
+	if timer == nil {
+		return false
+	}
+
+	id := fmt.Sprintf("%p", timer)
+	if fakeTime != nil {
+		for _, ft := range fakeTimers {
+			if ft.id == id && !ft.isTicker {
+				ft.stopped = true
+				break
+			}
+		}
+	}
+
 	stopped := timer.Stop()
-	delete(timers, fmt.Sprintf("%p", timer))
+	delete(timers, id)
 
 	return stopped
 }
 
 func StartScheduledTimer(callback func(), interval int64) *time.Ticker {
 	ticker := time.NewTicker(time.Millisecond * time.Duration(interval))
+
+	if fakeTime != nil {
+		fakeTimers = append(fakeTimers, &FakeTime{
+			callback: callback,
+			lastCall: *fakeTime,
+			interval: interval,
+			isTicker: true,
+			id:       fmt.Sprintf("%p", ticker),
+		})
+
+		return ticker
+	}
 
 	go func() {
 		for range ticker.C {
@@ -169,6 +252,21 @@ func StartScheduledTimer(callback func(), interval int64) *time.Ticker {
 }
 
 func StopScheduledTimer(ticker *time.Ticker) {
+	if ticker == nil {
+		return
+	}
+
+	id := fmt.Sprintf("%p", ticker)
+
+	if fakeTime != nil {
+		for _, ft := range fakeTimers {
+			if ft.id == id && ft.isTicker {
+				ft.stopped = true
+				break
+			}
+		}
+	}
+
 	ticker.Stop()
-	delete(tickers, fmt.Sprintf("%p", ticker))
+	delete(tickers, id)
 }

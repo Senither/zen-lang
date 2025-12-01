@@ -1,0 +1,7 @@
+--TEST--
+It fails when given callback with arguments
+--FILE--
+time.delayTimer(func (a) { }, "123")
+--ERROR--
+error in `delayTimer`: function passed to `delayTimer` must take zero arguments
+    at <unknown>:0:0

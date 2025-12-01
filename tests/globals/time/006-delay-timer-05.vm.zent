@@ -1,0 +1,7 @@
+--TEST--
+It fails when given one argument
+--FILE--
+time.delayTimer(123)
+--ERROR--
+wrong number of arguments to `delayTimer`: got 1, want 2
+    at <unknown>:0:0

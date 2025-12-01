@@ -1,0 +1,7 @@
+--TEST--
+It fails when the delay is a non-integer
+--FILE--
+time.delayTimer(func () { }, "123")
+--ERROR--
+argument 2 to `delayTimer` has invalid type: got STRING, want INTEGER
+    at <unknown>:0:0

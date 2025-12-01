@@ -1,0 +1,7 @@
+--TEST--
+It fails when the interval is a non-integer
+--FILE--
+time.scheduleTimer(func () { }, "123")
+--ERROR--
+argument 2 to `scheduleTimer` has invalid type: got STRING, want INTEGER
+    at <unknown>:0:0

@@ -112,6 +112,10 @@ func globalTimeDelayTimer(args ...Object) (Object, error) {
 		return nil, NewInvalidArgumentTypeError("delayTimer", FUNCTION_OBJ, 0, args)
 	}
 
+	if callable.ParametersCount() != 0 {
+		return nil, NewErrorf("delayTimer", "function passed to `delayTimer` must take zero arguments")
+	}
+
 	delayTime, ok := args[1].(*Integer)
 	if !ok {
 		return nil, NewInvalidArgumentTypeError("delayTimer", INTEGER_OBJ, 1, args)
@@ -147,12 +151,16 @@ func globalTimeDelayTimer(args ...Object) (Object, error) {
 
 func globalTimeScheduleTimer(args ...Object) (Object, error) {
 	if len(args) != 2 {
-		return nil, NewWrongNumberOfArgumentsError("scheduleTimer", 3, len(args))
+		return nil, NewWrongNumberOfArgumentsError("scheduleTimer", 2, len(args))
 	}
 
 	callable, ok := args[0].(Callable)
 	if !ok {
 		return nil, NewInvalidArgumentTypeError("scheduleTimer", FUNCTION_OBJ, 0, args)
+	}
+
+	if callable.ParametersCount() != 0 {
+		return nil, NewErrorf("scheduleTimer", "function passed to `scheduleTimer` must take zero arguments")
 	}
 
 	intervalTime, ok := args[1].(*Integer)
