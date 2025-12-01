@@ -71,7 +71,8 @@ func (tr *TestRunner) runCompiledVMTest(test *Test, bytecode *compiler.Bytecode,
 	})
 	timeTaken := time.Since(start)
 
-	tr.clearTestEnvVariables(test)
+	objects.RestoreObjectsState()
+	tr.clearTestEnvVariables()
 
 	tr.addTiming(VMExecutionTiming, timeTaken)
 	test.metadata[VMExecutionTiming] = timeTaken

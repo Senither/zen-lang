@@ -1,0 +1,12 @@
+--TEST--
+Can skip delayed functions if program terminates early
+--ENV--
+time=1767606155000
+--FILE--
+time.delayTimer(func () {
+    println("Delayed function executed")
+}, 5)
+
+println("Done")
+--EXPECT--
+Done

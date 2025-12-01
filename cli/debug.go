@@ -121,6 +121,8 @@ func runAndReturnEvaluated(verbose bool, program *ast.Program, path any) string 
 		})
 	}
 
+	objects.RestoreObjectsState()
+
 	var output strings.Builder
 	if len(evaluator.Stdout.ReadAll()) > 0 {
 		output.WriteString(strings.Join(evaluator.Stdout.ReadAll(), ""))
@@ -158,6 +160,8 @@ func runAndReturnVirtualMachineResult(verbose bool, bytecode *compiler.Bytecode,
 
 		return machine.LastPoppedStackElem()
 	})
+
+	objects.RestoreObjectsState()
 
 	var output strings.Builder
 

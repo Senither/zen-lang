@@ -20,7 +20,8 @@ func (tr *TestRunner) runEvaluatorTest(test *Test, program *ast.Program, fullPat
 	})
 	timeTaken := time.Since(start)
 
-	tr.clearTestEnvVariables(test)
+	objects.RestoreObjectsState()
+	tr.clearTestEnvVariables()
 
 	tr.addTiming(EvaluatorExecutionTiming, timeTaken)
 	test.metadata[EvaluatorExecutionTiming] = timeTaken
@@ -80,7 +81,7 @@ func (tr *TestRunner) compareEvaluatedWithStandardOutput(test *Test, fullPath st
 		return
 	}
 
-	out := strings.Trim(strings.Join(messages, ""), "\n")
+	out := tr.normalizeFileLocations(strings.Trim(strings.Join(messages, ""), "\n"))
 	if out != test.expect {
 		tr.printErrorDoesNotMatchExpectation(
 			test, fullPath,

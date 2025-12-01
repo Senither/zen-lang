@@ -1,0 +1,18 @@
+--TEST--
+Can create a scheduled timer that repeats after a delay
+--ENV--
+time=1767606155000
+--FILE--
+time.scheduleTimer(func () {
+    println("Delayed function executed")
+}, 5)
+
+println("Before delay")
+time.sleep(15)
+println("After delay")
+--EXPECT--
+Before delay
+Delayed function executed
+Delayed function executed
+Delayed function executed
+After delay

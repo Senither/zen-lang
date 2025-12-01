@@ -1,6 +1,9 @@
 package objects
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/senither/zen-lang/objects/timer"
 )
 
@@ -97,4 +100,95 @@ func globalTimeTimezone(args ...Object) (Object, error) {
 	}
 
 	return NULL, nil
+}
+
+func globalTimeDelayTimer(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, NewWrongNumberOfArgumentsError("delayTimer", 2, len(args))
+	}
+
+	callable, ok := args[0].(Callable)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("delayTimer", FUNCTION_OBJ, 0, args)
+	}
+
+	if callable.ParametersCount() != 0 {
+		return nil, NewErrorf("delayTimer", "function passed to `delayTimer` must take zero arguments")
+	}
+
+	delayTime, ok := args[1].(*Integer)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("delayTimer", INTEGER_OBJ, 1, args)
+	}
+
+	if delayTime.Value < 0 {
+		return nil, NewErrorf("delayTimer", "delay time must be non-negative")
+	}
+
+	time := timer.StartDelayedTimer(func() {
+		if rs := callable.Call(); IsError(rs) {
+			fmt.Fprintf(os.Stdout, "%s\n", rs.Inspect())
+		}
+	}, delayTime.Value)
+
+	return BuildImmutableHash(
+		HashPair{
+			Key: &String{Value: "stop"},
+			Value: &Builtin{Fn: func(args ...Object) (Object, error) {
+				if timer.StopDelayedTimer(time) {
+					return TRUE, nil
+				}
+
+				return FALSE, nil
+			}},
+		},
+		HashPair{
+			Key:   &String{Value: "timer"},
+			Value: &String{Value: fmt.Sprintf("%p", time)},
+		},
+	), nil
+}
+
+func globalTimeScheduleTimer(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, NewWrongNumberOfArgumentsError("scheduleTimer", 2, len(args))
+	}
+
+	callable, ok := args[0].(Callable)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("scheduleTimer", FUNCTION_OBJ, 0, args)
+	}
+
+	if callable.ParametersCount() != 0 {
+		return nil, NewErrorf("scheduleTimer", "function passed to `scheduleTimer` must take zero arguments")
+	}
+
+	intervalTime, ok := args[1].(*Integer)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("scheduleTimer", INTEGER_OBJ, 1, args)
+	}
+
+	if intervalTime.Value < 0 {
+		return nil, NewErrorf("scheduleTimer", "interval time must be non-negative")
+	}
+
+	ticker := timer.StartScheduledTimer(func() {
+		if rs := callable.Call(); IsError(rs) {
+			fmt.Fprintf(os.Stdout, "%s\n", rs.Inspect())
+		}
+	}, intervalTime.Value)
+
+	return BuildImmutableHash(
+		HashPair{
+			Key: &String{Value: "stop"},
+			Value: &Builtin{Fn: func(args ...Object) (Object, error) {
+				timer.StopScheduledTimer(ticker)
+				return TRUE, nil
+			}},
+		},
+		HashPair{
+			Key:   &String{Value: "timer"},
+			Value: &String{Value: fmt.Sprintf("%p", ticker)},
+		},
+	), nil
 }
