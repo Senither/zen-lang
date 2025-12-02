@@ -27,6 +27,10 @@ func TestNullExpression(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkNullExpression(b *testing.B) {
+	runCompilationBenchmarks(b, []string{"null"})
+}
+
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -130,6 +134,21 @@ func TestIntegerArithmetic(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkIntegerArithmetic(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"1; 2;",
+		"1.5; 3.14;",
+		"1 + 2",
+		"1 - 2",
+		"1 * 2",
+		"1 / 2",
+		"2 ^ 3",
+		"1 % 2",
+		"-1",
+		"-1.5",
+	})
 }
 
 func TestBooleanExpressions(t *testing.T) {
@@ -244,6 +263,22 @@ func TestBooleanExpressions(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkBooleanExpressions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"true",
+		"false",
+		"1 > 2",
+		"1 < 2",
+		"1 == 2",
+		"1 != 2",
+		"1 >= 2",
+		"1 <= 2",
+		"true == false",
+		"true != false",
+		"!true",
+	})
+}
+
 func TestStringExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -275,6 +310,14 @@ func TestStringExpressions(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkStringExpressions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`"hello world";`,
+		`'hello world';`,
+		`"hello" + 'world';`,
+	})
 }
 
 func TestArrayLiterals(t *testing.T) {
@@ -318,6 +361,14 @@ func TestArrayLiterals(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkArrayLiterals(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"[]",
+		"[1, 2, 3]",
+		"[1 + 2, 3 - 4, 5 * 6]",
+	})
 }
 
 func TestHashLiterals(t *testing.T) {
@@ -381,6 +432,15 @@ func TestHashLiterals(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkHashLiterals(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"{}",
+		"{1: 2, 3: 4, 5: 6}",
+		"{1: 2 + 3, 4: 5 * 6, 7: 8 - 9}",
+		"{'key': 'value', 'another': 'pair'}",
+	})
+}
+
 func TestIndexExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -415,6 +475,13 @@ func TestIndexExpressions(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkIndexExpressions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"[1, 2, 3][1 + 1]",
+		"{1: 2}[2 - 1]",
+	})
 }
 
 func TestChainIndexExpressions(t *testing.T) {
@@ -467,6 +534,14 @@ func TestChainIndexExpressions(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkChainIndexExpressions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"var test = {}; test.key",
+		"var test = {}; test.another.key",
+		"var obj = {'key': [1, 2, 3]}; obj.key[0]",
+	})
 }
 
 func TestChainIndexAssignments(t *testing.T) {
@@ -539,6 +614,15 @@ func TestChainIndexAssignments(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkChainIndexAssignments(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"var obj = {'key': 'value'}; obj['key'] = 42;",
+		"var obj = {'key': 'value'}; obj.key = 42;",
+		"var obj = {'nested': {'key': 'value'}}; obj['nested']['key'] = 42;",
+		"var obj = {'nested': {'key': 'value'}}; obj.nested.key = 42;",
+	})
 }
 
 func TestChainCallExpressions(t *testing.T) {
@@ -620,7 +704,28 @@ func TestChainCallExpressions(t *testing.T) {
 			},
 		},
 	}
+
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkChainCallExpressions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			var obj = { 'method': func() { 42 } };
+			obj.method()
+		`,
+		`
+			var obj = {
+				'a': {
+					'b': {
+						'c': func(a, b) { a + b }
+					}
+				}
+			}
+
+			obj.a.b.c(9, 42)
+		`,
+	})
 }
 
 func TestConditionals(t *testing.T) {
@@ -704,6 +809,14 @@ func TestConditionals(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkConditionals(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		"if (true) { 10 }; 5;",
+		"if (true) { 10 } else { 20 }; 5;",
+		"if (false) { 10 } else if (true) { 20 } else { 30 }; 5;",
+	})
+}
+
 func TestGlobalVarStatements(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -784,6 +897,33 @@ func TestGlobalVarStatements(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkGlobalVarStatements(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			var one = 1;
+			var two = 2;
+		`,
+		`
+			var mut one = 1;
+			var mut two = 2;
+		`,
+		`
+			var one = 1;
+			one;
+		`,
+		`
+			var mut one = 1;
+			var two = one;
+			two;
+		`,
+		`
+			var one = 1;
+			var two = 2;
+			one + two;
+		`,
+	})
+}
+
 func TestVarStatementScopes(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -858,6 +998,28 @@ func TestVarStatementScopes(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkVarStatementScopes(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			var num = 55;
+			func() { num }
+		`,
+		`
+			func() {
+				var num = 55;
+				num
+			}
+		`,
+		`
+			func() {
+				var a = 1;
+				var b = 2;
+				a + b
+			}
+		`,
+	})
+}
+
 func TestVarIncDec(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -893,6 +1055,19 @@ func TestVarIncDec(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkVarIncDec(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			var mut a = 1;
+			a++;
+		`,
+		`
+			var mut a = 1;
+			a--;
+		`,
+	})
 }
 
 func TestCompilerScopes(t *testing.T) {
@@ -1024,6 +1199,15 @@ func TestFunctions(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkFunctions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`func() { return 5 + 10 }`,
+		`func() { 5 + 10 }`,
+		`func() { 1; 2 }`,
+		`func() { }`,
+	})
+}
+
 func TestClosures(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -1151,6 +1335,44 @@ func TestClosures(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkClosures(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			func(a) {
+				func(b) {
+					a + b
+				}
+			}
+		`,
+		`
+			func(a) {
+				func(b) {
+					func(c) {
+						a + b + c
+					}
+				}
+			}
+		`,
+		`
+			var global = 55;
+
+			func() {
+				var a = 66;
+
+				func() {
+					var b = 77;
+
+					func() {
+						var c = 88;
+
+						global + a + b + c;
+					}
+				}
+			}
+		`,
+	})
+}
+
 func TestNamedFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -1242,6 +1464,30 @@ func TestNamedFunctions(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkNamedFunctions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			func example() {
+				return 5;
+			}
+		`,
+		`
+			func sum(a, b) {
+				return a + b;
+			}
+		`,
+		`
+			func alpha(a, b) {
+				return func bravo(c, d) {
+					return func charlie(e, f) {
+						return a + b + c + d + e + f;
+					}
+				}
+			}
+		`,
+	})
+}
+
 func TestRecursiveFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -1310,6 +1556,23 @@ func TestRecursiveFunctions(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkRecursiveFunctions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			var countDown = func(x) { countDown(x - 1) }
+			countDown(1)
+		`,
+		`
+			var wrapper = func() {
+				var countDown = func(x) { countDown(x - 1) }
+				countDown(1)
+			}
+
+			wrapper()
+		`,
+	})
 }
 
 func TestFunctionCalls(t *testing.T) {
@@ -1406,6 +1669,26 @@ func TestFunctionCalls(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkFunctionCalls(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			func() { 10 }()
+		`,
+		`
+			var noArgs = func() { 10 };
+			noArgs()
+		`,
+		`
+			var oneArg = func(a) { a };
+			oneArg(55)
+		`,
+		`
+			var manyArgs = func(a, b, c) { a; b; c};
+			manyArgs(11, 22, 33)
+		`,
+	})
+}
+
 func TestBuiltins(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -1447,6 +1730,16 @@ func TestBuiltins(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkBuiltins(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			len([])
+			print("Hello, World!", 42)
+		`,
+		`func() { len([]) }`,
+	})
 }
 
 func TestGlobalBuiltins(t *testing.T) {
@@ -1506,6 +1799,16 @@ func TestGlobalBuiltins(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkGlobalBuiltins(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			strings.contains("hello world", "world")
+			arrays.push([1, 2, 3], 4)
+		`,
+		`func() { strings.join([1, 2, 3], "-") }`,
+	})
 }
 
 func TestWhileLoop(t *testing.T) {
@@ -1593,6 +1896,35 @@ func TestWhileLoop(t *testing.T) {
 	runCompilationTests(t, tests)
 }
 
+func BenchmarkWhileLoop(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			while (true) { 10 }
+		`,
+		`
+			while (true) {
+				while (false) {
+					10
+				}
+			}
+		`,
+		`
+			while (true) {
+				if (true) {
+					continue;
+				}
+			}
+		`,
+		`
+			while (true) {
+				if (true) {
+					break;
+				}
+			}
+		`,
+	})
+}
+
 func TestAssignmentExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -1629,6 +1961,20 @@ func TestAssignmentExpressions(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkAssignmentExpressions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			var mut a = 1;
+			a = 2;
+		`,
+		`
+			var mut a = 1;
+			var b = 10;
+			a = a + b;
+		`,
+	})
 }
 
 func TestIndexAssignmentExpressions(t *testing.T) {
@@ -1714,4 +2060,25 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 	}
 
 	runCompilationTests(t, tests)
+}
+
+func BenchmarkIndexAssignmentExpressions(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			var mut arr = [1, 2, 3];
+			arr[1] = 42;
+		`,
+		`
+			var mut hash = { "key": 1 };
+			hash["key"] = 99;
+		`,
+		`
+			var mut obj = { "nested": { "key": 1 } };
+			obj["nested"]["key"] = 123;
+		`,
+		`
+			var mut obj = { "nested": [1, 2, 3] };
+			obj["nested"][2] = 42;
+		`,
+	})
 }

@@ -38,6 +38,25 @@ func runCompilationTests(t *testing.T, tests []compilerTestCase) {
 	}
 }
 
+func runCompilationBenchmarks(b *testing.B, benchmarks []string) {
+	programs := make([]*ast.Program, len(benchmarks))
+
+	for i, input := range benchmarks {
+		programs[i] = parse(input)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		for _, program := range programs {
+			err := New(nil).Compile(program)
+			if err != nil {
+				b.Fatalf("compiler error: %s", err)
+			}
+		}
+	}
+}
+
 func parse(input string) *ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l, nil)

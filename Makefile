@@ -21,7 +21,7 @@ endif
 # Linker flags for embedding build metadata
 LDFLAGS := -s -w -X github.com/senither/zen-lang/cli.Version=$(VERSION) -X github.com/senither/zen-lang/cli.GitCommit=$(GIT_COMMIT) -X github.com/senither/zen-lang/cli.BuildDate=$(BUILD_DATE)
 
-.PHONY: all install build docker test test-integration test-language clean
+.PHONY: all install build docker test test-integration test-language bench clean
 
 all: clean build
 
@@ -48,6 +48,9 @@ test-integration:
 
 test-language:
 	go run main.go test
+
+bench:
+	go test ./... -bench=. -run=^$ -benchmem -benchtime=5s
 
 ifeq ($(OS),Windows_NT)
     RM_BIN := @if exist $(BIN_NAME) del /q $(BIN_NAME)
