@@ -1,0 +1,8 @@
+--TEST--
+It fails when given invalid hashable key type
+--FILE--
+println(maps.has({}, []))
+--ERROR--
+argument 2 to `has` has invalid type: got ARRAY, want STRING|INTEGER|FLOAT|BOOLEAN
+    at <unknown>:1:17
+    at <unknown>:1:8

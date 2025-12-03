@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non-hash map as first argument
+--FILE--
+println(maps.has(42, 0))
+--ERROR--
+argument 1 to `has` has invalid type: got INTEGER, want HASH
+    at <unknown>:0:0

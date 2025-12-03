@@ -1,0 +1,6 @@
+--TEST--
+Can check if an empty map has a key
+--FILE--
+println(maps.has({}, 0))
+--EXPECT--
+false

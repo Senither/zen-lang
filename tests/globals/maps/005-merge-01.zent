@@ -1,0 +1,28 @@
+--TEST--
+Can merge two unique maps
+--FILE--
+var map = maps.merge(
+  {
+    "x": 3.42,
+    0: 1
+  },
+  {
+    true: {
+      "a": 10,
+      "b": 20
+    },
+    1.5: "hello world"
+  }
+)
+
+var result = []
+maps.each(map, func (key, value) {
+  arrays.push(result, "Key: " + key + ", Value: " + string(value))
+})
+
+println(strings.join(arrays.sort(result), "\n"))
+--EXPECT--
+Key: 0, Value: 1
+Key: 1.5, Value: hello world
+Key: true, Value: {a: 10, b: 20}
+Key: x, Value: 3.420000

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid second argument type
+--FILE--
+maps.each({}, 42)
+--ERROR--
+argument 2 to `each` has invalid type: got INTEGER, want FUNCTION
+    at <unknown>:1:10

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid first argument type
+--FILE--
+maps.each(42, 21)
+--ERROR--
+argument 1 to `each` has invalid type: got INTEGER, want HASH
+    at <unknown>:1:10

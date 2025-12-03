@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid type argument
+--FILE--
+maps.merge(42, { 1: "one" })
+--ERROR--
+argument 1 to `merge` has invalid type: got INTEGER, want HASH
+    at <unknown>:1:11

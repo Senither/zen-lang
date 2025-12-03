@@ -1,0 +1,31 @@
+--TEST--
+Can check if a map has a key
+--FILE--
+var map = {
+  0: 1,
+  1.5: "hello world",
+  "x": 3.42,
+  true: {
+    "a": 10,
+    "b": 20
+  }
+}
+
+println(maps.has(map, 0))
+println(maps.has(map, 1.5))
+println(maps.has(map, "x"))
+println(maps.has(map, true))
+
+println(maps.has(map, 1))
+println(maps.has(map, 1.50001))
+println(maps.has(map, "z"))
+println(maps.has(map, false))
+--EXPECT--
+true
+true
+true
+true
+false
+false
+false
+false

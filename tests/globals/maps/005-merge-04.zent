@@ -1,0 +1,35 @@
+--TEST--
+Can merge deep maps
+--FILE--
+var map = maps.merge(
+  {
+    "a": {
+      "b": {
+        "c": {
+          1: 1,
+          2: null
+        }
+      }
+    }
+  },
+  {
+    "a": {
+      "b": {
+        "c": {
+          1: 99999,
+          2: 2,
+          3: 3
+        }
+      }
+    }
+  }
+)
+
+var result = []
+maps.each(map, func (key, value) {
+  arrays.push(result, "Key: " + key + ", Value: " + string(value))
+})
+
+println(strings.join(arrays.sort(result), "\n"))
+--EXPECT--
+Key: a, Value: {b: {c: {1: 1, 2: 2, 3: 3}}}

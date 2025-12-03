@@ -1,0 +1,8 @@
+--TEST--
+Returns empty array for empty hash
+--FILE--
+var map = {}
+
+print(maps.keys(map))
+--EXPECT--
+[]

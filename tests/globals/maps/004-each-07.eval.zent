@@ -1,0 +1,7 @@
+--TEST--
+It fails when given callback function with no parameters
+--FILE--
+maps.each({}, func() {})
+--ERROR--
+error in `each`: function must take exactly 2 parameters
+    at <unknown>:1:10

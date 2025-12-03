@@ -1,0 +1,7 @@
+--TEST--
+It fails when given no arguments
+--FILE--
+maps.merge()
+--ERROR--
+wrong number of arguments to `merge`: got 0, want at least 2
+    at <unknown>:0:0

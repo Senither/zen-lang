@@ -1758,12 +1758,12 @@ func TestGlobalBuiltins(t *testing.T) {
 				4,
 			},
 			expectedInstructions: []code.Instructions{
-				code.Make(code.OpGetGlobalBuiltin, 256),
+				code.Make(code.OpGetGlobalBuiltin, 0),
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpCall, 2),
 				code.Make(code.OpPop),
-				code.Make(code.OpGetGlobalBuiltin, 0),
+				code.Make(code.OpGetGlobalBuiltin, 256),
 				code.Make(code.OpConstant, 2),
 				code.Make(code.OpConstant, 3),
 				code.Make(code.OpConstant, 4),
@@ -1781,7 +1781,7 @@ func TestGlobalBuiltins(t *testing.T) {
 				3,
 				"-",
 				[]code.Instructions{
-					code.Make(code.OpGetGlobalBuiltin, 258),
+					code.Make(code.OpGetGlobalBuiltin, 2),
 					code.Make(code.OpConstant, 0),
 					code.Make(code.OpConstant, 1),
 					code.Make(code.OpConstant, 2),

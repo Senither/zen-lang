@@ -5,6 +5,20 @@ var Globals = []struct {
 	Builtins []*BuiltinDefinition
 }{
 	{
+		Name: "strings",
+		Builtins: []*BuiltinDefinition{
+			{Name: "contains", Builtin: &Builtin{Fn: globalStringsContains}},
+			{Name: "split", Builtin: &Builtin{Fn: globalStringsSplit}},
+			{Name: "join", Builtin: &Builtin{Fn: globalStringsJoin}},
+			{Name: "format", Builtin: &Builtin{Fn: globalStringsFormat}},
+			{Name: "startsWith", Builtin: &Builtin{Fn: globalStringsStartsWith}},
+			{Name: "endsWith", Builtin: &Builtin{Fn: globalStringsEndsWith}},
+			{Name: "toUpper", Builtin: &Builtin{Fn: globalStringsToUpper}},
+			{Name: "toLower", Builtin: &Builtin{Fn: globalStringsToLower}},
+			{Name: "trim", Builtin: &Builtin{Fn: globalStringsTrim}},
+		},
+	},
+	{
 		Name: "arrays",
 		Builtins: []*BuiltinDefinition{
 			{Name: "push", Builtin: &Builtin{Fn: globalArraysPush}},
@@ -17,17 +31,13 @@ var Globals = []struct {
 		},
 	},
 	{
-		Name: "strings",
+		Name: "maps",
 		Builtins: []*BuiltinDefinition{
-			{Name: "contains", Builtin: &Builtin{Fn: globalStringsContains}},
-			{Name: "split", Builtin: &Builtin{Fn: globalStringsSplit}},
-			{Name: "join", Builtin: &Builtin{Fn: globalStringsJoin}},
-			{Name: "format", Builtin: &Builtin{Fn: globalStringsFormat}},
-			{Name: "startsWith", Builtin: &Builtin{Fn: globalStringsStartsWith}},
-			{Name: "endsWith", Builtin: &Builtin{Fn: globalStringsEndsWith}},
-			{Name: "toUpper", Builtin: &Builtin{Fn: globalStringsToUpper}},
-			{Name: "toLower", Builtin: &Builtin{Fn: globalStringsToLower}},
-			{Name: "trim", Builtin: &Builtin{Fn: globalStringsTrim}},
+			{Name: "keys", Builtin: &Builtin{Fn: globalMapsKeys}},
+			{Name: "values", Builtin: &Builtin{Fn: globalMapsValues}},
+			{Name: "has", Builtin: &Builtin{Fn: globalMapsHas}},
+			{Name: "each", Builtin: &Builtin{Fn: globalMapsEach}},
+			{Name: "merge", Builtin: &Builtin{Fn: globalMapsMerge}},
 		},
 	},
 	{

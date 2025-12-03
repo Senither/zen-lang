@@ -1,0 +1,14 @@
+--TEST--
+Can handle empty maps in each loop
+--FILE--
+var result = []
+maps.each({}, func (key, value) {
+  println("THIS SHOULD NOT BE PRINTED")
+
+  arrays.push(result, "Key: " + key + ", Value: " + string(value))
+})
+
+println(strings.join(arrays.sort(result), "\n"))
+println(result == [])
+--EXPECT--
+true

@@ -1,0 +1,24 @@
+--TEST--
+Can merge maps with overlapping keys
+--FILE--
+var map = maps.merge(
+  {
+    "x": 123,
+    "y": 456,
+  },
+  {
+    "y": 999999999,
+    "z": 789
+  }
+)
+
+var result = []
+maps.each(map, func (key, value) {
+  arrays.push(result, "Key: " + key + ", Value: " + string(value))
+})
+
+println(strings.join(arrays.sort(result), "\n"))
+--EXPECT--
+Key: x, Value: 123
+Key: y, Value: 456
+Key: z, Value: 789

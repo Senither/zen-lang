@@ -1,0 +1,8 @@
+--TEST--
+It fails when invalid argument type
+--FILE--
+print(maps.keys([1, 2, 3]))
+--ERROR--
+argument 1 to `keys` has invalid type: got ARRAY, want HASH
+    at <unknown>:1:16
+    at <unknown>:1:6

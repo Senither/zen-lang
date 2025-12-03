@@ -1,0 +1,16 @@
+--TEST--
+Can get keys of a map with various key types
+--FILE--
+var map = {
+  0: 1,
+  1.5: "hello world",
+  "x": 3.42,
+  "nested": {
+    "a": 10,
+    "b": 20
+  }
+}
+
+print(arrays.sort(maps.keys(map)))
+--EXPECT--
+[0, 1.500000, nested, x]

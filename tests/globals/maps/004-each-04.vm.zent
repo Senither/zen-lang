@@ -1,0 +1,7 @@
+--TEST--
+It fails when given one argument
+--FILE--
+maps.each(42)
+--ERROR--
+wrong number of arguments to `each`: got 1, want 2
+    at <unknown>:0:0
