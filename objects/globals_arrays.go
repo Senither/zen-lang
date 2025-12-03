@@ -98,11 +98,11 @@ func globalArraysFilter(args ...Object) (Object, error) {
 
 func globalArraysConcat(args ...Object) (Object, error) {
 	if len(args) < 2 {
-		return nil, NewWrongNumberOfArgumentsError("concat", 2, len(args))
+		return nil, NewWrongNumberOfArgumentsWantAtLeastError("concat", 2, len(args))
 	}
 
 	var elements []Object
-	for i := 0; i < len(args); i++ {
+	for i := range args {
 		array, ok := args[i].(*Array)
 		if !ok {
 			return nil, NewInvalidArgumentTypeError("concat", ARRAY_OBJ, i, args)

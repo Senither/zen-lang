@@ -13,6 +13,10 @@ func NewWrongNumberOfArgumentsError(name string, expected int, got int) error {
 	return fmt.Errorf("wrong number of arguments to `%s`: got %d, want %d", name, got, expected)
 }
 
+func NewWrongNumberOfArgumentsWantAtLeastError(name string, expected int, got int) error {
+	return fmt.Errorf("wrong number of arguments to `%s`: got %d, want at least %d", name, got, expected)
+}
+
 func NewInvalidArgumentTypeError(name string, expected ObjectType, index int, args []Object) error {
 	return fmt.Errorf(
 		"argument %d to `%s` has invalid type: got %s, want %s",
