@@ -1,0 +1,13 @@
+--TEST--
+Can flatten nested arrays with mixed elements into a single array
+--FILE--
+println(arrays.flatten([
+    [1, {"key": "value"}, true],
+    3.14,
+    [false, "Hello, Zen!"],
+    type(func () { return 42; }),
+    [{"anotherKey": "anotherValue"}, [[[false]]]],
+    9.876
+]));
+--EXPECT--
+[1, {key: value}, true, 3.140000, false, Hello, Zen!, FUNCTION, {anotherKey: anotherValue}, false, 9.876000]

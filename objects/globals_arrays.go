@@ -114,6 +114,33 @@ func globalArraysConcat(args ...Object) (Object, error) {
 	return &Array{Elements: elements}, nil
 }
 
+func globalArraysFlatten(args ...Object) (Object, error) {
+	if len(args) != 1 {
+		return nil, NewWrongNumberOfArgumentsError("flatten", 1, len(args))
+	}
+
+	array, ok := args[0].(*Array)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("flatten", ARRAY_OBJ, 0, args)
+	}
+
+	return &Array{Elements: flattenArray(array)}, nil
+}
+
+func flattenArray(arr *Array) []Object {
+	var result []Object
+
+	for _, elem := range arr.Elements {
+		if nestedArr, ok := elem.(*Array); ok {
+			result = append(result, flattenArray(nestedArr)...)
+		} else {
+			result = append(result, elem)
+		}
+	}
+
+	return result
+}
+
 func globalArraysFirst(args ...Object) (Object, error) {
 	if len(args) != 2 {
 		return nil, NewWrongNumberOfArgumentsError("first", 2, len(args))

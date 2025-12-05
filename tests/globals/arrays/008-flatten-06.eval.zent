@@ -1,0 +1,8 @@
+--TEST--
+It fails when given invalid argument type
+--FILE--
+println(arrays.flatten({"key": "value"}));
+--ERROR--
+argument 1 to `flatten` has invalid type: got HASH, want ARRAY
+    at <unknown>:1:23
+    at <unknown>:1:8
