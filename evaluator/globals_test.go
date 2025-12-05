@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/senither/zen-lang/objects"
 	"github.com/senither/zen-lang/objects/timer"
 )
 
@@ -25,8 +26,7 @@ func TestArraysPushGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testArrayObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -42,27 +42,14 @@ func TestArraysShiftGlobalFunction(t *testing.T) {
 		{"var x = []; arrays.shift(x);", nil},
 		{"var x = [1]; arrays.shift(x);", 1},
 		{"var x = [1, 2]; arrays.shift(x);", 1},
-		{"var x = []; arrays.shift(x); x;", []int64{}},
-		{"var x = [1]; arrays.shift(x); x;", []int64{}},
-		{"var x = [1, 2]; arrays.shift(x); x;", []int64{2}},
-		{"var x = [1, 2, 3]; arrays.shift(x); x;", []int64{2, 3}},
+		{"var x = []; arrays.shift(x); x;", []int{}},
+		{"var x = [1]; arrays.shift(x); x;", []int{}},
+		{"var x = [1, 2]; arrays.shift(x); x;", []int{2}},
+		{"var x = [1, 2, 3]; arrays.shift(x); x;", []int{2, 3}},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case nil:
-			testNullObject(t, evaluated)
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case []int64:
-			converted := make([]any, len(expected))
-			for i, v := range expected {
-				converted[i] = v
-			}
-			testArrayObject(t, evaluated, converted, tt.input)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -79,27 +66,14 @@ func TestArraysPopGlobalFunction(t *testing.T) {
 		{"var x = []; arrays.pop(x);", nil},
 		{"var x = [1]; arrays.pop(x);", 1},
 		{"var x = [1, 2]; arrays.pop(x);", 2},
-		{"var x = []; arrays.pop(x); x;", []int64{}},
-		{"var x = [1]; arrays.pop(x); x;", []int64{}},
-		{"var x = [1, 2]; arrays.pop(x); x;", []int64{1}},
-		{"var x = [1, 2, 3]; arrays.pop(x); x;", []int64{1, 2}},
+		{"var x = []; arrays.pop(x); x;", []int{}},
+		{"var x = [1]; arrays.pop(x); x;", []int{}},
+		{"var x = [1, 2]; arrays.pop(x); x;", []int{1}},
+		{"var x = [1, 2, 3]; arrays.pop(x); x;", []int{1, 2}},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case nil:
-			testNullObject(t, evaluated)
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case []int64:
-			converted := make([]any, len(expected))
-			for i, v := range expected {
-				converted[i] = v
-			}
-			testArrayObject(t, evaluated, converted, tt.input)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -117,8 +91,7 @@ func TestArraysFilterGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testArrayObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -127,23 +100,14 @@ func TestArraysConcatGlobalFunction(t *testing.T) {
 		input    string
 		expected any
 	}{
-		{"arrays.concat([], [])", []int64{}},
-		{"arrays.concat([1], [2])", []int64{1, 2}},
-		{"arrays.concat([1, 2], [3, 4])", []int64{1, 2, 3, 4}},
-		{"arrays.concat([1, 2], [3, 4], [5, 6])", []int64{1, 2, 3, 4, 5, 6}},
+		{"arrays.concat([], [])", []int{}},
+		{"arrays.concat([1], [2])", []int{1, 2}},
+		{"arrays.concat([1, 2], [3, 4])", []int{1, 2, 3, 4}},
+		{"arrays.concat([1, 2], [3, 4], [5, 6])", []int{1, 2, 3, 4, 5, 6}},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case []int64:
-			converted := make([]any, len(expected))
-			for i, v := range expected {
-				converted[i] = v
-			}
-			testArrayObject(t, evaluated, converted, tt.input)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -156,21 +120,22 @@ func TestArraysFirstGlobalFunction(t *testing.T) {
 		{"arrays.first([100, 200, 300], func (x) { x > 100 })", 200},
 		{"arrays.first([100, 200, 300], func (x, i) { i == 2 })", 300},
 		{"arrays.first([100, 200, 300], func (x) { x > 500 })", nil},
-		{"arrays.first(5, func (a) { })", "argument 1 to `first` has invalid type: got INTEGER, want ARRAY\n    at <unknown>:1:13"},
-		{"arrays.first([100, 200, 300], func () { })", "error in `first`: function passed to `first` must take at least one argument\n    at <unknown>:1:13"},
-		{"arrays.first([100, 200, 300], func (a, b, c) { })", "error in `first`: function passed to `first` must take at most two arguments\n    at <unknown>:1:13"},
+		{
+			"arrays.first(5, func (a) { })",
+			&objects.Error{Message: "argument 1 to `first` has invalid type: got INTEGER, want ARRAY"},
+		},
+		{
+			"arrays.first([100, 200, 300], func () { })",
+			&objects.Error{Message: "error in `first`: function passed to `first` must take at least one argument"},
+		},
+		{
+			"arrays.first([100, 200, 300], func (a, b, c) { })",
+			&objects.Error{Message: "error in `first`: function passed to `first` must take at most two arguments"},
+		},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		switch expected := tt.expected.(type) {
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case string:
-			testErrorObject(t, evaluated, expected)
-		case nil:
-			testNullObject(t, evaluated)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -195,8 +160,7 @@ func TestArraysSortGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testArrayObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -214,12 +178,7 @@ func TestStringsContainsGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case bool:
-			testBooleanObject(t, evaluated, expected, tt.input)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -237,8 +196,7 @@ func TestStringsSplitGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testArrayObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -254,8 +212,7 @@ func TestStringsJoinGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -280,8 +237,7 @@ func TestStringsFormatGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -301,11 +257,7 @@ func TestStringsStartsWithGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		switch expected := tt.expected.(type) {
-		case bool:
-			testBooleanObject(t, evaluated, expected, tt.input)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -325,11 +277,7 @@ func TestStringsEndsWithGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		switch expected := tt.expected.(type) {
-		case bool:
-			testBooleanObject(t, evaluated, expected, tt.input)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -345,8 +293,7 @@ func TestStringsToUpperGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -362,8 +309,7 @@ func TestStringsToLowerGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -384,8 +330,7 @@ func TestStringsTrimGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -401,8 +346,7 @@ func TestMathMinGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -418,8 +362,7 @@ func TestMathMaxGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -435,8 +378,7 @@ func TestMathCeilGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testFloatObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -452,8 +394,7 @@ func TestMathFloorGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testFloatObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -471,8 +412,7 @@ func TestMathRoundGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testFloatObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -487,8 +427,7 @@ func TestMathLogGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testFloatObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -505,22 +444,17 @@ func TestMathSqrtGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testFloatObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
 func TestTimeNowUnfrozenGlobalFunction(t *testing.T) {
-	evaluated := testEval("time.now()")
-	testIntegerObject(t, evaluated, time.Now().UnixMilli())
+	objects.AssertExpectedObject(t, time.Now().UnixMilli(), testEval("time.now()"))
 }
 
 func TestTimeNowFrozenGlobalFunction(t *testing.T) {
 	timer.Freeze(1767606155000)
-
-	evaluated := testEval("time.now()")
-	testIntegerObject(t, evaluated, 1767606155000)
-
+	objects.AssertExpectedObject(t, 1767606155000, testEval("time.now()"))
 	timer.Unfreeze()
 }
 
@@ -537,14 +471,9 @@ func TestTimeSleepUnfrozenGlobalFunction(t *testing.T) {
 func TestTimeSleepFrozenGlobalFunction(t *testing.T) {
 	timer.Freeze(1767606155000)
 
-	testEval("time.sleep(10_000)")
+	objects.AssertExpectedObject(t, 1767606165000, testEval("time.sleep(10_000); time.now()"))
 
-	now := timer.Now()
 	timer.Unfreeze()
-
-	if now != 1767606165000 {
-		t.Fatalf("time.sleep did not advance frozen time: expected 1767606165000, got %d", now)
-	}
 }
 
 func TestTimeParseGlobalFunction(t *testing.T) {
@@ -561,8 +490,7 @@ func TestTimeParseGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -585,8 +513,7 @@ func TestTimeFormatGlobalFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 
 	timer.ResetTimezone()
@@ -595,8 +522,11 @@ func TestTimeFormatGlobalFunction(t *testing.T) {
 func TestTimeSetTimezoneGlobalFunction(t *testing.T) {
 	timer.SetTimezone("America/New_York")
 
-	evaluated := testEval(`time.format(1767606155000, "%Y-%m-%d %H:%i:%s")`)
-	testStringObject(t, evaluated, "2026-01-05 04:42:35")
+	objects.AssertExpectedObject(
+		t,
+		"2026-01-05 04:42:35",
+		testEval(`time.format(1767606155000, "%Y-%m-%d %H:%i:%s")`),
+	)
 
 	timer.ResetTimezone()
 }

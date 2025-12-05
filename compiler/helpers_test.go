@@ -107,68 +107,29 @@ func testConstants(t *testing.T, expected []interface{}, actual []objects.Object
 	for i, constant := range expected {
 		switch constant := constant.(type) {
 		case int:
-			err := testIntegerObject(int64(constant), actual[i])
+			err := objects.AssertInteger(int64(constant), actual[i])
 			if err != nil {
-				return fmt.Errorf("constant %d - testIntegerObject failed: %s", i, err)
+				return fmt.Errorf("constant %d - integer assertion failed: %s", i, err)
 			}
 		case float64:
-			err := testFloatObject(constant, actual[i])
+			err := objects.AssertFloat(constant, actual[i])
 			if err != nil {
-				return fmt.Errorf("constant %d - testFloatObject failed: %s", i, err)
+				return fmt.Errorf("constant %d - float assertion failed: %s", i, err)
 			}
 		case string:
-			err := testStringObject(constant, actual[i])
+			err := objects.AssertString(constant, actual[i])
 			if err != nil {
-				return fmt.Errorf("constant %d - testStringObject failed: %s", i, err)
+				return fmt.Errorf("constant %d - string assertion failed: %s", i, err)
 			}
 		case []code.Instructions:
 			err := testCodeInstructions(constant, actual[i])
 			if err != nil {
-				return fmt.Errorf("constant %d - testCodeInstructions failed: %s", i, err)
+				return fmt.Errorf("constant %d - code instructions assertion failed: %s", i, err)
 			}
 
 		default:
 			return fmt.Errorf("unknown constant type %T", constant)
 		}
-	}
-
-	return nil
-}
-
-func testIntegerObject(expected int64, actual objects.Object) error {
-	result, ok := actual.(*objects.Integer)
-	if !ok {
-		return fmt.Errorf("object is not Integer. got %T (%+v)", actual, actual)
-	}
-
-	if result.Value != expected {
-		return fmt.Errorf("object has wrong value. got %d, want %d", result.Value, expected)
-	}
-
-	return nil
-}
-
-func testFloatObject(expected float64, actual objects.Object) error {
-	result, ok := actual.(*objects.Float)
-	if !ok {
-		return fmt.Errorf("object is not Float. got %T (%+v)", actual, actual)
-	}
-
-	if result.Inspect() != fmt.Sprintf("%f", expected) {
-		return fmt.Errorf("object has wrong value. got %f, expected %f", result.Value, expected)
-	}
-
-	return nil
-}
-
-func testStringObject(expected string, actual objects.Object) error {
-	result, ok := actual.(*objects.String)
-	if !ok {
-		return fmt.Errorf("object is not String. got %T (%+v)", actual, actual)
-	}
-
-	if result.Value != expected {
-		return fmt.Errorf("object has wrong value. got %q, expected %q", result.Value, expected)
 	}
 
 	return nil

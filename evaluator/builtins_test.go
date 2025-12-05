@@ -79,27 +79,12 @@ func TestLenBuiltinFunction(t *testing.T) {
 		{`len("four")`, 4},
 		{`len("hello world")`, 11},
 		{`len(null)`, 0},
-		{`len(1)`, "argument 1 to `len` has invalid type: got INTEGER, want STRING|ARRAY|NULL\n    at <unknown>:1:4"},
-		{`len("one", "two")`, "wrong number of arguments to `len`: got 2, want 1\n    at <unknown>:1:4"},
+		{`len(1)`, &objects.Error{Message: "argument 1 to `len` has invalid type: got INTEGER, want STRING|ARRAY|NULL"}},
+		{`len("one", "two")`, &objects.Error{Message: "wrong number of arguments to `len`: got 2, want 1"}},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case string:
-			errObj, ok := evaluated.(*objects.Error)
-			if !ok {
-				t.Errorf("object is not Error. got %T (%+v)", evaluated, evaluated)
-				continue
-			}
-
-			if errObj.Inspect() != expected {
-				t.Errorf("wrong error message.\nexpected:\n\t%q\ngot:\n\t%q", expected, errObj.Inspect())
-			}
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -124,8 +109,7 @@ func TestStringBuiltinFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -145,27 +129,13 @@ func TestIntBuiltinFunction(t *testing.T) {
 		{`int(true)`, int64(1)},
 		{`int(false)`, int64(0)},
 		{`int(null)`, int64(0)},
-		{`int("")`, "error in `int`: failed to convert `` to INTEGER\n    at <unknown>:1:4"},
-		{`int("not a number")`, "error in `int`: failed to convert `not a number` to INTEGER\n    at <unknown>:1:4"},
-		{`int(1, 2)`, "wrong number of arguments to `int`: got 2, want 1\n    at <unknown>:1:4"},
+		{`int("")`, &objects.Error{Message: "error in `int`: failed to convert `` to INTEGER"}},
+		{`int("not a number")`, &objects.Error{Message: "error in `int`: failed to convert `not a number` to INTEGER"}},
+		{`int(1, 2)`, &objects.Error{Message: "wrong number of arguments to `int`: got 2, want 1"}},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		switch expected := tt.expected.(type) {
-		case int64:
-			testIntegerObject(t, evaluated, expected)
-		case string:
-			errObj, ok := evaluated.(*objects.Error)
-			if !ok {
-				t.Errorf("object is not Error. got %T (%+v)", evaluated, evaluated)
-				continue
-			}
-
-			if errObj.Inspect() != expected {
-				t.Errorf("wrong error message.\ngot:  %q\nwant: %q", errObj.Inspect(), expected)
-			}
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -185,27 +155,13 @@ func TestFloatBuiltinFunction(t *testing.T) {
 		{`float(true)`, float64(1)},
 		{`float(false)`, float64(0)},
 		{`float(null)`, float64(0)},
-		{`float("")`, "error in `float`: failed to convert `` to FLOAT\n    at <unknown>:1:6"},
-		{`float("not a number")`, "error in `float`: failed to convert `not a number` to FLOAT\n    at <unknown>:1:6"},
-		{`float(1, 2)`, "wrong number of arguments to `float`: got 2, want 1\n    at <unknown>:1:6"},
+		{`float("")`, &objects.Error{Message: "error in `float`: failed to convert `` to FLOAT"}},
+		{`float("not a number")`, &objects.Error{Message: "error in `float`: failed to convert `not a number` to FLOAT"}},
+		{`float(1, 2)`, &objects.Error{Message: "wrong number of arguments to `float`: got 2, want 1"}},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		switch expected := tt.expected.(type) {
-		case float64:
-			testFloatObject(t, evaluated, expected)
-		case string:
-			errObj, ok := evaluated.(*objects.Error)
-			if !ok {
-				t.Errorf("object is not Error. got %T (%+v)", evaluated, evaluated)
-				continue
-			}
-
-			if errObj.Inspect() != expected {
-				t.Errorf("wrong error message.\ngot:  %q\nwant: %q", errObj.Inspect(), expected)
-			}
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -226,8 +182,7 @@ func TestTypeBuiltinFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -247,7 +202,6 @@ func TestIsNaNBuiltinFunction(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testBooleanObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }

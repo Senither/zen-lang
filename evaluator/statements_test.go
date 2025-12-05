@@ -21,8 +21,7 @@ func TestReturnStatements(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -35,8 +34,7 @@ func TestNestedReturnStatements(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -51,8 +49,7 @@ func TestVarStatements(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -70,8 +67,7 @@ func TestCompoundAssignments(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -86,8 +82,7 @@ func TestWhileBreakStatements(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 

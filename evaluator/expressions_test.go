@@ -17,23 +17,12 @@ func TestEvalStringExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
 func TestEvalStringConcatenation(t *testing.T) {
-	input := `"Hello" + " " + "World!"`
-
-	evaluated := testEval(input)
-	str, ok := evaluated.(*objects.String)
-	if !ok {
-		t.Fatalf("object is not String. got %T (%+v)", evaluated, evaluated)
-	}
-
-	if str.Value != "Hello World!" {
-		t.Errorf("String has wrong value. got %q", str.Value)
-	}
+	objects.AssertExpectedObject(t, "Hello World!", testEval(`"Hello" + " " + "World!"`))
 }
 
 func TestEvalStringCastConcatenation(t *testing.T) {
@@ -49,8 +38,7 @@ func TestEvalStringCastConcatenation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testStringObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -90,8 +78,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -128,8 +115,7 @@ func TestEvalFloatExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testFloatObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -178,27 +164,15 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testBooleanObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
 func TestArrayLiterals(t *testing.T) {
-	input := "[1, 2 * 3, 4 + 5]"
-
-	evaluated := testEval(input)
-	result, ok := evaluated.(*objects.Array)
-	if !ok {
-		t.Fatalf("object is not Array. got %T (%+v)", evaluated, evaluated)
-	}
-
-	if len(result.Elements) != 3 {
-		t.Errorf("array has wrong number of elements. got %d", len(result.Elements))
-	}
-
-	testIntegerObject(t, result.Elements[0], 1)
-	testIntegerObject(t, result.Elements[1], 6)
-	testIntegerObject(t, result.Elements[2], 9)
+	objects.AssertExpectedObject(t,
+		[]int{1, 6, 9},
+		testEval("[1, 2 * 3, 4 + 5]"),
+	)
 }
 
 func TestArrayIndexExpressions(t *testing.T) {
@@ -256,23 +230,16 @@ func TestArrayIndexExpressions(t *testing.T) {
 		},
 		{
 			"[1, 2, 3][3]",
-			"array index out of bounds: 3\n    at <unknown>:1:10",
+			&objects.Error{Message: "array index out of bounds: 3"},
 		},
 		{
 			"[1, 2, 3][-4]",
-			"array index out of bounds: -4\n    at <unknown>:1:10",
+			&objects.Error{Message: "array index out of bounds: -4"},
 		},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case string:
-			testErrorObject(t, evaluated, expected)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -315,7 +282,7 @@ func TestHashLiterals(t *testing.T) {
 			continue
 		}
 
-		testIntegerObject(t, pair.Value, expectedValue)
+		objects.AssertInteger(expectedValue, pair.Value)
 	}
 }
 
@@ -355,14 +322,7 @@ func TestHashIndexExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		integer, ok := tt.expected.(int)
-		if ok {
-			testIntegerObject(t, evaluated, int64(integer))
-		} else {
-			testNullObject(t, evaluated)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -401,25 +361,12 @@ func TestChainedHashIndexExpressions(t *testing.T) {
 		},
 		{
 			`var x = {"foo": 5}; x.bar`,
-			"invalid chain expression for HASH, key not found: bar\n    at <unknown>:1:22",
+			&objects.Error{Message: "invalid chain expression for HASH, key not found: bar"},
 		},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case float64:
-			testFloatObject(t, evaluated, expected)
-		case bool:
-			testBooleanObject(t, evaluated, expected, tt.input)
-		case string:
-			testErrorObject(t, evaluated, expected)
-		default:
-			t.Errorf("Unexpected type of object. got %T (%+v)", evaluated, evaluated)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -455,9 +402,7 @@ func TestChainedHashAssignmentExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		testIntegerObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -481,9 +426,7 @@ func TestChainedArrayIndexAssignmentExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		testArrayObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -519,46 +462,27 @@ func TestReassigningArrayIndexExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		arr, ok := evaluated.(*objects.Array)
-		if !ok {
-			t.Fatalf("object is not Array. got %T (%+v)", evaluated, evaluated)
-		}
-
-		for i, expected := range tt.expected {
-			switch expected := expected.(type) {
-			case int:
-				testIntegerObject(t, arr.Elements[i], int64(expected))
-			case float64:
-				testFloatObject(t, arr.Elements[i], expected)
-			case bool:
-				testBooleanObject(t, arr.Elements[i], expected, tt.input)
-			case string:
-				testStringObject(t, arr.Elements[i], expected)
-			}
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
 func TestReassigningArrayIndexExpressionsErrors(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected string
+		expected *objects.Error
 	}{
 		{
 			"var x = [1, 2, 3]; x[3] = 99;",
-			"array index out of bounds: 3\n    at <unknown>:1:25",
+			&objects.Error{Message: "array index out of bounds: 3"},
 		},
 		{
 			"var x = [1, 2, 3]; x[-4] = 99;",
-			"array index out of bounds: -4\n    at <unknown>:1:26",
+			&objects.Error{Message: "array index out of bounds: -4"},
 		},
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testErrorObject(t, evaluated, tt.expected)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -577,14 +501,7 @@ func TestIfElseExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		integer, ok := tt.expected.(int)
-		if ok {
-			testIntegerObject(t, evaluated, int64(integer))
-		} else {
-			testNullObject(t, evaluated)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -602,14 +519,7 @@ func TestIfElseIfElseExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		integer, ok := tt.expected.(int)
-		if ok {
-			testIntegerObject(t, evaluated, int64(integer))
-		} else {
-			testNullObject(t, evaluated)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 func TestWhileExpressions(t *testing.T) {
@@ -624,13 +534,6 @@ func TestWhileExpressions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-
-		integer, ok := tt.expected.(int)
-		if ok {
-			testIntegerObject(t, evaluated, int64(integer))
-		} else {
-			testNullObject(t, evaluated)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }

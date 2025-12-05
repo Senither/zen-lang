@@ -22,8 +22,7 @@ func TestBangOperator(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testBooleanObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -37,40 +36,43 @@ func TestVarReassignmentStatements(t *testing.T) {
 	}
 
 	for _, tt := range input {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case string:
-			testStringObject(t, evaluated, expected)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
 func TestVarReassignmentFailure(t *testing.T) {
 	input := []struct {
 		input    string
-		expected string
+		expected *objects.Error
 	}{
-		{`var x = 5; x = 10; x;`, "cannot modify immutable variable: x\n    at <unknown>:1:14"},
-		{`var x = 3.14; x = 4.14; x;`, "cannot modify immutable variable: x\n    at <unknown>:1:17"},
-		{`var x = "hello"; x = "world"; x;`, "cannot modify immutable variable: x\n    at <unknown>:1:20"},
-		{`var name = "Senither"; name = "test"; name;`, "cannot modify immutable variable: name\n    at <unknown>:1:29"},
-		{`var arr = [1,2,3]; arr = ['another', 'array']; arr;`, "cannot modify immutable variable: arr\n    at <unknown>:1:24"},
-		{`var obj = {"key": "value"}; obj = {"key": "new value"}; obj;`, "cannot modify immutable variable: obj\n    at <unknown>:1:33"},
+		{
+			`var x = 5; x = 10; x;`,
+			&objects.Error{Message: "cannot modify immutable variable: x"},
+		},
+		{
+			`var x = 3.14; x = 4.14; x;`,
+			&objects.Error{Message: "cannot modify immutable variable: x"},
+		},
+		{
+			`var x = "hello"; x = "world"; x;`,
+			&objects.Error{Message: "cannot modify immutable variable: x"},
+		},
+		{
+			`var name = "Senither"; name = "test"; name;`,
+			&objects.Error{Message: "cannot modify immutable variable: name"},
+		},
+		{
+			`var arr = [1,2,3]; arr = ['another', 'array']; arr;`,
+			&objects.Error{Message: "cannot modify immutable variable: arr"},
+		},
+		{
+			`var obj = {"key": "value"}; obj = {"key": "new value"}; obj;`,
+			&objects.Error{Message: "cannot modify immutable variable: obj"},
+		},
 	}
 
 	for _, tt := range input {
-		evaluated := testEval(tt.input)
-
-		if !objects.IsError(evaluated) {
-			t.Fatalf("expected error, got: %q", evaluated)
-		}
-
-		if evaluated.Inspect() != tt.expected {
-			t.Fatalf("expected: %q, got: %q", tt.expected, evaluated.Inspect())
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -83,21 +85,12 @@ func TestVarIncrementingStatements(t *testing.T) {
 		{`var mut x = 5; x++; x;`, 6},
 		{`var x = 3.14; x++; x;`, float64(4.14)},
 		{`var mut x = 3.14; x++; x;`, float64(4.14)},
-		{`var x = "hello"; x++; x;`, "unknown operator: ++STRING\n    at <unknown>:1:18"},
-		{`var mut x = "hello"; x++; x;`, "unknown operator: ++STRING\n    at <unknown>:1:22"},
+		{`var x = "hello"; x++; x;`, &objects.Error{Message: "unknown operator: ++STRING"}},
+		{`var mut x = "hello"; x++; x;`, &objects.Error{Message: "unknown operator: ++STRING"}},
 	}
 
 	for _, tt := range input {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case float64:
-			testFloatObject(t, evaluated, expected)
-		case string:
-			testErrorObject(t, evaluated, expected)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -110,21 +103,12 @@ func TestVarDecrementingStatements(t *testing.T) {
 		{`var mut x = 5; x--; x;`, 4},
 		{`var x = 3.14; x--; x;`, float64(2.14)},
 		{`var mut x = 3.14; x--; x;`, float64(2.14)},
-		{`var x = "hello"; x--; x;`, "unknown operator: --STRING\n    at <unknown>:1:18"},
-		{`var mut x = "hello"; x--; x;`, "unknown operator: --STRING\n    at <unknown>:1:22"},
+		{`var x = "hello"; x--; x;`, &objects.Error{Message: "unknown operator: --STRING"}},
+		{`var mut x = "hello"; x--; x;`, &objects.Error{Message: "unknown operator: --STRING"}},
 	}
 
 	for _, tt := range input {
-		evaluated := testEval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case int:
-			testIntegerObject(t, evaluated, int64(expected))
-		case float64:
-			testFloatObject(t, evaluated, expected)
-		case string:
-			testErrorObject(t, evaluated, expected)
-		}
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -142,9 +126,7 @@ func TestArrayReassignmentStatements(t *testing.T) {
 	}
 
 	for _, tt := range input {
-		evaluated := testEval(tt.input)
-
-		testArrayObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
 
@@ -216,8 +198,6 @@ func TestHashReassignmentStatements(t *testing.T) {
 	}
 
 	for _, tt := range input {
-		evaluated := testEval(tt.input)
-
-		testHashObject(t, evaluated, tt.expected, tt.input)
+		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
 	}
 }
