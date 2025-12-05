@@ -449,7 +449,17 @@ func TestMathSqrtGlobalFunction(t *testing.T) {
 }
 
 func TestTimeNowUnfrozenGlobalFunction(t *testing.T) {
-	objects.AssertExpectedObject(t, time.Now().UnixMilli(), testEval("time.now()"))
+	evalNow := testEval("time.now()")
+	nativeNow := time.Now().UnixMilli()
+
+	value, ok := evalNow.(*objects.Integer)
+	if !ok {
+		t.Fatalf("time.now() did not return an Integer. got %T", evalNow)
+	}
+
+	if diff := nativeNow - value.Value; diff < 0 || diff > 2 {
+		t.Fatalf("time.now() returned incorrect value. got %d, want approx %d", value.Value, nativeNow)
+	}
 }
 
 func TestTimeNowFrozenGlobalFunction(t *testing.T) {
