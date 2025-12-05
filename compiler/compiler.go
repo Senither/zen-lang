@@ -29,7 +29,8 @@ type CompilationLoop struct {
 type Compiler struct {
 	constants []objects.Object
 
-	symbolTable *SymbolTable
+	symbolTable      *SymbolTable
+	lastLoadedSymbol *Symbol
 
 	scopes     []CompilationScope
 	scopeIndex int
@@ -949,6 +950,11 @@ func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) *
 }
 
 func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) *objects.Error {
+	err := c.validateCallSchemaFromLastLoadedSymbol(node)
+	if err != nil {
+		return err
+	}
+
 	for _, arg := range node.Arguments {
 		if err := c.compileInstruction(arg); err != nil {
 			return objects.NewEmptyErrorWithParent(err, node.Token, c.file)
@@ -958,6 +964,47 @@ func (c *Compiler) compileFunctionArguments(node *ast.CallExpression) *objects.E
 	c.emit(code.OpCall, len(node.Arguments))
 
 	return nil
+}
+
+func (c *Compiler) validateCallSchemaFromLastLoadedSymbol(node *ast.CallExpression) *objects.Error {
+	definition := c.loadLastLoadedSymbolDefinition()
+	if definition == nil {
+		return nil
+	}
+
+	if len(node.Arguments) < len(definition.Schema) {
+		return objects.NewError(
+			node.Token, c.file,
+			"wrong number of arguments to `%s`: got %d, want %d",
+			definition.Name,
+			len(node.Arguments),
+			len(definition.Schema),
+		)
+	}
+
+	// TODO 1: Validate argument types against schema
+	// TODO 2: Use the schema for errors returned from called functions
+
+	return nil
+}
+
+func (c *Compiler) loadLastLoadedSymbolDefinition() *objects.BuiltinDefinition {
+	if c.lastLoadedSymbol == nil {
+		return nil
+	}
+
+	switch c.lastLoadedSymbol.Scope {
+	case BuiltinScope:
+		return &objects.Builtins[c.lastLoadedSymbol.Index]
+	case GlobalBuiltinScope:
+		scopeIdx := uint8(c.lastLoadedSymbol.Index >> 8)
+		builtIdx := uint8(c.lastLoadedSymbol.Index & 0xFF)
+
+		return objects.Globals[scopeIdx].Builtins[builtIdx]
+
+	default:
+		return nil
+	}
 }
 
 func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) *objects.Error {
@@ -1122,6 +1169,8 @@ func (c *Compiler) isArrayOrHashExpression(exp ast.Expression) bool {
 }
 
 func (c *Compiler) loadSymbol(symbol Symbol) {
+	c.lastLoadedSymbol = &symbol
+
 	switch symbol.Scope {
 	case GlobalScope:
 		c.emit(code.OpGetGlobal, symbol.Index)

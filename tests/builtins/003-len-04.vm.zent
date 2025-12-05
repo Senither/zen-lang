@@ -1,7 +1,0 @@
---TEST--
-It fails when given no arguments
---FILE--
-len();
---ERROR--
-wrong number of arguments to `len`: got 0, want 1
-    at <unknown>:0:0

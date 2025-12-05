@@ -293,8 +293,12 @@ func (f *Function) Inspect() string {
 type BuiltinFunction func(args ...Object) (Object, error)
 type BuiltinDefinition struct {
 	Name    string
+	Schema  BuiltinSchema
 	Builtin *Builtin
 }
+
+type BuiltinSchema []BuiltinArgument
+type BuiltinArgument []ObjectType
 
 type Builtin struct {
 	Fn BuiltinFunction

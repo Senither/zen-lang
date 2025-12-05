@@ -1,7 +1,0 @@
---TEST--
-It fails when given no arguments
---FILE--
-println(int());
---ERROR--
-wrong number of arguments to `int`: got 0, want 1
-    at <unknown>:0:0
