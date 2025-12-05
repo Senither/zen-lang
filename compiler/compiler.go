@@ -972,13 +972,26 @@ func (c *Compiler) validateCallSchemaFromLastLoadedSymbol(node *ast.CallExpressi
 		return nil
 	}
 
-	if len(node.Arguments) < len(definition.Schema) {
+	requiredArguments := 0
+	for _, argDef := range definition.Schema {
+		if argDef.IsRequired() {
+			requiredArguments++
+		}
+	}
+
+	if len(node.Arguments) < requiredArguments {
+		errMessage := "wrong number of arguments to `%s`: got %d, want %d"
+
+		if len(definition.Schema) != requiredArguments {
+			errMessage = "wrong number of arguments to `%s`: got %d, want at least %d"
+		}
+
 		return objects.NewError(
 			node.Token, c.file,
-			"wrong number of arguments to `%s`: got %d, want %d",
+			errMessage,
 			definition.Name,
 			len(node.Arguments),
-			len(definition.Schema),
+			requiredArguments,
 		)
 	}
 

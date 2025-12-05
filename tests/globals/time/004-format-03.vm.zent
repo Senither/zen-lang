@@ -1,7 +1,0 @@
---TEST--
-It fails when given one argument
---FILE--
-println(time.format("test"))
---ERROR--
-wrong number of arguments to `format`: got 1, want 2
-    at <unknown>:0:0

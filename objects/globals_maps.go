@@ -78,7 +78,7 @@ func globalMapsEach(args ...Object) (Object, error) {
 
 	fn, ok := args[1].(Callable)
 	if !ok {
-		return nil, NewInvalidArgumentTypeError("each", FUNCTION_OBJ, 1, args)
+		return nil, NewInvalidArgumentTypesError("each", []ObjectType{FUNCTION_OBJ, CLOSURE_OBJ}, 1, args)
 	}
 
 	if fn.ParametersCount() != 2 {

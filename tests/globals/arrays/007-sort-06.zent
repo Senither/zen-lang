@@ -3,6 +3,6 @@ It fails when given no arguments
 --FILE--
 println(arrays.sort());
 --ERROR--
-wrong number of arguments to `sort`: got 0, want 1
+wrong number of arguments to `sort`: got 0, want at least 1
     at <unknown>:1:20
     at <unknown>:1:8

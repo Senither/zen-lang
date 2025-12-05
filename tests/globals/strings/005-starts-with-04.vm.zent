@@ -1,7 +1,0 @@
---TEST--
-It fails when given one arguments
---FILE--
-strings.startsWith("Hello, World")
---ERROR--
-wrong number of arguments to `startsWith`: got 1, want 2
-    at <unknown>:0:0

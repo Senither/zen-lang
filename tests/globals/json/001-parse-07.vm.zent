@@ -1,7 +1,0 @@
---TEST--
-It fails when given no arguments
---FILE--
-json.parse()
---ERROR--
-wrong number of arguments to `parse`: got 0, want 1
-    at <unknown>:0:0

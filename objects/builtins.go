@@ -31,7 +31,7 @@ var Builtins = []BuiltinDefinition{
 	{
 		Name: "len",
 		Schema: BuiltinSchema{
-			BuiltinArgument{STRING_OBJ, ARRAY_OBJ, NULL_OBJ},
+			NewRequiredArgument(STRING_OBJ, ARRAY_OBJ, NULL_OBJ),
 		},
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
@@ -53,7 +53,7 @@ var Builtins = []BuiltinDefinition{
 	},
 	{
 		Name:   "string",
-		Schema: BuiltinSchema{BuiltinArgument{}},
+		Schema: BuiltinSchema{NewRequiredArgument()},
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
 				return nil, NewWrongNumberOfArgumentsError("string", 1, len(args))
@@ -65,7 +65,7 @@ var Builtins = []BuiltinDefinition{
 	{
 		Name: "int",
 		Schema: BuiltinSchema{
-			BuiltinArgument{INTEGER_OBJ, FLOAT_OBJ, STRING_OBJ, BOOLEAN_OBJ, NULL_OBJ},
+			NewRequiredArgument(INTEGER_OBJ, FLOAT_OBJ, STRING_OBJ, BOOLEAN_OBJ, NULL_OBJ),
 		},
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
@@ -104,7 +104,7 @@ var Builtins = []BuiltinDefinition{
 	{
 		Name: "float",
 		Schema: BuiltinSchema{
-			BuiltinArgument{INTEGER_OBJ, FLOAT_OBJ, STRING_OBJ, BOOLEAN_OBJ, NULL_OBJ},
+			NewRequiredArgument(INTEGER_OBJ, FLOAT_OBJ, STRING_OBJ, BOOLEAN_OBJ, NULL_OBJ),
 		},
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
@@ -142,7 +142,7 @@ var Builtins = []BuiltinDefinition{
 	},
 	{
 		Name:   "type",
-		Schema: BuiltinSchema{BuiltinArgument{}},
+		Schema: BuiltinSchema{NewRequiredArgument()},
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
 				return nil, NewWrongNumberOfArgumentsError("type", 1, len(args))
@@ -164,7 +164,7 @@ var Builtins = []BuiltinDefinition{
 	},
 	{
 		Name:   "isNaN",
-		Schema: BuiltinSchema{BuiltinArgument{}},
+		Schema: BuiltinSchema{NewRequiredArgument()},
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			if len(args) != 1 {
 				return nil, NewWrongNumberOfArgumentsError("isNaN", 1, len(args))

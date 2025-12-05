@@ -191,7 +191,7 @@ func globalArraysFirst(args ...Object) (Object, error) {
 
 func globalArraysSort(args ...Object) (Object, error) {
 	if len(args) == 0 {
-		return nil, NewWrongNumberOfArgumentsError("sort", 1, len(args))
+		return nil, NewWrongNumberOfArgumentsWantAtLeastError("sort", 1, len(args))
 	}
 
 	arr, ok := args[0].(*Array)

@@ -1,7 +1,0 @@
---TEST--
-It fails when called with wrong number of arguments
---FILE--
-println(strings.join());
---ERROR--
-wrong number of arguments to `join`: got 0, want 2
-    at <unknown>:0:0

@@ -209,7 +209,7 @@ func globalStringsToLower(args ...Object) (Object, error) {
 
 func globalStringsTrim(args ...Object) (Object, error) {
 	if len(args) == 0 {
-		return nil, NewWrongNumberOfArgumentsError("trim", 1, len(args))
+		return nil, NewWrongNumberOfArgumentsWantAtLeastError("trim", 1, len(args))
 	}
 
 	str, ok := args[0].(*String)

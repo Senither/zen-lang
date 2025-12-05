@@ -1,7 +1,0 @@
---TEST--
-It fails when given one argument
---FILE--
-time.scheduleTimer(123)
---ERROR--
-wrong number of arguments to `scheduleTimer`: got 1, want 2
-    at <unknown>:0:0

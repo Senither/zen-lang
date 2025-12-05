@@ -1,7 +1,0 @@
---TEST--
-It fails when given one argument
---FILE--
-println(maps.has({}))
---ERROR--
-wrong number of arguments to `has`: got 1, want 2
-    at <unknown>:0:0

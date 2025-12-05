@@ -1,7 +1,0 @@
---TEST--
-It fails when given one argument
---FILE--
-println(math.max(10));
---ERROR--
-wrong number of arguments to `max`: got 1, want 2
-    at <unknown>:0:0

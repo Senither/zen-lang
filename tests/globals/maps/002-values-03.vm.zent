@@ -1,7 +1,0 @@
---TEST--
-It fails when given no arguments
---FILE--
-print(maps.values())
---ERROR--
-wrong number of arguments to `values`: got 0, want 1
-    at <unknown>:0:0

@@ -109,7 +109,7 @@ func globalTimeDelayTimer(args ...Object) (Object, error) {
 
 	callable, ok := args[0].(Callable)
 	if !ok {
-		return nil, NewInvalidArgumentTypeError("delayTimer", FUNCTION_OBJ, 0, args)
+		return nil, NewInvalidArgumentTypesError("delayTimer", []ObjectType{FUNCTION_OBJ, CLOSURE_OBJ}, 0, args)
 	}
 
 	if callable.ParametersCount() != 0 {
@@ -156,7 +156,7 @@ func globalTimeScheduleTimer(args ...Object) (Object, error) {
 
 	callable, ok := args[0].(Callable)
 	if !ok {
-		return nil, NewInvalidArgumentTypeError("scheduleTimer", FUNCTION_OBJ, 0, args)
+		return nil, NewInvalidArgumentTypesError("scheduleTimer", []ObjectType{FUNCTION_OBJ, CLOSURE_OBJ}, 0, args)
 	}
 
 	if callable.ParametersCount() != 0 {

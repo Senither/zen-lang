@@ -297,8 +297,22 @@ type BuiltinDefinition struct {
 	Builtin *Builtin
 }
 
+type BuiltinArgument struct {
+	Types    []ObjectType
+	Required bool
+}
+
 type BuiltinSchema []BuiltinArgument
-type BuiltinArgument []ObjectType
+
+func NewRequiredArgument(types ...ObjectType) BuiltinArgument {
+	return BuiltinArgument{Types: types, Required: true}
+}
+
+func NewOptionalArgument(types ...ObjectType) BuiltinArgument {
+	return BuiltinArgument{Types: types, Required: false}
+}
+
+func (arg BuiltinArgument) IsRequired() bool { return arg.Required }
 
 type Builtin struct {
 	Fn BuiltinFunction

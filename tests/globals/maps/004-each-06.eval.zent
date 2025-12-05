@@ -3,5 +3,5 @@ It fails when given invalid second argument type
 --FILE--
 maps.each({}, 42)
 --ERROR--
-argument 2 to `each` has invalid type: got INTEGER, want FUNCTION
+argument 2 to `each` has invalid type: got INTEGER, want FUNCTION|CLOSURE
     at <unknown>:1:10

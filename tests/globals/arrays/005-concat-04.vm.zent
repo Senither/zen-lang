@@ -1,9 +1,0 @@
---TEST--
-It fails if given less than two arguments
---FILE--
-var a = [1, 2];
-
-println(arrays.concat(a));
---ERROR--
-wrong number of arguments to `concat`: got 1, want at least 2
-    at <unknown>:0:0

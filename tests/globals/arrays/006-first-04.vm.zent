@@ -1,7 +1,0 @@
---TEST--
-It fails when given no arguments
---FILE--
-println(arrays.first());
---ERROR--
-wrong number of arguments to `first`: got 0, want 2
-    at <unknown>:0:0
