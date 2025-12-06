@@ -1,0 +1,47 @@
+--TEST--
+Can delete keys from hashes
+--FILE--
+var map = {
+    "foo": 123,
+    "bar": 456,
+    "baz": 789,
+    "test": 999,
+    "nested": {
+        "inner": {
+            "a": 1,
+            "b": 2,
+        },
+    },
+}
+
+println(map)
+println(delete(map, "foo"))
+println(map)
+println(delete(map.nested.inner, "a"))
+println(map)
+println(delete(map.nested, "inner"))
+println(map)
+println(delete(map, "nested"))
+println(map)
+println(delete(map, "baz"))
+println(map)
+println(delete(map, "bar"))
+println(map)
+println(delete(map, "bar"))
+println(map)
+--EXPECT--
+{baz: 789, bar: 456, foo: 123, nested: {inner: {a: 1, b: 2}}, test: 999}
+true
+{baz: 789, bar: 456, nested: {inner: {a: 1, b: 2}}, test: 999}
+true
+{baz: 789, bar: 456, nested: {inner: {b: 2}}, test: 999}
+true
+{baz: 789, bar: 456, nested: {}, test: 999}
+true
+{baz: 789, bar: 456, test: 999}
+true
+{bar: 456, test: 999}
+true
+{test: 999}
+false
+{test: 999}

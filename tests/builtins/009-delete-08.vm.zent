@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid second argument type for arrays
+--FILE--
+println(delete([], "invalid"))
+--ERROR--
+argument 2 to `delete` has invalid type for ARRAY: got STRING, want INTEGER
+    at <unknown>:0:0

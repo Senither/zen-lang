@@ -1,0 +1,7 @@
+--TEST--
+It fails when given invalid first argument type
+--FILE--
+println(delete(123, 123))
+--ERROR--
+argument 1 to `delete` has invalid type: got INTEGER, want HASH|ARRAY
+    at <unknown>:0:0

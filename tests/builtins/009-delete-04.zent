@@ -1,0 +1,29 @@
+--TEST--
+Can delete mixed keys from hashes
+--FILE--
+var map = {
+    "str": [1, 2, 3, 4, 5],
+    true: "Boolean key",
+    42: "The answer",
+    3.14: "Pi value",
+}
+
+println(map)
+println(delete(map, true))
+println(map)
+println(delete(map, 42))
+println(map)
+println(delete(map, 3.14))
+println(map)
+println(delete(map, "str"))
+println(map)
+--EXPECT--
+{true: Boolean key, 3.140000: Pi value, 42: The answer, str: [1, 2, 3, 4, 5]}
+true
+{3.140000: Pi value, 42: The answer, str: [1, 2, 3, 4, 5]}
+true
+{3.140000: Pi value, str: [1, 2, 3, 4, 5]}
+true
+{str: [1, 2, 3, 4, 5]}
+true
+{}

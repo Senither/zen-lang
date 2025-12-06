@@ -47,7 +47,9 @@ var Builtins = []BuiltinDefinition{
 				return &Integer{Value: 0}, nil
 
 			default:
-				return nil, NewInvalidArgumentTypesError("len", []ObjectType{STRING_OBJ, ARRAY_OBJ, NULL_OBJ}, 0, args)
+				return nil, NewInvalidArgumentTypesError("len", []ObjectType{
+					STRING_OBJ, ARRAY_OBJ, NULL_OBJ,
+				}, 0, args)
 			}
 		}},
 	},
@@ -180,6 +182,76 @@ var Builtins = []BuiltinDefinition{
 			}
 
 			return FALSE, nil
+		}},
+	},
+	{
+		Name: "delete",
+		Schema: BuiltinSchema{
+			NewRequiredArgument(HASH_OBJ, ARRAY_OBJ),
+			NewRequiredArgument(STRING_OBJ, INTEGER_OBJ, FLOAT_OBJ, BOOLEAN_OBJ),
+		},
+		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+			if len(args) != 2 {
+				return nil, NewWrongNumberOfArgumentsError("delete", 2, len(args))
+			}
+
+			switch collection := args[0].(type) {
+			case *Hash:
+				key, ok := args[1].(Hashable)
+				if !ok {
+					return FALSE, NewInvalidArgumentTypesErrorWithQualifiers(
+						"delete",
+						[]ObjectType{STRING_OBJ, INTEGER_OBJ, FLOAT_OBJ, BOOLEAN_OBJ},
+						[]ObjectType{HASH_OBJ},
+						1, args,
+					)
+				}
+
+				if _, exists := collection.Pairs[key.HashKey()]; !exists {
+					return FALSE, nil
+				}
+
+				delete(collection.Pairs, key.HashKey())
+				return TRUE, nil
+
+			case *Array:
+				key, ok := args[1].(*Integer)
+				if !ok {
+					return nil, NewInvalidArgumentTypesErrorWithQualifiers(
+						"delete",
+						[]ObjectType{INTEGER_OBJ},
+						[]ObjectType{ARRAY_OBJ},
+						1, args,
+					)
+				}
+
+				len := int64(len(collection.Elements))
+				idx := key.Value
+				if idx < 0 {
+					idx += len
+				}
+
+				if idx < 0 || idx >= len {
+					return nil, NewErrorf(
+						"delete", "index out of bounds for %s, got %d, length %d",
+						ARRAY_OBJ, idx, len,
+					)
+				}
+
+				collection.Elements = append(
+					collection.Elements[:idx],
+					collection.Elements[idx+1:]...,
+				)
+
+				return TRUE, nil
+
+			default:
+				return nil, NewInvalidArgumentTypesError(
+					"delete",
+					[]ObjectType{HASH_OBJ, ARRAY_OBJ},
+					0, args,
+				)
+			}
 		}},
 	},
 }

@@ -1,0 +1,9 @@
+--TEST--
+It fails when deleting out-of-bounds indexes from arrays
+--FILE--
+var arr = [1, 2, 3, 4, 5]
+
+println(delete(arr, 10))
+--ERROR--
+error in `delete`: index out of bounds for ARRAY, got 10, length 5
+    at <unknown>:0:0

@@ -1,0 +1,43 @@
+--TEST--
+Can delete keys from arrays in hashes
+--FILE--
+var map = {
+    "arr1": [1, 2, 3, 4, 5],
+    "arr2": [6, 7, 8, 9, 10],
+}
+
+println(map)
+println(delete(map.arr1, 2))
+println(map)
+println(delete(map.arr2, 2))
+println(map)
+println(delete(map.arr1, 0))
+println(map)
+println(delete(map.arr2, 0))
+println(map)
+println(delete(map.arr1, -1))
+println(map)
+println(delete(map.arr2, -1))
+println(map)
+println(delete(map, "arr1"))
+println(map)
+println(delete(map, "arr2"))
+println(map)
+--EXPECT--
+{arr1: [1, 2, 3, 4, 5], arr2: [6, 7, 8, 9, 10]}
+true
+{arr1: [1, 2, 4, 5], arr2: [6, 7, 8, 9, 10]}
+true
+{arr1: [1, 2, 4, 5], arr2: [6, 7, 9, 10]}
+true
+{arr1: [2, 4, 5], arr2: [6, 7, 9, 10]}
+true
+{arr1: [2, 4, 5], arr2: [7, 9, 10]}
+true
+{arr1: [2, 4], arr2: [7, 9, 10]}
+true
+{arr1: [2, 4], arr2: [7, 9]}
+true
+{arr2: [7, 9]}
+true
+{}

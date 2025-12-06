@@ -25,13 +25,38 @@ func NewInvalidArgumentTypeError(name string, expected ObjectType, index int, ar
 }
 
 func NewInvalidArgumentTypesError(name string, expected []ObjectType, index int, args []Object) error {
-	expectedStr := make([]string, len(expected))
-	for i, e := range expected {
-		expectedStr[i] = string(e)
-	}
-
 	return fmt.Errorf(
 		"argument %d to `%s` has invalid type: got %s, want %s",
-		index+1, name, args[index].Type(), strings.Join(expectedStr, "|"),
+		index+1,
+		name,
+		args[index].Type(),
+		StringifyObjectTypes(expected),
 	)
+}
+
+func NewInvalidArgumentTypesErrorWithQualifiers(
+	name string,
+	expected []ObjectType,
+	qualifier []ObjectType,
+	index int,
+	args []Object,
+) error {
+	return fmt.Errorf(
+		"argument %d to `%s` has invalid type for %s: got %s, want %s",
+		index+1,
+		name,
+		StringifyObjectTypes(qualifier),
+		args[index].Type(),
+		StringifyObjectTypes(expected),
+	)
+}
+
+func StringifyObjectTypes(types []ObjectType) string {
+	s := make([]string, len(types))
+
+	for i, t := range types {
+		s[i] = string(t)
+	}
+
+	return strings.Join(s, "|")
 }
