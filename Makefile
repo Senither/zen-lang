@@ -50,7 +50,7 @@ test-language:
 	go run main.go test
 
 bench:
-	go test ./... -bench=. -run=^$ -benchmem -benchtime=5s
+	go test ./... -bench=. -benchmem -benchtime=5s -run=^$
 
 ifeq ($(OS),Windows_NT)
     RM_BIN := @if exist $(BIN_NAME) del /q $(BIN_NAME)
