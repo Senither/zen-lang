@@ -36,6 +36,17 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 	}
 }
 
+func runVmBenchmark(b *testing.B, input string) {
+	compiler, err := compile(input)
+	if err != nil {
+		b.Fatalf("compiler error: %s", err)
+	}
+
+	for b.Loop() {
+		New(compiler.Bytecode()).Run()
+	}
+}
+
 func compile(input string) (*compiler.Compiler, error) {
 	l := lexer.New(input)
 	p := parser.New(l, nil)

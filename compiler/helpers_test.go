@@ -45,9 +45,7 @@ func runCompilationBenchmarks(b *testing.B, benchmarks []string) {
 		programs[i] = parse(input)
 	}
 
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, program := range programs {
 			err := New(nil).Compile(program)
 			if err != nil {

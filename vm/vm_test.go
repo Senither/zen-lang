@@ -56,6 +56,14 @@ func TestIntegerArithmetic(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkIntegerArithmeticSimple(b *testing.B) {
+	runVmBenchmark(b, `5 + 10 - 3 * 2 / 4 + 6 ^ 2 % 4`)
+}
+
+func BenchmarkIntegerArithmeticComplex(b *testing.B) {
+	runVmBenchmark(b, `(5 + 10 - 3 * 2 / 4 + 6 ^ 2 % 4) * (12 - 4 + 3 * 7 / 2 ^ 3 % 5) + (8 ^ 2 % 5 + 14 - 3 * 6 / 2 + 9)`)
+}
+
 func TestBooleanExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{"true", true},
@@ -107,6 +115,10 @@ func TestBooleanExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkBooleanExpressions(b *testing.B) {
+	runVmBenchmark(b, `(1 < 2) && (2 < 3) || (3 < 4) && !(4 > 5)`)
+}
+
 func TestStringExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{`"hello world"`, "hello world"},
@@ -123,6 +135,10 @@ func TestStringExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkStringExpressions(b *testing.B) {
+	runVmBenchmark(b, `"hello" + " " + "world"`)
+}
+
 func TestArrayLiterals(t *testing.T) {
 	tests := []vmTestCase{
 		{"[]", []int{}},
@@ -131,6 +147,10 @@ func TestArrayLiterals(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkArrayLiterals(b *testing.B) {
+	runVmBenchmark(b, "[1 + 2, 3 * 4, 5 + 6]")
 }
 
 func TestHashLiterals(t *testing.T) {
@@ -158,6 +178,10 @@ func TestHashLiterals(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkHashLiterals(b *testing.B) {
+	runVmBenchmark(b, "{1 + 1: 2 * 2, 3 + 3: 4 * 4}")
+}
+
 func TestSuffixExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{"var x = 5; x++", 6},
@@ -170,6 +194,10 @@ func TestSuffixExpressions(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkSuffixExpressions(b *testing.B) {
+	runVmBenchmark(b, "var x = 5; x++; x--; x")
 }
 
 func TestIndexExpressions(t *testing.T) {
@@ -188,6 +216,10 @@ func TestIndexExpressions(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkIndexExpressions(b *testing.B) {
+	runVmBenchmark(b, "[1, 2, 3][1]")
 }
 
 func TestChainIndexExpressions(t *testing.T) {
@@ -239,6 +271,13 @@ func TestChainIndexExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkChainIndexExpressions(b *testing.B) {
+	runVmBenchmark(b, `
+		var obj = {'a': {'b': 3}};
+		obj.a.b
+	`)
+}
+
 func TestChainIndexAssignment(t *testing.T) {
 	tests := []vmTestCase{
 		{
@@ -267,25 +306,9 @@ func TestChainIndexAssignment(t *testing.T) {
 		},
 		{
 			input: `
-				var obj = {'a': 1};
-				obj.b = 10;
-				obj.b
-			`,
-			expected: 10,
-		},
-		{
-			input: `
 				var obj = {'nested': {'key': 'value'}};
 				obj['nested']['key'] = 42;
 				obj['nested']['key']
-			`,
-			expected: 42,
-		},
-		{
-			input: `
-				var obj = {'nested': {'key': 'value'}};
-				obj.nested.key = 42;
-				obj.nested.key
 			`,
 			expected: 42,
 		},
@@ -297,17 +320,17 @@ func TestChainIndexAssignment(t *testing.T) {
 			`,
 			expected: 42,
 		},
-		{
-			input: `
-				var obj = {'nested': {'key': 'value'}};
-				obj.nested.newKey = 42;
-				obj.nested.newKey
-			`,
-			expected: 42,
-		},
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkChainIndexAssignment(b *testing.B) {
+	runVmBenchmark(b, `
+		var obj = {'nested': {'key': 'value'}};
+		obj['nested']['key'] = 42;
+		obj['nested']['key']
+	`)
 }
 
 func TestChainedHashAssignmentExpressions(t *testing.T) {
@@ -321,6 +344,14 @@ func TestChainedHashAssignmentExpressions(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkChainedHashAssignmentExpressions(b *testing.B) {
+	runVmBenchmark(b, `
+		var obj = {'nested': {'key': 'value'}};
+		obj.nested.key = 10;
+		obj.nested.key;
+	`)
 }
 
 func TestChainedArrayIndexAssignments(t *testing.T) {
@@ -354,6 +385,14 @@ func TestChainedArrayIndexAssignments(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkChainedArrayIndexAssignments(b *testing.B) {
+	runVmBenchmark(b, `
+		var obj = {'foo': {'bar': [5, 6]}};
+		obj.foo.bar[0] = 99;
+		obj.foo.bar
+	`)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},
@@ -375,6 +414,10 @@ func TestConditionals(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkConditionals(b *testing.B) {
+	runVmBenchmark(b, "if (1 < 2) { 10 } else { 20 }")
+}
+
 func TestGlobalVarStatements(t *testing.T) {
 	tests := []vmTestCase{
 		{"var a = 1; a;", 1},
@@ -384,6 +427,10 @@ func TestGlobalVarStatements(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkGlobalVarStatements(b *testing.B) {
+	runVmBenchmark(b, "var a = 1; var b = a + 1; a + b;")
 }
 
 func TestCallingFunctionsWithoutArguments(t *testing.T) {
@@ -417,6 +464,13 @@ func TestCallingFunctionsWithoutArguments(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkCallingFunctionsWithoutArguments(b *testing.B) {
+	runVmBenchmark(b, `
+		var fivePlusTen = func() { 5 + 10; };
+		fivePlusTen();
+	`)
+}
+
 func TestFunctionsWithReturnStatement(t *testing.T) {
 	tests := []vmTestCase{
 		{
@@ -436,6 +490,13 @@ func TestFunctionsWithReturnStatement(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkFunctionsWithReturnStatement(b *testing.B) {
+	runVmBenchmark(b, `
+		var earlyExit = func() { return 99; 100; };
+		earlyExit();
+	`)
 }
 
 func TestFunctionsWithoutReturnValue(t *testing.T) {
@@ -459,6 +520,13 @@ func TestFunctionsWithoutReturnValue(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkFunctionsWithoutReturnValue(b *testing.B) {
+	runVmBenchmark(b, `
+		var noReturn = func() { };
+		noReturn();
+	`)
 }
 
 func TestCallingFunctionsWithBindings(t *testing.T) {
@@ -534,6 +602,17 @@ func TestCallingFunctionsWithBindings(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkCallingFunctionsWithBindings(b *testing.B) {
+	runVmBenchmark(b, `
+		var oneAndTwo = func() {
+			var one = 1;
+			var two = 2;
+			one + two;
+		}
+		oneAndTwo();
+	`)
+}
+
 func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
 	tests := []vmTestCase{
 		{
@@ -605,6 +684,16 @@ func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkCallingFunctionsWithArgumentsAndBindings(b *testing.B) {
+	runVmBenchmark(b, `
+		var sum = func(a, b) {
+			var c = a + b;
+			c;
+		};
+		sum(1, 2) + sum(3, 4);
+	`)
+}
+
 func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 	tests := []vmTestCase{
 		{
@@ -637,6 +726,10 @@ func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 			t.Fatalf("wrong VM error:\nwant:\n\t%q\ngot:\n\t%q", tt.expected, err)
 		}
 	}
+}
+
+func BenchmarkCallingFunctionsWithWrongArguments(b *testing.B) {
+	runVmBenchmark(b, "func() { 1; }(1);")
 }
 
 func TestBuiltinFunctions(t *testing.T) {
@@ -894,6 +987,19 @@ func TestClosures(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkClosures(b *testing.B) {
+	runVmBenchmark(b, `
+		var newAdder = func(a, b) {
+			return func(c) {
+				return a + b + c
+			}
+		}
+
+		var adder = newAdder(1, 2)
+		adder(8)
+	`)
+}
+
 func TestRecursiveFunctions(t *testing.T) {
 	tests := []vmTestCase{
 		{
@@ -947,7 +1053,22 @@ func TestRecursiveFunctions(t *testing.T) {
 			expected: 0,
 		},
 	}
+
 	runVmTests(t, tests)
+}
+
+func BenchmarkRecursiveFunctions(b *testing.B) {
+	runVmBenchmark(b, `
+		var countDown = func(x) {
+			if (x == 0) {
+				return 0
+			} else {
+				countDown(x - 1)
+			}
+		}
+
+		countDown(10)
+	`)
 }
 
 func TestNamedFunctions(t *testing.T) {
@@ -1017,6 +1138,20 @@ func TestNamedFunctions(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkNamedFunctions(b *testing.B) {
+	runVmBenchmark(b, `
+		func fibonacci(x) {
+			if (x <= 1) {
+				return x
+			}
+
+			return fibonacci(x - 1) + fibonacci(x - 2);
+		}
+
+		fibonacci(10);
+	`)
 }
 
 func TestWhileLoops(t *testing.T) {
@@ -1095,6 +1230,20 @@ func TestWhileLoops(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkWhileLoops(b *testing.B) {
+	runVmBenchmark(b, `
+		var i = 0;
+		var result = [];
+
+		while (i < 10) {
+			arrays.push(result, i);
+			i++;
+		}
+
+		result;
+	`)
+}
+
 func TestAssignmentExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{"var mut a = 5; a = 10; a;", 10},
@@ -1115,6 +1264,10 @@ func TestAssignmentExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func BenchmarkAssignmentExpressions(b *testing.B) {
+	runVmBenchmark(b, "var mut a = 5; var mut b = 10; a = b + a; a;")
+}
+
 func TestCompoundAssignments(t *testing.T) {
 	tests := []vmTestCase{
 		{"var mut x = 5; x += 5;", 10},
@@ -1126,4 +1279,8 @@ func TestCompoundAssignments(t *testing.T) {
 	}
 
 	runVmTests(t, tests)
+}
+
+func BenchmarkCompoundAssignments(b *testing.B) {
+	runVmBenchmark(b, "var mut x = 5; x ^= 5;")
 }
