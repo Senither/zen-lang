@@ -80,6 +80,24 @@ func TestMake(t *testing.T) {
 	}
 }
 
+func BenchmarkMakeNoOperandInstruction(b *testing.B) {
+	for b.Loop() {
+		Make(OpTrue)
+	}
+}
+
+func BenchmarkMakeOneOperandInstruction(b *testing.B) {
+	for b.Loop() {
+		Make(OpConstant, 1)
+	}
+}
+
+func BenchmarkMakeTwoOperandsInstruction(b *testing.B) {
+	for b.Loop() {
+		Make(OpClosure, 1, 2)
+	}
+}
+
 func TestInstructionsString(t *testing.T) {
 	instructions := []Instructions{
 		Make(OpAdd),
@@ -134,5 +152,38 @@ func TestReadOperands(t *testing.T) {
 				t.Fatalf("operand %d wrong. got %d, want %d", i, operandsRead[i], want)
 			}
 		}
+	}
+}
+
+func BenchmarkLookup(b *testing.B) {
+	for b.Loop() {
+		Lookup(OpAdd)
+	}
+}
+
+func BenchmarkReadNoOperands(b *testing.B) {
+	instruction := Make(OpAdd)
+	def, _ := Lookup(OpAdd)
+
+	for b.Loop() {
+		ReadOperands(def, instruction[1:])
+	}
+}
+
+func BenchmarkReadOneOperand(b *testing.B) {
+	instruction := Make(OpGetGlobal, 255)
+	def, _ := Lookup(OpGetGlobal)
+
+	for b.Loop() {
+		ReadOperands(def, instruction[1:])
+	}
+}
+
+func BenchmarkReadTwoOperands(b *testing.B) {
+	instruction := Make(OpClosure, 65535, 255)
+	def, _ := Lookup(OpClosure)
+
+	for b.Loop() {
+		ReadOperands(def, instruction[1:])
 	}
 }
