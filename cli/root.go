@@ -52,7 +52,7 @@ var rootCommand = &cobra.Command{
 		}
 
 		stackTop := vm.LastPoppedStackElem()
-		if stackTop != nil {
+		if stackTop != nil && stackTop != objects.NULL {
 			fmt.Printf("%s\n", stackTop.Inspect())
 		}
 	},
