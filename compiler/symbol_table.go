@@ -20,9 +20,12 @@ const (
 type SymbolKind string
 
 const (
-	NativeKind SymbolKind = "NATIVE"
-	ArrayKind  SymbolKind = "ARRAY"
-	HashKind   SymbolKind = "HASH"
+	UnknownKind SymbolKind = "UNKNOWN"
+	NumberKind  SymbolKind = "NUMBER"
+	StringKind  SymbolKind = "STRING"
+	BooleanKind SymbolKind = "BOOLEAN"
+	ArrayKind   SymbolKind = "ARRAY"
+	HashKind    SymbolKind = "HASH"
 )
 
 type Symbol struct {
@@ -79,25 +82,25 @@ func WriteBuiltinSymbols(table *SymbolTable) {
 }
 
 func (s *SymbolTable) DefineBuiltin(index int, name string) Symbol {
-	symbol := Symbol{Name: name, Mutable: false, Scope: BuiltinScope, Index: index, Kind: NativeKind}
+	symbol := Symbol{Name: name, Mutable: false, Scope: BuiltinScope, Index: index, Kind: UnknownKind}
 	s.store[name] = symbol
 	return symbol
 }
 
 func (s *SymbolTable) DefineGlobalBuiltin(index int, name string) Symbol {
-	symbol := Symbol{Name: name, Mutable: false, Scope: GlobalBuiltinScope, Index: index, Kind: NativeKind}
+	symbol := Symbol{Name: name, Mutable: false, Scope: GlobalBuiltinScope, Index: index, Kind: UnknownKind}
 	s.store[name] = symbol
 	return symbol
 }
 
 func (s *SymbolTable) DefineFunctionName(name string, mutable bool) Symbol {
-	symbol := Symbol{Name: name, Mutable: mutable, Index: 0, Scope: FunctionScope, Kind: NativeKind}
+	symbol := Symbol{Name: name, Mutable: mutable, Index: 0, Scope: FunctionScope, Kind: UnknownKind}
 	s.store[name] = symbol
 	return symbol
 }
 
 func (s *SymbolTable) Define(name string, mutable bool) Symbol {
-	symbol := Symbol{Name: name, Mutable: mutable, Index: s.numDefinitions, Kind: NativeKind}
+	symbol := Symbol{Name: name, Mutable: mutable, Index: s.numDefinitions, Kind: UnknownKind}
 
 	if s.Outer == nil {
 		symbol.Scope = GlobalScope

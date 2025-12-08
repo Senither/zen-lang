@@ -1,0 +1,11 @@
+--TEST--
+It fails to increment non numbers
+--FILE--
+var num1 = "1";
+
+num1++;
+
+println(num1);
+--ERROR--
+unknown operator: ++STRING
+    at <unknown>:3:4

@@ -183,6 +183,14 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 			)
 		}
 
+		if symbol.Kind != NumberKind {
+			return objects.NewError(
+				n.Token, c.file,
+				"suffix operator %s not supported for type %s",
+				n.Operator, symbol.Kind,
+			)
+		}
+
 		switch n.Operator {
 		case "++":
 			if symbol.Scope == GlobalScope {
@@ -1213,6 +1221,12 @@ func (c *Compiler) setSymbol(symbol Symbol) {
 
 func (c *Compiler) setSymbolKind(symbol Symbol, node ast.Expression) error {
 	switch node.(type) {
+	case *ast.IntegerLiteral, *ast.FloatLiteral:
+		return c.symbolTable.UpdateKind(symbol.Name, NumberKind)
+	case *ast.StringLiteral:
+		return c.symbolTable.UpdateKind(symbol.Name, StringKind)
+	case *ast.BooleanLiteral:
+		return c.symbolTable.UpdateKind(symbol.Name, BooleanKind)
 	case *ast.ArrayLiteral:
 		return c.symbolTable.UpdateKind(symbol.Name, ArrayKind)
 	case *ast.HashLiteral:
