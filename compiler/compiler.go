@@ -183,14 +183,19 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 			)
 		}
 
-		c.loadSymbol(symbol)
-		c.emit(code.OpConstant, c.addConstant(&objects.Integer{Value: 1}))
-
 		switch n.Operator {
 		case "++":
-			c.emit(code.OpAdd)
+			if symbol.Scope == GlobalScope {
+				c.emit(code.OpIncGlobal, symbol.Index)
+			} else {
+				c.emit(code.OpIncLocal, symbol.Index)
+			}
 		case "--":
-			c.emit(code.OpSub)
+			if symbol.Scope == GlobalScope {
+				c.emit(code.OpDecGlobal, symbol.Index)
+			} else {
+				c.emit(code.OpDecLocal, symbol.Index)
+			}
 
 		default:
 			return objects.NewError(
@@ -199,8 +204,6 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 				n.Operator,
 			)
 		}
-
-		c.setSymbol(symbol)
 	case *ast.IndexExpression:
 		err := c.compileInstruction(n.Left)
 		if err != nil {
@@ -477,7 +480,7 @@ func (c *Compiler) removeLastPop() {
 
 func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
 	switch expr := expr.(type) {
-	case *ast.AssignmentExpression, *ast.SuffixExpression, *ast.WhileExpression:
+	case *ast.AssignmentExpression, *ast.WhileExpression:
 		return false
 	case *ast.ChainExpression:
 		if _, ok := expr.Right.(*ast.AssignmentExpression); ok {

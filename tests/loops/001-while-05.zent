@@ -3,9 +3,7 @@ Can break out of a while loop
 --FILE--
 var num = 0;
 
-while (num < 100) {
-    num++;
-
+while (num++ <= 100) {
     println("Comparing " + string(num) + " < 100");
     if (num == 25) {
         break;

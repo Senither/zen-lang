@@ -30,6 +30,11 @@ var definitions = map[Opcode]*Definition{
 	OpDiv: {"OpDiv", []int{}},
 	OpPow: {"OpPow", []int{}},
 	OpMod: {"OpMod", []int{}},
+	// Increment/Decrement
+	OpIncGlobal: {"OpIncGlobal", []int{2}},
+	OpDecGlobal: {"OpDecGlobal", []int{2}},
+	OpIncLocal:  {"OpIncLocal", []int{1}},
+	OpDecLocal:  {"OpDecLocal", []int{1}},
 	// Booleans
 	OpTrue:  {"OpTrue", []int{}},
 	OpFalse: {"OpFalse", []int{}},

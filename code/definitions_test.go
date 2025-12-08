@@ -28,6 +28,11 @@ func TestMake(t *testing.T) {
 		{OpDiv, []int{}, []byte{byte(OpDiv)}},
 		{OpPow, []int{}, []byte{byte(OpPow)}},
 		{OpMod, []int{}, []byte{byte(OpMod)}},
+		// Increment/Decrement
+		{OpIncGlobal, []int{65535}, []byte{byte(OpIncGlobal), 255, 255}},
+		{OpDecGlobal, []int{65535}, []byte{byte(OpDecGlobal), 255, 255}},
+		{OpIncLocal, []int{255}, []byte{byte(OpIncLocal), 255}},
+		{OpDecLocal, []int{255}, []byte{byte(OpDecLocal), 255}},
 		// Booleans
 		{OpTrue, []int{}, []byte{byte(OpTrue)}},
 		{OpFalse, []int{}, []byte{byte(OpFalse)}},

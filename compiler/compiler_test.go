@@ -1027,14 +1027,12 @@ func TestVarIncDec(t *testing.T) {
 				var mut a = 1;
 				a++;
 			`,
-			expectedConstants: []any{1, 1},
+			expectedConstants: []any{1},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpSetGlobal, 0),
-				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpConstant, 1),
-				code.Make(code.OpAdd),
-				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpIncGlobal),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -1042,14 +1040,12 @@ func TestVarIncDec(t *testing.T) {
 				var mut a = 1;
 				a--;
 			`,
-			expectedConstants: []any{1, 1},
+			expectedConstants: []any{1},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpSetGlobal, 0),
-				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpConstant, 1),
-				code.Make(code.OpSub),
-				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpDecGlobal),
+				code.Make(code.OpPop),
 			},
 		},
 	}
@@ -1066,6 +1062,74 @@ func BenchmarkVarIncDec(b *testing.B) {
 		`
 			var mut a = 1;
 			a--;
+		`,
+	})
+}
+
+func TestFuncLocalIncDec(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				func() {
+					var mut a = 1;
+					a++;
+				}
+			`,
+			expectedConstants: []any{
+				1,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpIncLocal, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 1, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+				func() {
+					var mut a = 1;
+					a--;
+				}
+			`,
+			expectedConstants: []any{
+				1,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpDecLocal, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 1, 0),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
+func BenchmarkFuncLocalIncDec(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			func test() {
+				var mut a = 1;
+				a++;
+			}
+			test()
+		`,
+		`
+			func test() {
+				var mut a = 1;
+				a--;
+			}
+			test()
 		`,
 	})
 }

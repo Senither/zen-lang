@@ -216,6 +216,39 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 			return err
 		}
 
+	case code.OpIncGlobal, code.OpDecGlobal:
+		globalIndex := code.ReadUint16(ins[ip+1:])
+		vm.currentFrame().ip += 2
+
+		value := vm.globals[globalIndex]
+		numberValue := objects.UnwrapNumberValue(value)
+
+		if op == code.OpIncGlobal {
+			numberValue++
+		} else {
+			numberValue--
+		}
+
+		vm.globals[globalIndex] = objects.WrapNumberValue(numberValue, value, value)
+		vm.push(vm.globals[globalIndex])
+	case code.OpIncLocal, code.OpDecLocal:
+		localIndex := code.ReadUint8(ins[ip+1:])
+		vm.currentFrame().ip += 1
+
+		frame := vm.currentFrame()
+
+		value := vm.stack[frame.basePointer+int(localIndex)]
+		numberValue := objects.UnwrapNumberValue(value)
+
+		if op == code.OpIncLocal {
+			numberValue++
+		} else {
+			numberValue--
+		}
+
+		vm.stack[frame.basePointer+int(localIndex)] = objects.WrapNumberValue(numberValue, value, value)
+		vm.push(vm.stack[frame.basePointer+int(localIndex)])
+
 	case code.OpJump:
 		pos := int(code.ReadUint16(ins[ip+1:]))
 		vm.currentFrame().ip = pos - 1

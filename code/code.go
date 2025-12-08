@@ -32,6 +32,12 @@ const (
 	OpPow
 	OpMod
 
+	// Increment/Decrement
+	OpIncGlobal
+	OpDecGlobal
+	OpIncLocal
+	OpDecLocal
+
 	// Booleans
 	OpTrue
 	OpFalse

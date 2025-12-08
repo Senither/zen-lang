@@ -1,11 +1,10 @@
 --TEST--
 Can loop until a condition is met
 --FILE--
-var num = 1;
+var num = 0;
 
-while (num < 10) {
+while (num++ < 10) {
     println(num);
-    num++;
 }
 
 println("Done");

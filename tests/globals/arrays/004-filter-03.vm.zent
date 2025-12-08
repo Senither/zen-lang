@@ -7,6 +7,6 @@ var result = arrays.filter(arr, func(x) { return x > 2; });
 println(result);
 println(arr);
 --ERROR--
-unknown operator: 19 (STRING INTEGER)
+unknown operator: 23 (STRING INTEGER)
     at <unknown>:0:0
 [1, 2, three, 4]

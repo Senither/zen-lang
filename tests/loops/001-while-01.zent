@@ -1,11 +1,10 @@
 --TEST--
 Can loop a single time
 --FILE--
-var num = 1;
+var num = 0;
 
-while (num < 2) {
+while (num++ < 2) {
     println(num);
-    num++;
 }
 
 println("Done");

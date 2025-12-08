@@ -3,9 +3,7 @@ Can skip to next iteration of while loop with continue
 --FILE--
 var num = 0;
 
-while (num < 100) {
-    num++;
-
+while (num++ <= 100) {
     if (num % 5 != 0) {
         continue;
     }
