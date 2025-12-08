@@ -12,9 +12,9 @@ println({'a': 1.23, 'b': true, 'c': null, 'd': [1, 2, 3]} != {'a': 1.23, 'b': tr
 --EXPECT--
 true
 false
-false
 true
 false
-true
 false
 true
+true
+false

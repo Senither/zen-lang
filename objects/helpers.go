@@ -163,6 +163,10 @@ func Equals(left, right Object) *Boolean {
 	switch left := left.(type) {
 	case *String:
 		return NativeBoolToBooleanObject(left.Value == right.(*String).Value)
+	case *Integer:
+		return NativeBoolToBooleanObject(left.Value == right.(*Integer).Value)
+	case *Float:
+		return NativeBoolToBooleanObject(left.Value == right.(*Float).Value)
 	case *Array:
 		rightArr := right.(*Array)
 		if len(left.Elements) != len(rightArr.Elements) {
