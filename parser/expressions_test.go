@@ -562,6 +562,74 @@ func TestParsingSuffixExpressions(t *testing.T) {
 	}
 }
 
+func TestParsingSuffixExpressionsInBodyDoesntEscapeScope(t *testing.T) {
+	input := `func() { i++ } print(i);`
+
+	l := lexer.New(input)
+	p := New(l, nil)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 2 {
+		t.Fatalf("program.Statements does not contain 2 statements, got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T", program.Statements[0])
+	}
+
+	funcLiteral, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.FunctionLiteral, got %T", stmt.Expression)
+	}
+
+	if len(funcLiteral.Body.Statements) != 1 {
+		t.Fatalf("function body does not contain 1 statement, got %d", len(funcLiteral.Body.Statements))
+	}
+
+	suffixStmt, ok := funcLiteral.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("function body statement is not ast.ExpressionStatement, got %T", funcLiteral.Body.Statements[0])
+	}
+
+	suffixExp, ok := suffixStmt.Expression.(*ast.SuffixExpression)
+	if !ok {
+		t.Fatalf("function body statement is not ast.SuffixExpression, got %T", suffixStmt.Expression)
+	}
+
+	if suffixExp.Operator != "++" {
+		t.Errorf("suffixExp.Operator is not '++', got %q", suffixExp.Operator)
+	}
+
+	if !testIdentifier(t, suffixExp.Left, "i") {
+		return
+	}
+
+	printStmt, ok := program.Statements[1].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[1] is not ast.ExpressionStatement, got %T", program.Statements[1])
+	}
+
+	printCall, ok := printStmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("printStmt.Expression is not ast.CallExpression, got %T", printStmt.Expression)
+	}
+
+	if !testIdentifier(t, printCall.Function, "print") {
+		return
+	}
+
+	if len(printCall.Arguments) != 1 {
+		t.Fatalf("printCall.Arguments does not contain 1 argument, got %d", len(printCall.Arguments))
+	}
+
+	if !testIdentifier(t, printCall.Arguments[0], "i") {
+		return
+	}
+}
+
 func TestOperatorPrecedenceParsing(t *testing.T) {
 	tests := []struct {
 		input    string

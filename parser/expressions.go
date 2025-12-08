@@ -344,7 +344,10 @@ func (p *Parser) parseSuffixExpression(left ast.Expression) ast.Expression {
 		Left:     left,
 	}
 
-	p.nextToken()
+	if p.peekTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
+	}
+
 	return expression
 }
 
