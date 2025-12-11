@@ -161,10 +161,6 @@ func Format(timestamp int64, layout string) string {
 	return time.Format(layout)
 }
 
-func ResetTimezone() {
-	time.Local = localTimezone
-}
-
 func SetTimezone(timezone string) error {
 	if timezone == "" || strings.ToLower(timezone) == "local" {
 		ResetTimezone()
@@ -178,6 +174,10 @@ func SetTimezone(timezone string) error {
 
 	time.Local = loc
 	return nil
+}
+
+func ResetTimezone() {
+	time.Local = localTimezone
 }
 
 func StartDelayedTimer(callback func(), delay int64) *time.Timer {
@@ -251,9 +251,9 @@ func StartScheduledTimer(callback func(), interval int64) *time.Ticker {
 	return ticker
 }
 
-func StopScheduledTimer(ticker *time.Ticker) {
+func StopScheduledTimer(ticker *time.Ticker) bool {
 	if ticker == nil {
-		return
+		return false
 	}
 
 	id := fmt.Sprintf("%p", ticker)
@@ -262,11 +262,19 @@ func StopScheduledTimer(ticker *time.Ticker) {
 		for _, ft := range fakeTimers {
 			if ft.id == id && ft.isTicker {
 				ft.stopped = true
-				break
+				return true
 			}
 		}
+
+		return false
+	}
+
+	if _, exists := tickers[id]; !exists {
+		return false
 	}
 
 	ticker.Stop()
 	delete(tickers, id)
+
+	return true
 }
