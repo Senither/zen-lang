@@ -35,15 +35,6 @@ func FakeArgs(fakeArgs []string) {
 	os.Args = fakeArgs
 }
 
-func FakeEnv(key, value string) {
-	if envs == nil {
-		envs = make(map[string]string)
-	}
-
-	envs[key] = os.Getenv(key)
-	os.Setenv(key, value)
-}
-
 func Exit(code int) {
 	if faking {
 		fmt.Fprintf(os.Stdout, "INTERNAL_FAKE_PROCESS_EXIT(%d)\n", code)
@@ -51,6 +42,14 @@ func Exit(code int) {
 	}
 
 	os.Exit(code)
+}
+
+func FakeEnv(key, value string) {
+	if envs == nil {
+		envs = make(map[string]string)
+	}
+
+	envs[key] = value
 }
 
 func LookupEnv(key string) (string, bool) {

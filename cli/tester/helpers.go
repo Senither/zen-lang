@@ -136,6 +136,8 @@ func (tr *TestRunner) applyTestEnvVariables(test *Test) {
 		case "process.args":
 			process.FakeArgs(strings.Split(value, ","))
 		case "process.envs":
+			process.Fake()
+
 			envPairs := strings.Split(value, ";")
 			for _, pair := range envPairs {
 				kv := strings.SplitN(pair, "=", 2)
