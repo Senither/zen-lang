@@ -1,0 +1,17 @@
+--TEST--
+Can define a variable with the name of a global
+--FILE--
+var map = {"a": 1, "b": 2, "c": 3}
+
+println(arrays.sort(maps.keys(map)));
+
+var maps = {
+    "keys": func(a) {
+        return ["not", "the", "real", "keys"];
+    }
+}
+
+println(maps.keys(map));
+--EXPECT--
+[a, b, c]
+[not, the, real, keys]

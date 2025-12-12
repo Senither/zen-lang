@@ -732,11 +732,14 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 		)
 	}
 
+	symbol, symbolExists := c.symbolTable.Resolve(leftIdent.Value)
+	symbolIsBuiltin := ok && (symbol.Scope == BuiltinScope || symbol.Scope == GlobalBuiltinScope)
+
 	if inner {
 		c.emit(code.OpConstant, c.addConstant(&objects.String{Value: leftIdent.Value}))
 		c.emit(code.OpIndex)
-	} else {
-		c.compileInstruction(node.Left)
+	} else if symbolExists && !symbolIsBuiltin {
+		c.loadSymbol(symbol)
 	}
 
 	switch right := node.Right.(type) {
@@ -778,8 +781,14 @@ func (c *Compiler) compileChainExpression(node *ast.ChainExpression, inner bool)
 		}
 
 		if !inner {
-			symbol, ok := c.symbolTable.Resolve(fmt.Sprintf("%s.%s", node.Left, ident.Value))
-			if ok {
+			if symbolExists && !symbolIsBuiltin {
+				c.emit(code.OpConstant, c.addConstant(&objects.String{Value: ident.Value}))
+				c.emit(code.OpIndex)
+
+				return c.compileFunctionArguments(right)
+			}
+
+			if symbol, ok := c.symbolTable.Resolve(fmt.Sprintf("%s.%s", leftIdent.Value, ident.Value)); ok {
 				c.loadSymbol(symbol)
 
 				return c.compileFunctionArguments(right)

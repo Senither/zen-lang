@@ -703,6 +703,37 @@ func TestChainCallExpressions(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input: `
+				maps.keys({});
+				var maps = {'keys': func (a) { a }};
+				maps.keys({})
+			`,
+			expectedConstants: []interface{}{
+				"keys",
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpReturnValue),
+				},
+				"keys",
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpGetGlobalBuiltin, 512),
+				code.Make(code.OpHash, 0),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpClosure, 1, 0),
+				code.Make(code.OpHash, 2),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpIndex),
+				code.Make(code.OpHash, 0),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+			},
+		},
 	}
 
 	runCompilationTests(t, tests)

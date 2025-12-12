@@ -1,0 +1,17 @@
+--TEST--
+Can define a variable with the name of a builtin
+--FILE--
+println(len);
+
+var mut len = 5;
+println(len);
+
+len = func (a) {
+    return "Length of " + a;
+}
+
+println(len("Hello"));
+--EXPECT--
+builtin function
+5
+Length of Hello
