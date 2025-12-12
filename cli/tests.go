@@ -13,6 +13,7 @@ import (
 func init() {
 	testCommand.Flags().BoolP("verbose", "v", false, "Adds more verbose output to the test runner")
 	testCommand.Flags().BoolP("compact", "c", false, "Replace default result output with Compact format")
+	testCommand.Flags().BoolP("dirty", "d", false, "Runs test files that have uncommitted changes according to Git")
 	testCommand.Flags().StringP("filter", "f", "", "Filter tests to run by name (substring match)")
 	testCommand.Flags().StringP("engine", "e", "all", "Specifies which engine to run the tests against. Options are: all, eval, vm")
 
@@ -42,6 +43,7 @@ var testCommand = &cobra.Command{
 		filter, _ := cmd.Flags().GetString("filter")
 		verbose, _ := cmd.Flags().GetBool("verbose")
 		compact, _ := cmd.Flags().GetBool("compact")
+		dirty, _ := cmd.Flags().GetBool("dirty")
 
 		runner := tester.NewTestRunner(
 			absolutePath, testDirectory,
@@ -50,6 +52,7 @@ var testCommand = &cobra.Command{
 				Filter:  filter,
 				Verbose: verbose,
 				Compact: compact,
+				Dirty:   dirty,
 			},
 		)
 

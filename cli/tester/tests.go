@@ -3,6 +3,7 @@ package tester
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -29,6 +30,7 @@ type RunnerOptions struct {
 	Filter  string
 	Verbose bool
 	Compact bool
+	Dirty   bool
 }
 
 type EngineType int
@@ -184,7 +186,34 @@ func (tr *TestRunner) RunTests() error {
 
 func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
 	start := time.Now()
-	var relativeTestFiles []string
+
+	var testFiles []string
+	var err error
+
+	if tr.options.Dirty {
+		testFiles, err = tr.discoverDirtyTestFiles()
+	} else {
+		testFiles, err = tr.discoverAllTestFiles()
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	groupedTestFiles := make(map[string][]string)
+
+	for _, path := range testFiles {
+		dir := filepath.Dir(path)
+		groupedTestFiles[dir] = append(groupedTestFiles[dir], path)
+	}
+
+	tr.addTiming(FileDiscoveryTiming, time.Since(start))
+
+	return groupedTestFiles, nil
+}
+
+func (tr *TestRunner) discoverAllTestFiles() ([]string, error) {
+	var testFiles []string
 
 	err := filepath.Walk(tr.path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -193,7 +222,7 @@ func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
 
 		if !info.IsDir() && strings.HasSuffix(info.Name(), ".zent") {
 			absolutePath, _ := filepath.Abs(path)
-			relativeTestFiles = append(relativeTestFiles, absolutePath)
+			testFiles = append(testFiles, absolutePath)
 		}
 
 		return nil
@@ -203,16 +232,95 @@ func (tr *TestRunner) discoverAndGroupTestFiles() (map[string][]string, error) {
 		return nil, err
 	}
 
-	groupedTestFiles := make(map[string][]string)
+	return testFiles, nil
+}
 
-	for _, relativePath := range relativeTestFiles {
-		dir := filepath.Dir(relativePath)
-		groupedTestFiles[dir] = append(groupedTestFiles[dir], relativePath)
+func (tr *TestRunner) discoverDirtyTestFiles() ([]string, error) {
+	repoRoot, err := tr.getGitRepoRoot()
+	if err != nil {
+		return nil, err
 	}
 
-	tr.addTiming(FileDiscoveryTiming, time.Since(start))
+	cmd := exec.Command("git", "status", "--porcelain", "--", tr.directory)
+	cmd.Dir = repoRoot
 
-	return groupedTestFiles, nil
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to run git status: %w", err)
+	}
+
+	relativeDirectory, err := filepath.Rel(repoRoot, tr.directory)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get relative path: %w", err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	var testFiles []string
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		if len(line) < 3 {
+			continue
+		}
+
+		pathSpec := strings.TrimSpace(line[2:])
+		if pathSpec == "" {
+			continue
+		}
+
+		if idx := strings.Index(pathSpec, " -> "); idx != -1 {
+			pathSpec = pathSpec[idx+4:]
+		}
+
+		if !strings.HasPrefix(pathSpec, relativeDirectory) {
+			continue
+		}
+
+		if !strings.HasSuffix(pathSpec, ".zent") {
+			continue
+		}
+
+		absolutePath := filepath.Join(repoRoot, filepath.FromSlash(pathSpec))
+		testFiles = append(testFiles, absolutePath)
+	}
+
+	if len(testFiles) == 0 {
+		return []string{}, nil
+	}
+
+	unique := make(map[string]struct{})
+	var deduped []string
+	for _, file := range testFiles {
+		if _, ok := unique[file]; ok {
+			continue
+		}
+
+		unique[file] = struct{}{}
+		deduped = append(deduped, file)
+	}
+
+	return deduped, nil
+}
+
+func (tr *TestRunner) getGitRepoRoot() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	cmd.Dir = tr.directory
+
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to find git repository root: %w", err)
+	}
+
+	repoRoot := strings.TrimSpace(string(output))
+	if repoRoot == "" {
+		return "", fmt.Errorf("git repository root not found")
+	}
+
+	return repoRoot, nil
 }
 
 func (tr *TestRunner) runTestFile(fullPath, file string) {
