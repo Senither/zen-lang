@@ -362,9 +362,10 @@ func (tr *TestRunner) printFinishedTestSuiteSummary() {
 	if tr.options.Engine == AllEngines || tr.options.Engine == EvaluatorEngine {
 		fmt.Printf(" ---------------------------------------------\n")
 		fmt.Printf("          Evaluation: %s\n", tr.getTiming(EvaluatorExecutionTiming))
-		fmt.Printf("         Takes on avg %s per test\n",
-			tr.getTiming(EvaluatorExecutionTiming)/time.Duration(tr.getTestsFound(EvaluatorEngine)),
-		)
+		fmt.Printf("         Takes on avg %s per test\n", safeDivide(
+			tr.getTiming(EvaluatorExecutionTiming),
+			time.Duration(tr.getTestsFound(EvaluatorEngine)),
+		))
 	}
 
 	if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
@@ -373,9 +374,10 @@ func (tr *TestRunner) printFinishedTestSuiteSummary() {
 		fmt.Printf("       Serialization: %s\n", tr.getTiming(SerializationTiming))
 		fmt.Printf("     Deserialization: %s\n", tr.getTiming(DeserializationTiming))
 		fmt.Printf("          VM Runtime: %s\n", tr.getTiming(VMExecutionTiming))
-		fmt.Printf("         Takes on avg %s per test\n",
-			tr.getTiming(VMExecutionTiming)/time.Duration(tr.getTestsFound(EvaluatorEngine)*2),
-		)
+		fmt.Printf("         Takes on avg %s per test\n", safeDivide(
+			tr.getTiming(VMExecutionTiming),
+			time.Duration(tr.getTestsFound(EvaluatorEngine)*2),
+		))
 	}
 
 	fmt.Printf(" ---------------------------------------------\n")

@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/senither/zen-lang/cli/colors"
 	"github.com/senither/zen-lang/evaluator"
@@ -153,4 +154,12 @@ func (tr *TestRunner) applyTestEnvVariables(test *Test) {
 
 func (tr *TestRunner) clearTestEnvVariables() {
 	objects.RestoreObjectsState()
+}
+
+func safeDivide(num1, num2 time.Duration) time.Duration {
+	if num2 == 0 {
+		return time.Duration(0)
+	}
+
+	return num1 / num2
 }
