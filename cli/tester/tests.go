@@ -42,6 +42,7 @@ const (
 
 	_VirtualMachineEngineUnprocessed
 	_VirtualMachineEngineSerialized
+	_VirtualMachineEngineOptimized
 )
 
 func (et EngineType) GetTag() string {
@@ -56,6 +57,8 @@ func (et EngineType) GetTag() string {
 		return colors.Magenta + "VM-DIRECT"
 	case _VirtualMachineEngineSerialized:
 		return colors.Magenta + "VM-SERIAL"
+	case _VirtualMachineEngineOptimized:
+		return colors.Magenta + "VM-OPTIMIZED"
 
 	default:
 		return "unknown"
@@ -69,10 +72,15 @@ const (
 	ReadingFilesTiming       RunnerTimings = "Reading Files"
 	LexingAndParsingTiming   RunnerTimings = "Lexing + Parsing"
 	CompilationTiming        RunnerTimings = "Compilation"
+	OptimizationTiming       RunnerTimings = "Optimization"
 	SerializationTiming      RunnerTimings = "Serialization"
 	DeserializationTiming    RunnerTimings = "Deserialization"
 	EvaluatorExecutionTiming RunnerTimings = "Evaluator Execution"
 	VMExecutionTiming        RunnerTimings = "VM Execution"
+
+	// Optimization meta tracking
+	MetaOriginalSize     = "META:Size Original"
+	MetaOptimizationSize = "META:Size Optimized"
 )
 
 type Test struct {
@@ -478,7 +486,8 @@ func (tr *TestRunner) printFinishedTestSuiteSummary() {
 
 	if tr.options.Engine == AllEngines || tr.options.Engine == VirtualMachineEngine {
 		fmt.Printf(" ---------------------------------------------\n")
-		fmt.Printf("  Compile + Optimize: %s\n", tr.getTiming(CompilationTiming))
+		fmt.Printf("         Compilation: %s\n", tr.getTiming(CompilationTiming))
+		fmt.Printf("       Optimizations: %s\n", tr.getTiming(OptimizationTiming))
 		fmt.Printf("       Serialization: %s\n", tr.getTiming(SerializationTiming))
 		fmt.Printf("     Deserialization: %s\n", tr.getTiming(DeserializationTiming))
 		fmt.Printf("          VM Runtime: %s\n", tr.getTiming(VMExecutionTiming))

@@ -7,10 +7,13 @@ import (
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/optimizer"
 	"github.com/senither/zen-lang/vm"
 )
 
 func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file string) {
+	defer func() { recover() }()
+
 	tr.incrementTestsFound(VirtualMachineEngine)
 
 	start := time.Now()
@@ -53,6 +56,27 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 	}
 
 	tr.runCompiledVMTest(test, deserializedBytecode, fullPath, _VirtualMachineEngineSerialized)
+
+	start = time.Now()
+	optimized, err := optimizer.Optimize(deserializedBytecode)
+	timeTaken = time.Since(start)
+
+	tr.addTiming(OptimizationTiming, timeTaken)
+	test.metadata[OptimizationTiming] = timeTaken
+
+	if err != nil {
+		tr.printErrorStatusMessage(
+			test, fullPath,
+			"Failed to optimize bytecode: "+err.Error(),
+			_VirtualMachineEngineOptimized,
+		)
+		return
+	}
+
+	test.metadata[MetaOriginalSize] = len(deserializedBytecode.Instructions)
+	test.metadata[MetaOptimizationSize] = len(optimized.Instructions)
+
+	tr.runCompiledVMTest(test, optimized, fullPath, _VirtualMachineEngineOptimized)
 }
 
 func (tr *TestRunner) runCompiledVMTest(test *Test, bytecode *compiler.Bytecode, fullPath string, engineType EngineType) {

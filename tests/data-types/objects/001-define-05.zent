@@ -3,5 +3,7 @@ Can define an object with expression keys
 --FILE--
 var key = "someKey";
 var obj = {key: "some value"};
+
+obj;
 --EXPECT--
 {someKey: some value}

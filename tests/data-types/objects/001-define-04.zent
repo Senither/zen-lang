@@ -7,5 +7,7 @@ var obj = {
         "inner": "value",
     },
 };
+
+obj;
 --EXPECT--
 {obj: {inner: value}, first: some value}

@@ -2,5 +2,7 @@
 Can define mutable variable
 --FILE--
 var mut num = 1;
+
+num;
 --EXPECT--
 1
