@@ -73,8 +73,8 @@ func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file
 		return
 	}
 
-	test.metadata[MetaOriginalSize] = len(deserializedBytecode.Instructions)
-	test.metadata[MetaOptimizationSize] = len(optimized.Instructions)
+	test.metadata[MetaOriginalSize] = deserializedBytecode.OperationsCount()
+	test.metadata[MetaOptimizationSize] = optimized.OperationsCount()
 
 	tr.runCompiledVMTest(test, optimized, fullPath, _VirtualMachineEngineOptimized)
 }

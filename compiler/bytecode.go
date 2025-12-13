@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"strings"
 
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
@@ -36,6 +37,10 @@ func (c *Compiler) Bytecode() *Bytecode {
 		Instructions: c.currentInstructions(),
 		Constants:    c.constants,
 	}
+}
+
+func (b *Bytecode) OperationsCount() int {
+	return len(strings.Split(strings.TrimSpace(b.String()), "\n"))
 }
 
 func (b *Bytecode) String() string {
