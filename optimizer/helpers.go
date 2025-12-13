@@ -80,3 +80,26 @@ func findUsedGlobalsInInstructions(infos []InstructionInfo) map[int]struct{} {
 
 	return usedGlobals
 }
+
+func stackDelta(info *InstructionInfo) int {
+	switch info.Op {
+	case code.OpConstant, code.OpNull, code.OpTrue, code.OpFalse:
+		return 1
+	case code.OpArray, code.OpHash:
+		if len(info.Operands) == 0 {
+			return 0
+		}
+
+		return 1 - info.Operands[0]
+	case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpMod, code.OpIndex,
+		code.OpEqual, code.OpNotEqual, code.OpGreaterThan, code.OpGreaterThanOrEqual:
+		return -1
+	case code.OpMinus, code.OpBang:
+		return 0
+	case code.OpPop, code.OpSetGlobal, code.OpSetLocal:
+		return -1
+
+	default:
+		return 0
+	}
+}

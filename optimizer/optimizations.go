@@ -1,6 +1,8 @@
 package optimizer
 
-import "github.com/senither/zen-lang/code"
+import (
+	"github.com/senither/zen-lang/code"
+)
 
 func removeUnusedVariableInitializations(b *BytecodeOptimization) error {
 	for i := range b.Infos {
@@ -31,12 +33,44 @@ func removeUnusedVariableInitializations(b *BytecodeOptimization) error {
 					prev.Keep = false
 
 				case code.OpArray, code.OpHash:
-					// TODO: Remove all the instructions that build the array/hash
-					prev.Keep = false
+					deleteArrayOrHashInitializer(b, i-1)
 				}
 			}
 		}
 	}
 
 	return nil
+}
+
+func deleteArrayOrHashInitializer(b *BytecodeOptimization, idx int) {
+	info := &b.Infos[idx]
+	if len(info.Operands) == 0 {
+		return
+	}
+
+	targetDelta := info.Operands[0]
+	currentDelta := 0
+
+	toDelete := map[int]struct{}{idx: {}}
+	for i := idx - 1; i >= 0 && currentDelta < targetDelta; i-- {
+		inst := &b.Infos[i]
+		if !inst.Keep {
+			continue
+		}
+
+		if b.isJumpTarget(inst.OldOffset) {
+			return
+		}
+
+		currentDelta += stackDelta(inst)
+		toDelete[i] = struct{}{}
+	}
+
+	if currentDelta != targetDelta {
+		return
+	}
+
+	for i := range toDelete {
+		b.Infos[i].Keep = false
+	}
 }
