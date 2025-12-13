@@ -2,6 +2,7 @@ package optimizer
 
 import (
 	"github.com/senither/zen-lang/code"
+	"github.com/senither/zen-lang/objects"
 )
 
 func removeUnusedVariableInitializations(b *BytecodeOptimization) error {
@@ -34,6 +35,14 @@ func removeUnusedVariableInitializations(b *BytecodeOptimization) error {
 
 				case code.OpArray, code.OpHash:
 					deleteArrayOrHashInitializer(b, i-1)
+
+				case code.OpClosure:
+					if len(prev.Operands) == 0 {
+						continue
+					}
+
+					b.Constants[prev.Operands[0]] = objects.NULL
+					prev.Keep = false
 				}
 			}
 		}
