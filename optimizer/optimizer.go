@@ -71,11 +71,10 @@ func optimizeInstructions(
 	}
 
 	b := &BytecodeOptimization{
-		Infos:     infos,
-		Constants: constants,
-		Targets:   findJumpTargets(infos),
-		// TODO: Update the findUsedGlobals to also look for global usage in closures/compiled functions
-		UsedGlobals: findUsedGlobals(infos),
+		Infos:       infos,
+		Constants:   constants,
+		Targets:     findJumpTargets(infos),
+		UsedGlobals: findUsedGlobals(infos, constants),
 	}
 
 	err = b.runOptimizationPasses(
