@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/tokens"
 )
 
@@ -233,5 +234,66 @@ func WrapBuiltinFunctionInASTAwareMap(name string, fn *Builtin) HashPair {
 	return HashPair{
 		Key:   &String{Value: name},
 		Value: BuiltinToASTAwareBuiltin(fn),
+	}
+}
+
+func Copy(obj Object) Object {
+	switch original := obj.(type) {
+	case *String:
+		return &String{Value: original.Value}
+	case *Integer:
+		return &Integer{Value: original.Value}
+	case *Float:
+		return &Float{Value: original.Value}
+	case *Boolean:
+		return original
+	case *Null:
+		return NULL
+	case *Array:
+		copied := &Array{Elements: make([]Object, len(original.Elements))}
+
+		for i, element := range original.Elements {
+			copied.Elements[i] = Copy(element)
+		}
+
+		return copied
+	case *Hash:
+		copied := &Hash{Pairs: make(map[HashKey]HashPair)}
+
+		for key, pair := range original.Pairs {
+			copied.Pairs[key] = HashPair{
+				Key:   Copy(pair.Key),
+				Value: Copy(pair.Value),
+			}
+		}
+
+		return copied
+	case *CompiledFileImport:
+		copied := &CompiledFileImport{
+			Name:               original.Name,
+			OpcodeInstructions: make(code.Instructions, len(original.OpcodeInstructions)),
+			Constants:          make([]Object, len(original.Constants)),
+		}
+
+		copy(copied.OpcodeInstructions, original.OpcodeInstructions)
+		for i, constant := range original.Constants {
+			copied.Constants[i] = Copy(constant)
+		}
+
+		return copied
+	case *CompiledFunction:
+		copied := &CompiledFunction{
+			Name:               original.Name,
+			OpcodeInstructions: make(code.Instructions, len(original.OpcodeInstructions)),
+			NumLocals:          original.NumLocals,
+			NumParameters:      original.NumParameters,
+		}
+
+		copy(copied.OpcodeInstructions, original.OpcodeInstructions)
+
+		return copied
+
+	default:
+		panic(fmt.Sprintf("unsupported object type for copy: %s", obj.Type()))
 	}
 }

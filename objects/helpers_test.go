@@ -719,3 +719,143 @@ func TestWrapBuiltinFunctionInASTAwareMap(t *testing.T) {
 		)
 	}
 }
+
+func TestCopyNatives(t *testing.T) {
+	tests := []struct {
+		input Object
+	}{
+		{&Integer{Value: 10}},
+		{&Float{Value: 3.14}},
+		{&String{Value: "Hello, Zen"}},
+		{&String{Value: ""}},
+	}
+
+	for _, tt := range tests {
+		result := Copy(tt.input)
+
+		if !reflect.DeepEqual(result, tt.input) {
+			t.Errorf(
+				"Copy(%v) = %v, want a deep copy of input",
+				tt.input.Inspect(), result.Inspect(),
+			)
+		}
+
+		if fmt.Sprintf("%p", result) == fmt.Sprintf("%p", tt.input) {
+			t.Errorf(
+				"Copy(%v) returned the same reference, expected a different one",
+				tt.input.Inspect(),
+			)
+		}
+	}
+}
+
+func TestCopyStaticNatives(t *testing.T) {
+	tests := []struct {
+		input Object
+	}{
+		{TRUE},
+		{FALSE},
+		{NULL},
+	}
+
+	for _, tt := range tests {
+		result := Copy(tt.input)
+
+		if result != tt.input {
+			t.Errorf(
+				"Copy(%v) = %v, want the same reference as input",
+				tt.input.Inspect(), result.Inspect(),
+			)
+		}
+	}
+}
+
+func TestCopyComplexObjects(t *testing.T) {
+	arrayInput := &Array{
+		Elements: []Object{
+			&Integer{Value: 1},
+			&String{Value: "two"},
+			&Float{Value: 3.0},
+		},
+	}
+
+	result := Copy(arrayInput)
+
+	if !reflect.DeepEqual(result, arrayInput) {
+		t.Errorf(
+			"Copy(%v) = %v, want a deep copy of input",
+			arrayInput.Inspect(), result.Inspect(),
+		)
+	}
+
+	if fmt.Sprintf("%p", result) == fmt.Sprintf("%p", arrayInput) {
+		t.Errorf(
+			"Copy(%v) returned the same reference, expected a different one",
+			arrayInput.Inspect(),
+		)
+	}
+
+	arrayResult := result.(*Array)
+	for i, elem := range arrayInput.Elements {
+		if fmt.Sprintf("%p", arrayResult.Elements[i]) == fmt.Sprintf("%p", elem) {
+			t.Errorf(
+				"Copy(%v) element at index %d returned the same reference, expected a different one",
+				arrayInput.Inspect(), i,
+			)
+		}
+	}
+
+	hashInput := &Hash{
+		Pairs: map[HashKey]HashPair{
+			(&String{Value: "key1"}).HashKey(): {
+				Key:   &String{Value: "key1"},
+				Value: &Integer{Value: 1},
+			},
+			(&String{Value: "key2"}).HashKey(): {
+				Key:   &String{Value: "key2"},
+				Value: &String{Value: "value2"},
+			},
+		},
+	}
+
+	result = Copy(hashInput)
+
+	if !reflect.DeepEqual(result, hashInput) {
+		t.Errorf(
+			"Copy(%v) = %v, want a deep copy of input",
+			hashInput.Inspect(), result.Inspect(),
+		)
+	}
+
+	if fmt.Sprintf("%p", result) == fmt.Sprintf("%p", hashInput) {
+		t.Errorf(
+			"Copy(%v) returned the same reference, expected a different one",
+			hashInput.Inspect(),
+		)
+	}
+
+	hashResult := result.(*Hash)
+	for key, pair := range hashInput.Pairs {
+		resultPair, ok := hashResult.Pairs[key]
+		if !ok {
+			t.Errorf(
+				"Copy(%v) missing key %v in result",
+				hashInput.Inspect(), pair.Key.Inspect(),
+			)
+			continue
+		}
+		if fmt.Sprintf("%p", resultPair.Key) == fmt.Sprintf("%p", pair.Key) {
+			t.Errorf(
+				"Copy(%v) key %v returned the same reference, expected a different one",
+				hashInput.Inspect(), pair.Key.Inspect(),
+			)
+		}
+
+		if fmt.Sprintf("%p", resultPair.Value) == fmt.Sprintf("%p", pair.Value) {
+			t.Errorf(
+				"Copy(%v) value for key %v returned the same reference, expected a different one",
+				hashInput.Inspect(), pair.Key.Inspect(),
+			)
+		}
+	}
+}

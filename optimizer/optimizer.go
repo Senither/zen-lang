@@ -39,10 +39,14 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 	}
 
 	out := &compiler.Bytecode{
-		Constants:    b.Constants,
+		Constants:    make([]objects.Object, len(b.Constants)),
 		Instructions: make(code.Instructions, len(b.Instructions)),
 	}
+
 	copy(out.Instructions, b.Instructions)
+	for i, constant := range b.Constants {
+		out.Constants[i] = objects.Copy(constant)
+	}
 
 	for range rounds {
 		for _, constant := range out.Constants {
