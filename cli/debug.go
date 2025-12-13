@@ -11,6 +11,7 @@ import (
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/optimizer"
 	"github.com/senither/zen-lang/vm"
 	"github.com/spf13/cobra"
 )
@@ -18,6 +19,7 @@ import (
 func init() {
 	debugCommand.Flags().BoolP("verbose", "v", false, "Disables print capture and panic recoveries so failures show full stack traces.")
 	debugCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
+	debugCommand.Flags().BoolP("optimize", "o", false, "Add optimization steps to the compiled bytecode.")
 
 	rootCommand.AddCommand(debugCommand)
 }
@@ -30,6 +32,7 @@ var debugCommand = &cobra.Command{
 	Args:   cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose, _ := cmd.Flags().GetBool("verbose")
+		optimize, _ := cmd.Flags().GetBool("optimize")
 		serialize, _ := cmd.Flags().GetBool("serialize")
 
 		table, globals, constants := createCompilerParameters()
@@ -49,6 +52,17 @@ var debugCommand = &cobra.Command{
 			compilerErr := compile.Compile(program)
 			bytecode := compile.Bytecode()
 
+			var optimizedBytecode *compiler.Bytecode = nil
+			if optimize {
+				optimization, err := optimizer.Optimize(bytecode)
+				if err != nil {
+					fmt.Printf("Optimization Error: %s\n", err)
+					return
+				}
+
+				optimizedBytecode = optimization
+			}
+
 			fmt.Printf("=====[ Compiled Bytecode (Instructions: %d)]=====\n", len(bytecode.Instructions))
 			if compilerErr != nil {
 				fmt.Printf(colors.BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", colors.Reset, compilerErr.Error())
@@ -64,6 +78,23 @@ var debugCommand = &cobra.Command{
 					}
 
 					printBytecodeComparison(bytecode, deserializedBytecode)
+				}
+
+				if optimizedBytecode != nil {
+					fmt.Printf("=====[ Optimized Bytecode (Instructions: %d)]=====\n", len(optimizedBytecode.Instructions))
+
+					if !serialize {
+						fmt.Print(optimizedBytecode.String())
+					} else {
+						series := optimizedBytecode.Serialize()
+						deserializedBytecode, err := compiler.Deserialize(series)
+						if err != nil {
+							fmt.Printf("Deserialization Error: %s\n", err)
+							return
+						}
+
+						printBytecodeComparison(optimizedBytecode, deserializedBytecode)
+					}
 				}
 			}
 
@@ -93,6 +124,14 @@ var debugCommand = &cobra.Command{
 				vmDuration := time.Since(vmStart)
 
 				fmt.Printf("=====[ Virtual Machine Serializer Result (Time: %s) ]=====\n", vmDuration)
+				fmt.Println(vmRes)
+			}
+
+			if optimizedBytecode != nil {
+				vmStart := time.Now()
+				vmRes = runAndReturnVirtualMachineResult(verbose, optimizedBytecode, globals)
+				vmDuration := time.Since(vmStart)
+				fmt.Printf("=====[ Virtual Machine Optimized Result (Time: %s) ]=====\n", vmDuration)
 				fmt.Println(vmRes)
 			}
 
