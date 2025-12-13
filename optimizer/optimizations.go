@@ -5,6 +5,57 @@ import (
 	"github.com/senither/zen-lang/objects"
 )
 
+type instructionSwap struct {
+	Operands []int
+	Op       code.Opcode
+}
+
+func unfoldNonReassignedVariables(b *BytecodeOptimization) error {
+	swaps := map[int]instructionSwap{}
+
+	for i := range b.Infos {
+		if len(b.Infos[i].Operands) == 0 {
+			continue
+		}
+
+		switch b.Infos[i].Op {
+		case code.OpSetGlobal:
+			globalIdx := b.Infos[i].Operands[0]
+			_, reassigned := b.ChangedGlobals[globalIdx]
+			if reassigned {
+				continue
+			}
+
+			prev := &b.Infos[i-1]
+			if !prev.Keep {
+				continue
+			}
+
+			switch prev.Op {
+			case code.OpConstant, code.OpNull, code.OpTrue, code.OpFalse:
+				swaps[globalIdx] = instructionSwap{
+					Operands: prev.Operands,
+					Op:       prev.Op,
+				}
+
+				prev.Keep = false
+				b.Infos[i].Keep = false
+			}
+
+		case code.OpGetGlobal:
+			swap, ok := swaps[b.Infos[i].Operands[0]]
+			if !ok {
+				continue
+			}
+
+			b.Infos[i].Op = swap.Op
+			b.Infos[i].Operands = swap.Operands
+		}
+	}
+
+	return nil
+}
+
 func removeUnusedVariableInitializations(b *BytecodeOptimization) error {
 	for i := range b.Infos {
 		if b.Infos[i].Op != code.OpSetGlobal || len(b.Infos[i].Operands) == 0 {

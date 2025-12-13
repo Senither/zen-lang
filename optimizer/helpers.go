@@ -81,6 +81,66 @@ func findUsedGlobalsInInstructions(infos []InstructionInfo) map[int]struct{} {
 	return usedGlobals
 }
 
+func findChangedGlobals(infos []InstructionInfo, constants []objects.Object) map[int]struct{} {
+	globalUpdateCounters := findChangedGlobalsInInstructions(infos)
+
+	for _, constant := range constants {
+		fn, ok := constant.(*objects.CompiledFunction)
+		if !ok {
+			continue
+		}
+
+		ins := fn.Instructions()
+		if len(ins) == 0 {
+			continue
+		}
+
+		nestedInfos, err := decodeInstructions(ins)
+		if err != nil {
+			continue
+		}
+
+		nestedGlobals := findChangedGlobalsInInstructions(nestedInfos)
+		for idx := range nestedGlobals {
+			if _, exists := globalUpdateCounters[idx]; !exists {
+				globalUpdateCounters[idx] = 0
+			}
+
+			globalUpdateCounters[idx] += nestedGlobals[idx]
+		}
+	}
+
+	var globalUpdates map[int]struct{} = make(map[int]struct{})
+	for idx, count := range globalUpdateCounters {
+		if count > 1 {
+			globalUpdates[idx] = struct{}{}
+		}
+	}
+
+	return globalUpdates
+}
+
+func findChangedGlobalsInInstructions(infos []InstructionInfo) map[int]int {
+	globals := map[int]int{}
+
+	for _, info := range infos {
+		if len(info.Operands) == 0 {
+			continue
+		}
+
+		switch info.Op {
+		case code.OpSetGlobal:
+			if _, exists := globals[info.Operands[0]]; !exists {
+				globals[info.Operands[0]] = 0
+			}
+
+			globals[info.Operands[0]]++
+		}
+	}
+
+	return globals
+}
+
 func stackDelta(info *InstructionInfo) int {
 	switch info.Op {
 	case code.OpConstant, code.OpNull, code.OpTrue, code.OpFalse:

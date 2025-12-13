@@ -13,10 +13,11 @@ const DEFAULT_OPTIMIZATION_ROUNDS = 10
 type OptimizerPass func(b *BytecodeOptimization) error
 
 type BytecodeOptimization struct {
-	Infos       []InstructionInfo
-	Constants   []objects.Object
-	Targets     map[int]struct{}
-	UsedGlobals map[int]struct{}
+	Infos          []InstructionInfo
+	Constants      []objects.Object
+	Targets        map[int]struct{}
+	UsedGlobals    map[int]struct{}
+	ChangedGlobals map[int]struct{}
 }
 
 type InstructionInfo struct {
@@ -98,13 +99,15 @@ func optimizeInstructions(
 	}
 
 	b := &BytecodeOptimization{
-		Infos:       infos,
-		Constants:   constants,
-		Targets:     findJumpTargets(infos),
-		UsedGlobals: findUsedGlobals(infos, constants),
+		Infos:          infos,
+		Constants:      constants,
+		Targets:        findJumpTargets(infos),
+		UsedGlobals:    findUsedGlobals(infos, constants),
+		ChangedGlobals: findChangedGlobals(infos, constants),
 	}
 
 	err = b.runOptimizationPasses(
+		unfoldNonReassignedVariables,
 		removeUnusedVariableInitializations,
 	)
 
