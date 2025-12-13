@@ -45,12 +45,35 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 	copy(out.Instructions, b.Instructions)
 
 	for range rounds {
+		for _, constant := range out.Constants {
+			switch obj := constant.(type) {
+			case *objects.CompiledFunction:
+				optimized, _, err := optimizeInstructions(obj.OpcodeInstructions, out.Constants)
+				if err != nil {
+					return nil, err
+				}
+
+				obj.OpcodeInstructions = optimized
+			case *objects.CompiledFileImport:
+				optimized, constants, err := optimizeInstructions(obj.OpcodeInstructions, obj.Constants)
+				if err != nil {
+					return nil, err
+				}
+
+				obj.OpcodeInstructions = optimized
+				obj.Constants = constants
+			}
+		}
+
 		optimized, constants, err := optimizeInstructions(b.Instructions, out.Constants)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(optimized) == len(out.Instructions) && bytes.Equal(optimized, out.Instructions) {
+		if len(optimized) == len(out.Instructions) &&
+			bytes.Equal(optimized, out.Instructions) &&
+			len(constants) == len(out.Constants) &&
+			equalConstants(constants, out.Constants) {
 			break
 		}
 

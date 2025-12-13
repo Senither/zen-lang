@@ -1,9 +1,25 @@
 package optimizer
 
 import (
+	"fmt"
+
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
 )
+
+func equalConstants(a, b []objects.Object) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if fmt.Sprintf("%s", a[i]) != fmt.Sprintf("%s", b[i]) {
+			return false
+		}
+	}
+
+	return true
+}
 
 func findJumpTargets(infos []InstructionInfo) map[int]struct{} {
 	targets := map[int]struct{}{}
