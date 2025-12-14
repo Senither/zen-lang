@@ -1,6 +1,7 @@
 package tester
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -12,7 +13,23 @@ import (
 )
 
 func (tr *TestRunner) runVMTest(test *Test, program *ast.Program, fullPath, file string) {
-	defer func() { recover() }()
+	if !tr.options.Verbose {
+		defer func() {
+			if r := recover(); r != nil {
+				message := "Virtual machine panicked during execution:\n\t%s"
+
+				switch e := r.(type) {
+				case error:
+					message = fmt.Sprintf(message, e.Error())
+
+				default:
+					message = fmt.Sprintf(message, r)
+				}
+
+				tr.printErrorStatusMessage(test, fullPath, message, VirtualMachineEngine)
+			}
+		}()
+	}
 
 	tr.incrementTestsFound(VirtualMachineEngine)
 
