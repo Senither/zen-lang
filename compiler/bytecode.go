@@ -43,6 +43,23 @@ func (b *Bytecode) OperationsCount() int {
 	return len(strings.Split(strings.TrimSpace(b.String()), "\n"))
 }
 
+func (b *Bytecode) InstructionsCount() int {
+	count := len(b.Instructions)
+
+	for _, constant := range b.Constants {
+		if fn, ok := constant.(*objects.CompiledFunction); ok {
+			count += len(fn.OpcodeInstructions)
+		} else if cfi, ok := constant.(*objects.CompiledFileImport); ok {
+			count += (&Bytecode{
+				Instructions: cfi.OpcodeInstructions,
+				Constants:    cfi.Constants,
+			}).InstructionsCount()
+		}
+	}
+
+	return count
+}
+
 func (b *Bytecode) String() string {
 	return b.stringFromDepth(0)
 }

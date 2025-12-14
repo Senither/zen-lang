@@ -64,7 +64,7 @@ var debugCommand = &cobra.Command{
 			}
 
 			fmt.Printf("=====[ Compiled Bytecode (Ins: %d | Ops: %d)]=====\n",
-				len(bytecode.Instructions), bytecode.OperationsCount(),
+				bytecode.InstructionsCount(), bytecode.OperationsCount(),
 			)
 			if compilerErr != nil {
 				fmt.Printf(colors.BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", colors.Reset, compilerErr.Error())
@@ -84,7 +84,7 @@ var debugCommand = &cobra.Command{
 
 				if optimizedBytecode != nil {
 					fmt.Printf("=====[ Optimized Bytecode (Ins: %d | Ops: %d)]=====\n",
-						len(optimizedBytecode.Instructions), optimizedBytecode.OperationsCount(),
+						optimizedBytecode.InstructionsCount(), optimizedBytecode.OperationsCount(),
 					)
 
 					if !serialize {
