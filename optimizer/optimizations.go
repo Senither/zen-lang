@@ -47,15 +47,13 @@ func unfoldNonReassignedVariables(b *BytecodeOptimization) error {
 
 			if b.GlobalSwaps != nil {
 				if swap, ok := b.GlobalSwaps[globalIdx]; ok {
-					b.Infos[i].Op = swap.Op
-					b.Infos[i].Operands = swap.Operands
+					b.setInstructionInfoOpcode(i, swap.Op, swap.Operands)
 					continue
 				}
 			}
 
 			if swap, ok := swaps[globalIdx]; ok {
-				b.Infos[i].Op = swap.Op
-				b.Infos[i].Operands = swap.Operands
+				b.setInstructionInfoOpcode(i, swap.Op, swap.Operands)
 			}
 		}
 	}

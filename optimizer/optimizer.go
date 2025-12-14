@@ -223,3 +223,18 @@ func (b *BytecodeOptimization) isJumpTarget(offset int) bool {
 	_, exists := b.Targets[offset]
 	return exists
 }
+
+func (b *BytecodeOptimization) setInstructionInfoOpcode(idx int, op code.Opcode, operands []int) {
+	b.Infos[idx].Op = op
+	b.Infos[idx].Operands = operands
+
+	def, err := code.Lookup(op)
+	if err == nil {
+		width := 1
+		for _, w := range def.OperandWidths {
+			width += w
+		}
+
+		b.Infos[idx].Width = width
+	}
+}
