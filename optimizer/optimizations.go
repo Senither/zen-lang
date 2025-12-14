@@ -1,6 +1,8 @@
 package optimizer
 
 import (
+	"math"
+
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
 )
@@ -138,4 +140,67 @@ func deleteArrayOrHashInitializer(b *BytecodeOptimization, idx int) {
 	for i := range toDelete {
 		b.Infos[i].Keep = false
 	}
+}
+
+func preCalculateNumberConstants(b *BytecodeOptimization) error {
+	for i := range b.Infos {
+		switch b.Infos[i].Op {
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpPow, code.OpMod:
+			if !b.Infos[i].Keep {
+				continue
+			}
+
+			infos, ok := b.getKeptInstructionsInfo(i, 2)
+			if !ok {
+				continue
+			}
+
+			rightInfo := infos[0]
+			leftInfo := infos[1]
+
+			if leftInfo.Op != code.OpConstant || rightInfo.Op != code.OpConstant {
+				continue
+			}
+
+			leftConstIdx := leftInfo.Operands[0]
+			rightConstIdx := rightInfo.Operands[0]
+
+			rightObj, leftObj := b.Constants[rightConstIdx], b.Constants[leftConstIdx]
+			if !objects.IsNumber(leftObj.Type()) || !objects.IsNumber(rightObj.Type()) {
+				continue
+			}
+
+			leftVal := objects.UnwrapNumberValue(leftObj)
+			rightVal := objects.UnwrapNumberValue(rightObj)
+
+			var result float64
+
+			switch b.Infos[i].Op {
+			case code.OpAdd:
+				result = leftVal + rightVal
+			case code.OpSub:
+				result = leftVal - rightVal
+			case code.OpMul:
+				result = leftVal * rightVal
+			case code.OpDiv:
+				result = leftVal / rightVal
+			case code.OpPow:
+				result = math.Pow(leftVal, rightVal)
+			case code.OpMod:
+				result = math.Mod(leftVal, rightVal)
+			}
+
+			newConst := objects.WrapNumberValue(result, leftObj, rightObj)
+
+			newConstIdx := len(b.Constants)
+			b.Constants = append(b.Constants, newConst)
+
+			rightInfo.Keep = false
+			leftInfo.Keep = false
+
+			b.setInstructionInfoOpcode(i, code.OpConstant, []int{newConstIdx})
+		}
+	}
+
+	return nil
 }

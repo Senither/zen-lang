@@ -53,15 +53,16 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 	for range rounds {
 		globalSwaps := computeGlobalSwaps(out.Instructions, out.Constants)
 
-		for _, constant := range out.Constants {
-			switch obj := constant.(type) {
+		for i := 0; i < len(out.Constants); i++ {
+			switch obj := out.Constants[i].(type) {
 			case *objects.CompiledFunction:
-				optimized, _, err := optimizeInstructions(obj.OpcodeInstructions, out.Constants, globalSwaps)
+				optimized, constants, err := optimizeInstructions(obj.OpcodeInstructions, out.Constants, globalSwaps)
 				if err != nil {
 					return nil, err
 				}
 
 				obj.OpcodeInstructions = optimized
+				out.Constants = constants
 			case *objects.CompiledFileImport:
 				b, err := OptimizeRounds(&compiler.Bytecode{
 					Instructions: obj.OpcodeInstructions,
@@ -118,6 +119,7 @@ func optimizeInstructions(
 	err = b.runOptimizationPasses(
 		unfoldNonReassignedVariables,
 		removeUnusedVariableInitializations,
+		preCalculateNumberConstants,
 	)
 
 	if err != nil {
@@ -237,4 +239,20 @@ func (b *BytecodeOptimization) setInstructionInfoOpcode(idx int, op code.Opcode,
 
 		b.Infos[idx].Width = width
 	}
+}
+
+func (b *BytecodeOptimization) getKeptInstructionsInfo(startIdx, count int) ([]*InstructionInfo, bool) {
+	var keptInfos []*InstructionInfo
+
+	for i := startIdx - 1; i >= 0 && len(keptInfos) < count; i-- {
+		if b.Infos[i].Keep {
+			keptInfos = append(keptInfos, &b.Infos[i])
+		}
+	}
+
+	if len(keptInfos) < count {
+		return nil, false
+	}
+
+	return keptInfos, true
 }
