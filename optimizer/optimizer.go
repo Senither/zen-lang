@@ -18,6 +18,7 @@ type BytecodeOptimization struct {
 	Targets        map[int]struct{}
 	UsedGlobals    map[int]struct{}
 	ChangedGlobals map[int]struct{}
+	GlobalSwaps    map[int]instructionSwap
 }
 
 type InstructionInfo struct {
@@ -50,27 +51,33 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 	}
 
 	for range rounds {
+		globalSwaps := computeGlobalSwaps(out.Instructions, out.Constants)
+
 		for _, constant := range out.Constants {
 			switch obj := constant.(type) {
 			case *objects.CompiledFunction:
-				optimized, _, err := optimizeInstructions(obj.OpcodeInstructions, out.Constants)
+				optimized, _, err := optimizeInstructions(obj.OpcodeInstructions, out.Constants, globalSwaps)
 				if err != nil {
 					return nil, err
 				}
 
 				obj.OpcodeInstructions = optimized
 			case *objects.CompiledFileImport:
-				optimized, constants, err := optimizeInstructions(obj.OpcodeInstructions, obj.Constants)
+				b, err := OptimizeRounds(&compiler.Bytecode{
+					Instructions: obj.OpcodeInstructions,
+					Constants:    obj.Constants,
+				}, 1)
+
 				if err != nil {
 					return nil, err
 				}
 
-				obj.OpcodeInstructions = optimized
-				obj.Constants = constants
+				obj.OpcodeInstructions = b.Instructions
+				obj.Constants = b.Constants
 			}
 		}
 
-		optimized, constants, err := optimizeInstructions(b.Instructions, out.Constants)
+		optimized, constants, err := optimizeInstructions(b.Instructions, out.Constants, globalSwaps)
 		if err != nil {
 			return nil, err
 		}
@@ -92,6 +99,7 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 func optimizeInstructions(
 	instructions code.Instructions,
 	constants []objects.Object,
+	globalSwaps map[int]instructionSwap,
 ) (code.Instructions, []objects.Object, error) {
 	infos, err := decodeInstructions(instructions)
 	if err != nil {
@@ -104,6 +112,7 @@ func optimizeInstructions(
 		Targets:        findJumpTargets(infos),
 		UsedGlobals:    findUsedGlobals(infos, constants),
 		ChangedGlobals: findChangedGlobals(infos, constants),
+		GlobalSwaps:    globalSwaps,
 	}
 
 	err = b.runOptimizationPasses(

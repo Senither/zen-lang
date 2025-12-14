@@ -43,13 +43,20 @@ func unfoldNonReassignedVariables(b *BytecodeOptimization) error {
 			}
 
 		case code.OpGetGlobal:
-			swap, ok := swaps[b.Infos[i].Operands[0]]
-			if !ok {
-				continue
+			globalIdx := b.Infos[i].Operands[0]
+
+			if b.GlobalSwaps != nil {
+				if swap, ok := b.GlobalSwaps[globalIdx]; ok {
+					b.Infos[i].Op = swap.Op
+					b.Infos[i].Operands = swap.Operands
+					continue
+				}
 			}
 
-			b.Infos[i].Op = swap.Op
-			b.Infos[i].Operands = swap.Operands
+			if swap, ok := swaps[globalIdx]; ok {
+				b.Infos[i].Op = swap.Op
+				b.Infos[i].Operands = swap.Operands
+			}
 		}
 	}
 

@@ -129,7 +129,7 @@ func findChangedGlobalsInInstructions(infos []InstructionInfo) map[int]int {
 		}
 
 		switch info.Op {
-		case code.OpSetGlobal:
+		case code.OpSetGlobal, code.OpIncGlobal, code.OpDecGlobal:
 			if _, exists := globals[info.Operands[0]]; !exists {
 				globals[info.Operands[0]] = 0
 			}
@@ -139,6 +139,49 @@ func findChangedGlobalsInInstructions(infos []InstructionInfo) map[int]int {
 	}
 
 	return globals
+}
+
+func computeGlobalSwaps(instructions code.Instructions, constants []objects.Object) map[int]instructionSwap {
+	infos, err := decodeInstructions(instructions)
+	if err != nil {
+		return nil
+	}
+
+	changedGlobals := findChangedGlobals(infos, constants)
+	swaps := map[int]instructionSwap{}
+
+	for i := range infos {
+		if len(infos[i].Operands) == 0 {
+			continue
+		}
+
+		switch infos[i].Op {
+		case code.OpSetGlobal:
+			globalIdx := infos[i].Operands[0]
+			if _, reassigned := changedGlobals[globalIdx]; reassigned {
+				continue
+			}
+
+			if i == 0 {
+				continue
+			}
+
+			prev := &infos[i-1]
+			if len(prev.Operands) == 0 {
+				continue
+			}
+
+			switch prev.Op {
+			case code.OpConstant, code.OpNull, code.OpTrue, code.OpFalse:
+				swaps[globalIdx] = instructionSwap{
+					Operands: prev.Operands,
+					Op:       prev.Op,
+				}
+			}
+		}
+	}
+
+	return swaps
 }
 
 func stackDelta(info *InstructionInfo) int {
