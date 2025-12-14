@@ -77,7 +77,7 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 			}
 		}
 
-		optimized, constants, err := optimizeInstructions(b.Instructions, out.Constants, globalSwaps)
+		optimized, constants, err := optimizeInstructions(out.Instructions, out.Constants, globalSwaps)
 		if err != nil {
 			return nil, err
 		}
