@@ -205,6 +205,32 @@ func preCalculateNumberConstants(b *BytecodeOptimization) error {
 	return nil
 }
 
+func removeInstructionsAfterReturn(b *BytecodeOptimization) error {
+	foundReturn := false
+
+	for i := range b.Infos {
+		if !b.Infos[i].Keep {
+			continue
+		}
+
+		if foundReturn {
+			if b.isJumpTarget(b.Infos[i].OldOffset) {
+				foundReturn = false
+				continue
+			}
+
+			b.Infos[i].Keep = false
+			continue
+		}
+
+		if b.Infos[i].Op == code.OpReturnValue || b.Infos[i].Op == code.OpReturn {
+			foundReturn = true
+		}
+	}
+
+	return nil
+}
+
 func reorganizeConstantReferences(b *BytecodeOptimization) error {
 	used := map[int]struct{}{}
 
