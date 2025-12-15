@@ -204,3 +204,110 @@ func preCalculateNumberConstants(b *BytecodeOptimization) error {
 
 	return nil
 }
+
+func reorganizeConstantReferences(b *BytecodeOptimization) error {
+	used := map[int]struct{}{}
+
+	markUsedFromInfos := func(infos []InstructionInfo) {
+		for _, info := range infos {
+			switch info.Op {
+			case code.OpConstant, code.OpClosure, code.OpImport:
+				used[info.Operands[0]] = struct{}{}
+			}
+		}
+	}
+
+	markUsedFromInfos(b.Infos)
+
+	for _, c := range b.Constants {
+		fn, ok := c.(*objects.CompiledFunction)
+		if !ok {
+			continue
+		}
+
+		ins := fn.Instructions()
+		if len(ins) == 0 {
+			continue
+		}
+
+		nestedInfos, err := decodeInstructions(ins)
+		if err != nil {
+			continue
+		}
+
+		markUsedFromInfos(nestedInfos)
+	}
+
+	if len(used) == len(b.Constants) {
+		return nil
+	}
+
+	indexMap := make(map[int]int, len(used))
+	newConstants := make([]objects.Object, 0, len(used))
+
+	for oldIdx, c := range b.Constants {
+		if _, ok := used[oldIdx]; !ok {
+			continue
+		}
+
+		newIdx := len(newConstants)
+		indexMap[oldIdx] = newIdx
+		newConstants = append(newConstants, c)
+	}
+
+	for i := range b.Infos {
+		switch b.Infos[i].Op {
+		case code.OpConstant, code.OpClosure, code.OpImport:
+			oldIdx := b.Infos[i].Operands[0]
+
+			if newIdx, ok := indexMap[oldIdx]; ok {
+				b.Infos[i].Operands[0] = newIdx
+			}
+		}
+	}
+
+	for _, c := range b.Constants {
+		fn, ok := c.(*objects.CompiledFunction)
+		if !ok {
+			continue
+		}
+
+		ins := fn.Instructions()
+		if len(ins) == 0 {
+			continue
+		}
+
+		nestedInfos, err := decodeInstructions(ins)
+		if err != nil {
+			continue
+		}
+
+		changed := false
+		for i := range nestedInfos {
+			switch nestedInfos[i].Op {
+			case code.OpConstant, code.OpClosure, code.OpImport:
+				oldIdx := nestedInfos[i].Operands[0]
+
+				if newIdx, ok := indexMap[oldIdx]; ok {
+					nestedInfos[i].Operands[0] = newIdx
+					changed = true
+				}
+			}
+		}
+
+		if !changed {
+			continue
+		}
+
+		var newIns code.Instructions
+		for _, info := range nestedInfos {
+			newIns = append(newIns, code.Make(info.Op, info.Operands...)...)
+		}
+
+		fn.OpcodeInstructions = newIns
+	}
+
+	b.Constants = newConstants
+
+	return nil
+}

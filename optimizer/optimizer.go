@@ -94,6 +94,14 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 		out.Constants = constants
 	}
 
+	optimized, constants, err := optimizeConstantsReferences(out.Instructions, out.Constants)
+	if err != nil {
+		return nil, err
+	}
+
+	out.Instructions = optimized
+	out.Constants = constants
+
 	return out, nil
 }
 
@@ -127,6 +135,27 @@ func optimizeInstructions(
 	}
 
 	return b.reassembleBytecodeParameters()
+}
+
+func optimizeConstantsReferences(
+	instructions code.Instructions,
+	constants []objects.Object,
+) (code.Instructions, []objects.Object, error) {
+	infos, err := decodeInstructions(instructions)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	opt := &BytecodeOptimization{
+		Infos:     infos,
+		Constants: constants,
+	}
+
+	if err := opt.runOptimizationPasses(reorganizeConstantReferences); err != nil {
+		return nil, nil, err
+	}
+
+	return opt.reassembleBytecodeParameters()
 }
 
 func decodeInstructions(instructions code.Instructions) ([]InstructionInfo, error) {
