@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/senither/zen-lang/objects/process"
+	"github.com/senither/zen-lang/objects/timer"
 	"github.com/senither/zen-lang/tokens"
 )
 
@@ -234,4 +236,11 @@ func WrapBuiltinFunctionInASTAwareMap(name string, fn *Builtin) HashPair {
 		Key:   &String{Value: name},
 		Value: BuiltinToASTAwareBuiltin(fn),
 	}
+}
+
+func RestoreObjectsState() {
+	timer.ClearTimers()
+	timer.Unfreeze()
+
+	process.RestoreFromFake()
 }

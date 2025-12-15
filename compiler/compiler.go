@@ -1076,7 +1076,7 @@ func (c *Compiler) compileImportStatement(node *ast.ImportStatement) *objects.Er
 	}
 
 	filename := node.Path
-	if !strings.HasSuffix(filename, ".zen") {
+	if !strings.Contains(filepath.Base(filename), ".") {
 		filename += ".zen"
 	}
 
@@ -1094,11 +1094,27 @@ func (c *Compiler) compileImportStatement(node *ast.ImportStatement) *objects.Er
 	if err != nil {
 		return objects.NewError(
 			node.Token, c.file,
-			"failed to read imported file: %q",
-			path,
+			"failed to read imported file: %s",
+			node.Path,
 		)
 	}
 
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".zen":
+		return c.compileImportZenFileContents(node, content, path)
+	case ".json":
+		return c.compileImportJSONFileContents(node, content, path)
+
+	default:
+		return objects.NewError(
+			node.Token, c.file,
+			"unsupported import file type: %q",
+			path,
+		)
+	}
+}
+
+func (c *Compiler) compileImportZenFileContents(node *ast.ImportStatement, content []byte, path string) *objects.Error {
 	lexer := lexer.New(string(content))
 	parser := parser.New(lexer, path)
 
@@ -1127,15 +1143,74 @@ func (c *Compiler) compileImportStatement(node *ast.ImportStatement) *objects.Er
 	symbol := c.symbolTable.Define(name, false)
 
 	importCompiler := New(path)
-	err = importCompiler.Compile(program)
+	err := importCompiler.Compile(program)
 	if err != nil {
 		return objects.NativeErrorToErrorObject(err)
 	}
 
-	c.emit(code.OpImport, c.addConstant(&objects.CompiledFileImport{
+	c.emit(code.OpImport, c.addConstant(&objects.CompiledZenFileImport{
 		Name:               name,
 		Constants:          importCompiler.constants,
 		OpcodeInstructions: importCompiler.currentInstructions(),
+	}))
+
+	c.setSymbol(symbol)
+
+	return nil
+}
+
+func (c *Compiler) compileImportJSONFileContents(node *ast.ImportStatement, content []byte, path string) *objects.Error {
+	str := &objects.String{Value: string(content)}
+
+	parser := objects.GetGlobalBuiltinByName("json", "parse")
+	if parser == nil {
+		return objects.NewError(
+			node.Token, c.file,
+			"json.parse builtin not found",
+		)
+	}
+
+	stringify := objects.GetGlobalBuiltinByName("json", "stringify")
+	if stringify == nil {
+		return objects.NewError(
+			node.Token, c.file,
+			"json.stringify builtin not found",
+		)
+	}
+
+	jsonHash, err := parser.Fn(str)
+	if err != nil {
+		message := strings.TrimPrefix(err.Error(), "error in `parse`:")
+
+		return objects.NewError(
+			node.Token, c.file,
+			"failed to parse imported json file: %s",
+			strings.TrimSpace(message),
+		)
+	}
+
+	rs, err := stringify.Fn(jsonHash)
+	if err != nil {
+		return objects.NewError(
+			node.Token, c.file,
+			"failed to stringify imported json file: %s",
+			err.Error(),
+		)
+	}
+
+	var name string
+	if node.Aliased != nil {
+		name = node.Aliased.Value
+	} else {
+		cleanFilename := strings.TrimSuffix(path, ".json")
+		name = filepath.Base(cleanFilename)
+	}
+
+	symbol := c.symbolTable.Define(name, false)
+
+	c.emit(code.OpImport, c.addConstant(&objects.CompiledJsonFileImport{
+		Name: name,
+		Json: rs.(*objects.String).Value,
 	}))
 
 	c.setSymbol(symbol)

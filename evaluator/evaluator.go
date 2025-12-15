@@ -995,7 +995,7 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 	}
 
 	filename := node.Path
-	if !strings.HasSuffix(filename, ".zen") {
+	if !strings.Contains(filepath.Base(filename), ".") {
 		filename += ".zen"
 	}
 
@@ -1013,12 +1013,28 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 	if err != nil {
 		return objects.NewError(
 			node.Token, env.GetFileDescriptorContext(),
-			"failed to read imported file: %q",
-			path,
+			"failed to read imported file: %s",
+			node.Path,
 		)
 	}
 
-	lexer := lexer.New(string(content))
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".zen":
+		return evalImportZenFileContents(node, env, string(content), path)
+	case ".json":
+		return evalImportJSONFileContents(node, env, string(content), path)
+
+	default:
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"unsupported import file type: %q",
+			path,
+		)
+	}
+}
+
+func evalImportZenFileContents(node *ast.ImportStatement, env *objects.Environment, content, path string) objects.Object {
+	lexer := lexer.New(content)
 	parser := parser.New(lexer, path)
 
 	program := parser.ParseProgram()
@@ -1065,6 +1081,40 @@ func evalImportStatement(node *ast.ImportStatement, env *objects.Environment) ob
 	}
 
 	return objects.NULL
+}
+
+func evalImportJSONFileContents(node *ast.ImportStatement, env *objects.Environment, content, path string) objects.Object {
+	str := &objects.String{Value: string(content)}
+
+	parser := objects.GetGlobalBuiltinByName("json", "parse")
+	if parser == nil {
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"json.parse builtin not found",
+		)
+	}
+
+	result, err := parser.Fn(str)
+	if err != nil {
+		message := strings.TrimPrefix(err.Error(), "error in `parse`:")
+
+		return objects.NewError(
+			node.Token, env.GetFileDescriptorContext(),
+			"failed to parse imported json file: %s",
+			strings.TrimSpace(message),
+		)
+	}
+
+	if node.Aliased != nil {
+		env.SetImmutableForcefully(node.Aliased.Value, result)
+	} else {
+		cleanFilename := strings.TrimSuffix(path, ".json")
+		cleanFilename = filepath.Base(cleanFilename)
+
+		env.SetImmutableForcefully(cleanFilename, result)
+	}
+
+	return result
 }
 
 func evalExportStatement(node *ast.ExportStatement, env *objects.Environment) objects.Object {

@@ -1,0 +1,7 @@
+--TEST--
+It fails when trying to import non-existent file
+--FILE--
+import 'files/file-that-does-not-exist.zent';
+--ERROR--
+failed to read imported file: files/file-that-does-not-exist.zent
+    at <unknown>:1:1

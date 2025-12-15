@@ -1,5 +1,5 @@
 --TEST--
-Can import file with extension
+Can import file with explicit .zen extension
 --FILE--
 import './files/print.zen';
 --EXPECT--
