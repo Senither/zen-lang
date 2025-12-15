@@ -285,6 +285,10 @@ func (tr *TestRunner) discoverDirtyTestFiles() ([]string, error) {
 		}
 
 		absolutePath := filepath.Join(repoRoot, filepath.FromSlash(pathSpec))
+		if _, err := os.Stat(absolutePath); os.IsNotExist(err) {
+			continue
+		}
+
 		testFiles = append(testFiles, absolutePath)
 	}
 
