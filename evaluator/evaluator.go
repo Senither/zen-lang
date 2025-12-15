@@ -22,6 +22,13 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
 	case *ast.ReturnStatement:
+		if env.IsRoot() {
+			return objects.NewError(
+				node.Token, env.GetFileDescriptorContext(),
+				"return statement cannot be used outside of a function scope",
+			)
+		}
+
 		val := Eval(node.ReturnValue, env)
 		if objects.IsError(val) {
 			return val

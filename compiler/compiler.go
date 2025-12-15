@@ -304,6 +304,13 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 			return err
 		}
 	case *ast.ReturnStatement:
+		if c.scopeIndex == 0 {
+			return objects.NewError(
+				n.Token, c.file,
+				"return statement cannot be used outside of a function scope",
+			)
+		}
+
 		err := c.compileInstruction(n.ReturnValue)
 		if err != nil {
 			return err

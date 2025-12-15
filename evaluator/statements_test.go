@@ -14,10 +14,10 @@ func TestReturnStatements(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"return 10;", 10},
-		{"return 10; 9;", 10},
-		{"return 2 * 5; 9;", 10},
-		{"9; return 2 * 5; 9;", 10},
+		{"func test() { return 10; }; test()", 10},
+		{"func test() { return 10; 9; }; test()", 10},
+		{"func test() { return 2 * 5; 9; }; test()", 10},
+		{"func test() { 9; return 2 * 5; 9; }; test()", 10},
 	}
 
 	for _, tt := range tests {
@@ -30,7 +30,21 @@ func TestNestedReturnStatements(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"if (10 > 1) { if (10 > 1) { return 10; } return 1; }", 10},
+		{
+			`
+				func test() {
+					if (10 > 1) {
+						if (10 > 1) {
+							return 10;
+						}
+						return 1;
+					}
+				}
+
+				test()
+			`,
+			10,
+		},
 	}
 
 	for _, tt := range tests {
