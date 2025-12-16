@@ -4,9 +4,12 @@ tmp/
 *.log
 *.zen
 *.zenb
+*.json
 .vscode/
 TODO
 
 # Unignore .zen files within the /tests directory
 !tests/**/*.zen
 !tests/*.zen
+!tests/**/*.json
+!tests/*.json

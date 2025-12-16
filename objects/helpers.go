@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/senither/zen-lang/code"
+	"github.com/senither/zen-lang/objects/process"
+	"github.com/senither/zen-lang/objects/timer"
 	"github.com/senither/zen-lang/tokens"
 )
 
@@ -268,8 +270,8 @@ func Copy(obj Object) Object {
 		}
 
 		return copied
-	case *CompiledFileImport:
-		copied := &CompiledFileImport{
+	case *CompiledZenFileImport:
+		copied := &CompiledZenFileImport{
 			Name:               original.Name,
 			OpcodeInstructions: make(code.Instructions, len(original.OpcodeInstructions)),
 			Constants:          make([]Object, len(original.Constants)),
@@ -281,6 +283,11 @@ func Copy(obj Object) Object {
 		}
 
 		return copied
+	case *CompiledJsonFileImport:
+		return &CompiledJsonFileImport{
+			Name: original.Name,
+			Json: original.Json,
+		}
 	case *CompiledFunction:
 		copied := &CompiledFunction{
 			Name:               original.Name,
@@ -296,4 +303,11 @@ func Copy(obj Object) Object {
 	default:
 		panic(fmt.Sprintf("unsupported object type for copy: %s", obj.Type()))
 	}
+}
+
+func RestoreObjectsState() {
+	timer.ClearTimers()
+	timer.Unfreeze()
+
+	process.RestoreFromFake()
 }

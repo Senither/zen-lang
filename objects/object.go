@@ -10,8 +10,6 @@ import (
 
 	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/code"
-	"github.com/senither/zen-lang/objects/process"
-	"github.com/senither/zen-lang/objects/timer"
 )
 
 type ObjectType string
@@ -40,8 +38,9 @@ const (
 	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
 	CLOSURE_OBJ           = "CLOSURE"
 
-	IMPORTED_CLOSURE_OBJ     = "IMPORTED_CLOSURE"
-	COMPILED_FILE_IMPORT_OBJ = "COMPILED_FILE_IMPORT"
+	IMPORTED_CLOSURE_OBJ          = "IMPORTED_CLOSURE"
+	COMPILED_ZEN_FILE_IMPORT_OBJ  = "COMPILED_ZEN_FILE_IMPORT"
+	COMPILED_JSON_FILE_IMPORT_OBJ = "COMPILED_JSON_FILE_IMPORT"
 )
 
 type Object interface {
@@ -364,21 +363,24 @@ func (ic *ImportedClosure) Type() ObjectType                { return IMPORTED_CL
 func (ic *ImportedClosure) Inspect() string                 { return fmt.Sprintf("ImportedClosure[%p]", ic) }
 func (ic *ImportedClosure) Instructions() code.Instructions { return ic.Closure.Fn.OpcodeInstructions }
 
-type CompiledFileImport struct {
+type CompiledZenFileImport struct {
 	Name               string
 	OpcodeInstructions code.Instructions
 	Constants          []Object
 }
 
-func (cfi *CompiledFileImport) Type() ObjectType { return COMPILED_FILE_IMPORT_OBJ }
-func (cfi *CompiledFileImport) Inspect() string {
-	return fmt.Sprintf("CompiledFileImport[%s|%p]", cfi.Name, cfi)
+func (cfi *CompiledZenFileImport) Type() ObjectType { return COMPILED_ZEN_FILE_IMPORT_OBJ }
+func (cfi *CompiledZenFileImport) Inspect() string {
+	return fmt.Sprintf("CompiledZenFileImport[%s|%p]", cfi.Name, cfi)
 }
-func (cfi *CompiledFileImport) Instructions() code.Instructions { return cfi.OpcodeInstructions }
+func (cfi *CompiledZenFileImport) Instructions() code.Instructions { return cfi.OpcodeInstructions }
 
-func RestoreObjectsState() {
-	timer.ClearTimers()
-	timer.Unfreeze()
+type CompiledJsonFileImport struct {
+	Name string
+	Json string
+}
 
-	process.RestoreFromFake()
+func (cfi *CompiledJsonFileImport) Type() ObjectType { return COMPILED_JSON_FILE_IMPORT_OBJ }
+func (cfi *CompiledJsonFileImport) Inspect() string {
+	return fmt.Sprintf("CompiledJsonFileImport[%s|%p]", cfi.Name, cfi)
 }

@@ -113,7 +113,7 @@ func (vm *VM) EnableStdoutCapture() {
 }
 
 func (vm *VM) LastPoppedStackElem() objects.Object {
-	return vm.stack[vm.sp]
+	return vm.stack[max(vm.sp-1, 0)]
 }
 
 func (vm *VM) Run() error {
@@ -769,12 +769,19 @@ func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
 
 func (vm *VM) executeImport(idx int) error {
 	definition := vm.constants[idx]
-	if definition.Type() != objects.COMPILED_FILE_IMPORT_OBJ {
-		return fmt.Errorf("expected a compiled file import, got: %T", definition)
+
+	switch cfi := definition.(type) {
+	case *objects.CompiledZenFileImport:
+		return vm.executeImportZenFile(cfi)
+	case *objects.CompiledJsonFileImport:
+		return vm.executeImportJsonFile(cfi)
+
+	default:
+		return fmt.Errorf("unsupported import type: %T", definition)
 	}
+}
 
-	cfi := definition.(*objects.CompiledFileImport)
-
+func (vm *VM) executeImportZenFile(cfi *objects.CompiledZenFileImport) error {
 	childVM := NewWithSettings(&compiler.Bytecode{
 		Instructions: cfi.OpcodeInstructions,
 		Constants:    cfi.Constants,
@@ -804,6 +811,20 @@ func (vm *VM) executeImport(idx int) error {
 	}
 
 	return vm.push(&objects.ImmutableHash{Value: objects.Hash{Pairs: pairs}})
+}
+
+func (vm *VM) executeImportJsonFile(cfi *objects.CompiledJsonFileImport) error {
+	parser := objects.GetGlobalBuiltinByName("json", "parse")
+	if parser == nil {
+		panic("json.parse builtin not found while trying to import JSON file")
+	}
+
+	result, err := parser.Fn(&objects.String{Value: cfi.Json})
+	if err != nil {
+		return fmt.Errorf("failed to parse imported JSON file: %w", err)
+	}
+
+	return vm.push(result)
 }
 
 func (vm *VM) executeExport() error {

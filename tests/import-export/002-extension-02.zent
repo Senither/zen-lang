@@ -1,0 +1,6 @@
+--TEST--
+Can import file with explicit .zen extension without dot notation
+--FILE--
+import 'files/print.zen';
+--EXPECT--
+Hello, World!

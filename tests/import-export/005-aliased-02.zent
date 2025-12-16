@@ -1,0 +1,8 @@
+--TEST--
+Can rename imported JSON file
+--FILE--
+import './files/books.json' as somethingElse;
+
+println(somethingElse);
+--EXPECT--
+[{author: F. Scott Fitzgerald, year: 1925, title: The Great Gatsby}, {author: Harper Lee, year: 1960, title: To Kill a Mockingbird}, {author: George Orwell, year: 1949, title: 1984}]

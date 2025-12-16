@@ -1,0 +1,8 @@
+--TEST--
+Can define an array with trailing comma
+--FILE--
+var arr = [1, "two", null, 4.0,];
+
+arr;
+--EXPECT--
+[1, two, null, 4.000000]

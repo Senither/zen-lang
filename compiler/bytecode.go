@@ -23,8 +23,9 @@ const (
 	BOOLEAN_CONST = uint8(12)
 	STRING_CONST  = uint8(13)
 
-	COMPILED_FUNCTION_CONST = uint8(20)
-	COMPILED_IMPORT_CONST   = uint8(21)
+	COMPILED_FUNCTION_CONST    = uint8(20)
+	COMPILED_ZEN_IMPORT_CONST  = uint8(21)
+	COMPILED_JSON_IMPORT_CONST = uint8(22)
 )
 
 type Bytecode struct {
@@ -49,7 +50,7 @@ func (b *Bytecode) InstructionsCount() int {
 	for _, constant := range b.Constants {
 		if fn, ok := constant.(*objects.CompiledFunction); ok {
 			count += len(fn.OpcodeInstructions)
-		} else if cfi, ok := constant.(*objects.CompiledFileImport); ok {
+		} else if cfi, ok := constant.(*objects.CompiledZenFileImport); ok {
 			count += (&Bytecode{
 				Instructions: cfi.OpcodeInstructions,
 				Constants:    cfi.Constants,
@@ -90,7 +91,7 @@ func (b *Bytecode) stringFromDepth(depth int) string {
 			constIndex := binary.BigEndian.Uint16(b.Instructions[i+1 : i+3])
 			constant := b.Constants[constIndex]
 
-			if imp, ok := constant.(*objects.CompiledFileImport); ok {
+			if imp, ok := constant.(*objects.CompiledZenFileImport); ok {
 				nestedBytecode := &Bytecode{
 					Instructions: imp.OpcodeInstructions,
 					Constants:    imp.Constants,
@@ -187,13 +188,19 @@ func (b *Bytecode) writeSerializedConstants(buf *bytes.Buffer, write func(data a
 			write(uint32(v.NumParameters))
 			write(uint32(len(v.Instructions())))
 			write(v.Instructions())
-		case *objects.CompiledFileImport:
-			buf.WriteByte(COMPILED_IMPORT_CONST)
+		case *objects.CompiledZenFileImport:
+			buf.WriteByte(COMPILED_ZEN_IMPORT_CONST)
 			write(uint32(len(v.Name)))
 			buf.WriteString(v.Name)
 			write(uint32(len(v.Instructions())))
 			write(v.Instructions())
 			b.writeSerializedConstants(buf, write, v.Constants)
+		case *objects.CompiledJsonFileImport:
+			buf.WriteByte(COMPILED_JSON_IMPORT_CONST)
+			write(uint32(len(v.Name)))
+			buf.WriteString(v.Name)
+			write(uint32(len(v.Json)))
+			buf.WriteString(v.Json)
 
 		default:
 			panic(fmt.Sprintf("unsupported constant type: %T", v))
@@ -315,7 +322,7 @@ func deserializeConstants(r *bytes.Reader, read func(data any) error) ([]objects
 				NumParameters:      int(numParameters),
 				OpcodeInstructions: instructions,
 			})
-		case COMPILED_IMPORT_CONST:
+		case COMPILED_ZEN_IMPORT_CONST:
 			var nameLen uint32
 			if err := read(&nameLen); err != nil {
 				return nil, err
@@ -341,10 +348,35 @@ func deserializeConstants(r *bytes.Reader, read func(data any) error) ([]objects
 				return nil, err
 			}
 
-			consts = append(consts, &objects.CompiledFileImport{
+			consts = append(consts, &objects.CompiledZenFileImport{
 				Name:               string(nameBytes),
 				OpcodeInstructions: instructions,
 				Constants:          nestedConst,
+			})
+		case COMPILED_JSON_IMPORT_CONST:
+			var nameLen uint32
+			if err := read(&nameLen); err != nil {
+				return nil, err
+			}
+
+			nameBytes := make([]byte, nameLen)
+			if _, err := io.ReadFull(r, nameBytes); err != nil {
+				return nil, err
+			}
+
+			var jsonLen uint32
+			if err := read(&jsonLen); err != nil {
+				return nil, err
+			}
+
+			jsonBytes := make([]byte, jsonLen)
+			if _, err := io.ReadFull(r, jsonBytes); err != nil {
+				return nil, err
+			}
+
+			consts = append(consts, &objects.CompiledJsonFileImport{
+				Name: string(nameBytes),
+				Json: string(jsonBytes),
 			})
 
 		default:

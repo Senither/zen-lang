@@ -63,7 +63,7 @@ func OptimizeRounds(b *compiler.Bytecode, rounds int) (*compiler.Bytecode, error
 
 				obj.OpcodeInstructions = optimized
 				out.Constants = constants
-			case *objects.CompiledFileImport:
+			case *objects.CompiledZenFileImport:
 				b, err := OptimizeRounds(&compiler.Bytecode{
 					Instructions: obj.OpcodeInstructions,
 					Constants:    obj.Constants,

@@ -1,5 +1,5 @@
 --TEST--
-Can import and execute simple file
+Can import and execute simple file with dot notation
 --FILE--
 import './files/print';
 --EXPECT--

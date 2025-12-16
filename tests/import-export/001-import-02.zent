@@ -1,0 +1,6 @@
+--TEST--
+Can import and execute simple file without dot notation
+--FILE--
+import 'files/print';
+--EXPECT--
+Hello, World!

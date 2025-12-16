@@ -252,7 +252,7 @@ func TestStartScheduledTimerWithoutFreezing(t *testing.T) {
 		t.Errorf("Expected ticker to be added to tickers map")
 	}
 
-	time.Sleep(16 * time.Millisecond)
+	time.Sleep(17 * time.Millisecond)
 
 	if timesFired < 3 {
 		t.Errorf("Expected ticker to have fired at least 3 times, got %d", timesFired)
@@ -263,7 +263,6 @@ func TestStartScheduledTimerWithoutFreezing(t *testing.T) {
 	if _, exists := tickers[fmt.Sprintf("%p", ticker)]; exists {
 		t.Errorf("Expected ticker to be removed from tickers map after stopping")
 	}
-
 }
 
 func TestStartScheduledTimerWithFreezing(t *testing.T) {

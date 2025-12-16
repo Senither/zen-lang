@@ -1,0 +1,12 @@
+--TEST--
+Can reassign mutable variable inside conditional
+--FILE--
+var mut num = 5
+
+if (num > 3) {
+    num = 10
+}
+
+println(num)
+--EXPECT--
+10
