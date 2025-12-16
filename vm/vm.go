@@ -113,7 +113,7 @@ func (vm *VM) EnableStdoutCapture() {
 }
 
 func (vm *VM) LastPoppedStackElem() objects.Object {
-	return vm.stack[vm.sp]
+	return vm.stack[max(vm.sp-1, 0)]
 }
 
 func (vm *VM) Run() error {

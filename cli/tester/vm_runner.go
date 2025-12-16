@@ -79,7 +79,7 @@ func (tr *TestRunner) runCompiledVMTest(test *Test, bytecode *compiler.Bytecode,
 
 	if objects.IsError(result) {
 		tr.compareCompliedVMWithError(test, fullPath, result.Inspect(), engineType)
-	} else if result != nil && result.Type() != objects.NULL_OBJ {
+	} else if result != nil && len(vm.Stdout.ReadAll()) == 0 {
 		tr.compareCompliedVMWithExpected(test, fullPath, result, engineType)
 	} else {
 		tr.compareCompliedVMWithStandardOutput(test, fullPath, engineType)

@@ -939,6 +939,7 @@ func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) *
 
 		c.setSymbolKind(symbol, node.Right)
 		c.setSymbol(symbol)
+		c.loadSymbol(symbol)
 
 	case *ast.IndexExpression:
 		err := c.compileInstruction(left.Left)

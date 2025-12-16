@@ -1,0 +1,18 @@
+--TEST--
+Can reassign mutable variable within function inside conditional
+--FILE--
+func test(value) {
+    var mut num = value
+
+    if (value < 0) {
+        num = 0
+    }
+
+    println(num)
+}
+
+test(2)
+test(-2)
+--EXPECT--
+2
+0
