@@ -128,6 +128,7 @@ func optimizeInstructions(
 		unfoldNonReassignedVariables,
 		removeUnusedVariableInitializations,
 		preCalculateNumberConstants,
+		concatenateStringableConstants,
 		removeInstructionsAfterReturn,
 	)
 

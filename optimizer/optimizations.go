@@ -205,6 +205,73 @@ func preCalculateNumberConstants(b *BytecodeOptimization) error {
 	return nil
 }
 
+func concatenateStringableConstants(b *BytecodeOptimization) error {
+	isStringableMatch := func(a, b objects.Object) bool {
+		if a.Type() == objects.STRING_OBJ && objects.IsStringable(b) {
+			return true
+		}
+
+		if objects.IsStringable(a) && b.Type() == objects.STRING_OBJ {
+			return true
+		}
+
+		return false
+	}
+
+	for i := range b.Infos {
+		if !b.Infos[i].Keep {
+			continue
+		}
+
+		if b.Infos[i].Op != code.OpAdd {
+			continue
+		}
+
+		infos, ok := b.getKeptInstructionsInfo(i, 2)
+		if !ok {
+			continue
+		}
+
+		rightInfo := infos[0]
+		leftInfo := infos[1]
+		if leftInfo.Op != code.OpConstant || rightInfo.Op != code.OpConstant {
+			continue
+		}
+
+		leftConstIdx := leftInfo.Operands[0]
+		rightConstIdx := rightInfo.Operands[0]
+
+		rightObj, leftObj := b.Constants[rightConstIdx], b.Constants[leftConstIdx]
+
+		var newConst *objects.String = nil
+		if leftObj.Type() == objects.STRING_OBJ && rightObj.Type() == objects.STRING_OBJ {
+			leftStr := leftObj.(*objects.String).Value
+			rightStr := rightObj.(*objects.String).Value
+
+			newConst = &objects.String{Value: leftStr + rightStr}
+		} else if isStringableMatch(leftObj, rightObj) {
+			leftStr := objects.StringifyObject(leftObj)
+			rightStr := objects.StringifyObject(rightObj)
+
+			newConst = &objects.String{Value: leftStr + rightStr}
+		}
+
+		if newConst == nil {
+			continue
+		}
+
+		newConstIdx := len(b.Constants)
+		b.Constants = append(b.Constants, newConst)
+
+		rightInfo.Keep = false
+		leftInfo.Keep = false
+
+		b.setInstructionInfoOpcode(i, code.OpConstant, []int{newConstIdx})
+	}
+
+	return nil
+}
+
 func removeInstructionsAfterReturn(b *BytecodeOptimization) error {
 	foundReturn := false
 
