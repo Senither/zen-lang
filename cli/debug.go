@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -83,8 +84,16 @@ var debugCommand = &cobra.Command{
 				}
 
 				if optimizedBytecode != nil {
-					fmt.Printf("=====[ Optimized Bytecode (Ins: %d | Ops: %d)]=====\n",
-						optimizedBytecode.InstructionsCount(), optimizedBytecode.OperationsCount(),
+					reduction := float64(optimizedBytecode.InstructionsCount()) / float64(bytecode.InstructionsCount())
+					percentage := (1.0 - reduction) * 100.0
+					if math.IsNaN(percentage) || math.IsInf(percentage, 0) {
+						percentage = 0
+					}
+
+					fmt.Printf("=====[ Optimized Bytecode (Ins: %d | Ops: %d | Red: %.2f%%)]=====\n",
+						optimizedBytecode.InstructionsCount(),
+						optimizedBytecode.OperationsCount(),
+						percentage,
 					)
 
 					if !serialize {
