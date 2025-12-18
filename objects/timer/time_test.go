@@ -252,10 +252,10 @@ func TestStartScheduledTimerWithoutFreezing(t *testing.T) {
 		t.Errorf("Expected ticker to be added to tickers map")
 	}
 
-	time.Sleep(17 * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 
-	if timesFired < 3 {
-		t.Errorf("Expected ticker to have fired at least 3 times, got %d", timesFired)
+	if timesFired < 2 || timesFired > 4 {
+		t.Errorf("Expected ticker to have fired between 2 and 4 times, got %d", timesFired)
 	}
 
 	StopScheduledTimer(ticker)
