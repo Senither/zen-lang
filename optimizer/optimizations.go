@@ -327,6 +327,67 @@ func concatenateStringableConstants(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Removes OpGetGlobal and OpGetLocal instructions that immediately follow
+// an OpSetGlobal or OpSetLocal instruction, and are themselves followed
+// by an OpPop instruction so that the value is never used.
+//
+// This will only remove instructions that exists within the instruction set, if the
+// OpPop opcode is at the end of the instructions it will be kept as is since it
+// may be used to validate the VMs last popped element in tests or outputs.
+//
+// Example:
+//
+//	OpConstant 0   (value 42)
+//	OpSetLocal 0   (variable a)
+//	OpGetLocal 0   (variable a)
+//	OpPop
+//
+// -->
+//
+//	OpConstant 0   (value 42)
+//	OpSetLocal 0   (variable a)
+func removeUnusedGettersAfterAssignments(b *BytecodeOptimization) error {
+	for i := range b.Infos {
+		if !b.Infos[i].Keep {
+			continue
+		}
+
+		switch b.Infos[i].Op {
+		case code.OpSetLocal, code.OpSetGlobal:
+			if i+3 >= len(b.Infos) {
+				continue
+			}
+
+			getterInfo := &b.Infos[i+1]
+			popInfo := &b.Infos[i+2]
+			if !getterInfo.Keep || !popInfo.Keep {
+				continue
+			}
+
+			var expectedGetter code.Opcode
+			switch b.Infos[i].Op {
+			case code.OpSetLocal:
+				expectedGetter = code.OpGetLocal
+			case code.OpSetGlobal:
+				expectedGetter = code.OpGetGlobal
+			}
+
+			if getterInfo.Op != expectedGetter || getterInfo.Operands[0] != b.Infos[i].Operands[0] {
+				continue
+			}
+
+			if popInfo.Op != code.OpPop {
+				continue
+			}
+
+			getterInfo.Keep = false
+			popInfo.Keep = false
+		}
+	}
+
+	return nil
+}
+
 // Calls built-in functions if all the parameters are known constants, and stores the result as a new constant.
 // Some builtins are skipped because they may have side effects or are non-deterministic.
 //
