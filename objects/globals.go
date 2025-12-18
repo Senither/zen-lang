@@ -105,7 +105,8 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalArraysPop},
 			},
 			{
-				Name: "filter",
+				Name:             "filter",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(ARRAY_OBJ),
 					NewRequiredArgument(FUNCTION_OBJ, CLOSURE_OBJ),
@@ -129,7 +130,8 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalArraysFlatten},
 			},
 			{
-				Name: "first",
+				Name:             "first",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(ARRAY_OBJ),
 					NewRequiredArgument(FUNCTION_OBJ, CLOSURE_OBJ),
@@ -137,7 +139,8 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalArraysFirst},
 			},
 			{
-				Name: "sort",
+				Name:             "sort",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(ARRAY_OBJ),
 					NewOptionalArgument(FUNCTION_OBJ, CLOSURE_OBJ),
@@ -172,7 +175,8 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalMapsHas},
 			},
 			{
-				Name: "each",
+				Name:             "each",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(HASH_OBJ),
 					NewRequiredArgument(FUNCTION_OBJ, CLOSURE_OBJ),
@@ -250,11 +254,13 @@ var Globals = []struct {
 		Name: "time",
 		Builtins: []*BuiltinDefinition{
 			{
-				Name:    "now",
-				Builtin: &Builtin{Fn: globalTimeNow},
+				Name:             "now",
+				OmitOptimization: true,
+				Builtin:          &Builtin{Fn: globalTimeNow},
 			},
 			{
-				Name: "sleep",
+				Name:             "sleep",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(INTEGER_OBJ, FLOAT_OBJ),
 				},
@@ -269,7 +275,8 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalTimeParse},
 			},
 			{
-				Name: "format",
+				Name:             "format",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(INTEGER_OBJ, FLOAT_OBJ),
 					NewRequiredArgument(STRING_OBJ),
@@ -277,14 +284,16 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalTimeFormat},
 			},
 			{
-				Name: "timezone",
+				Name:             "timezone",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(STRING_OBJ),
 				},
 				Builtin: &Builtin{Fn: globalTimeTimezone},
 			},
 			{
-				Name: "delayTimer",
+				Name:             "delayTimer",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(FUNCTION_OBJ, CLOSURE_OBJ),
 					NewRequiredArgument(INTEGER_OBJ),
@@ -292,7 +301,8 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalTimeDelayTimer},
 			},
 			{
-				Name: "scheduleTimer",
+				Name:             "scheduleTimer",
+				OmitOptimization: true,
 				Schema: BuiltinSchema{
 					NewRequiredArgument(FUNCTION_OBJ, CLOSURE_OBJ),
 					NewRequiredArgument(INTEGER_OBJ),
@@ -305,18 +315,21 @@ var Globals = []struct {
 		Name: "process",
 		Builtins: []*BuiltinDefinition{
 			{
-				Name:    "exit",
-				Schema:  BuiltinSchema{NewRequiredArgument(INTEGER_OBJ)},
-				Builtin: &Builtin{Fn: globalProcessExit},
+				Name:             "exit",
+				OmitOptimization: true,
+				Schema:           BuiltinSchema{NewRequiredArgument(INTEGER_OBJ)},
+				Builtin:          &Builtin{Fn: globalProcessExit},
 			},
 			{
-				Name:    "argv",
-				Builtin: &Builtin{Fn: globalProcessArgv},
+				Name:             "argv",
+				OmitOptimization: true,
+				Builtin:          &Builtin{Fn: globalProcessArgv},
 			},
 			{
-				Name:    "env",
-				Schema:  BuiltinSchema{NewRequiredArgument(STRING_OBJ)},
-				Builtin: &Builtin{Fn: globalProcessEnv},
+				Name:             "env",
+				OmitOptimization: true,
+				Schema:           BuiltinSchema{NewRequiredArgument(STRING_OBJ)},
+				Builtin:          &Builtin{Fn: globalProcessEnv},
 			},
 		},
 	},
@@ -324,14 +337,16 @@ var Globals = []struct {
 		Name: "json",
 		Builtins: []*BuiltinDefinition{
 			{
-				Name:    "parse",
-				Schema:  BuiltinSchema{NewRequiredArgument(STRING_OBJ)},
-				Builtin: &Builtin{Fn: globalJSONParse},
+				Name:             "parse",
+				OmitOptimization: true,
+				Schema:           BuiltinSchema{NewRequiredArgument(STRING_OBJ)},
+				Builtin:          &Builtin{Fn: globalJSONParse},
 			},
 			{
-				Name:    "stringify",
-				Schema:  BuiltinSchema{NewRequiredArgument(HASH_OBJ, ARRAY_OBJ)},
-				Builtin: &Builtin{Fn: globalJSONStringify},
+				Name:             "stringify",
+				OmitOptimization: true,
+				Schema:           BuiltinSchema{NewRequiredArgument(HASH_OBJ, ARRAY_OBJ)},
+				Builtin:          &Builtin{Fn: globalJSONStringify},
 			},
 		},
 	},

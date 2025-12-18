@@ -291,9 +291,10 @@ func (f *Function) Inspect() string {
 
 type BuiltinFunction func(args ...Object) (Object, error)
 type BuiltinDefinition struct {
-	Name    string
-	Schema  BuiltinSchema
-	Builtin *Builtin
+	Name             string
+	Schema           BuiltinSchema
+	OmitOptimization bool
+	Builtin          *Builtin
 }
 
 type BuiltinArgument struct {

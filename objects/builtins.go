@@ -9,7 +9,8 @@ import (
 
 var Builtins = []BuiltinDefinition{
 	{
-		Name: "print",
+		Name:             "print",
+		OmitOptimization: true,
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			for _, arg := range args {
 				fmt.Fprint(os.Stdout, arg.Inspect())
@@ -19,7 +20,8 @@ var Builtins = []BuiltinDefinition{
 		}},
 	},
 	{
-		Name: "println",
+		Name:             "println",
+		OmitOptimization: true,
 		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
 			for _, arg := range args {
 				fmt.Fprint(os.Stdout, arg.Inspect(), "\n")

@@ -272,6 +272,74 @@ func concatenateStringableConstants(b *BytecodeOptimization) error {
 	return nil
 }
 
+func callBuiltinsWithKnownConstantParameters(b *BytecodeOptimization) error {
+MAIN_LOOP:
+	for i := range b.Infos {
+		if !b.Infos[i].Keep {
+			continue
+		}
+
+		if b.Infos[i].Op != code.OpCall {
+			continue
+		}
+
+		infos, ok := b.getKeptInstructionsInfo(i, b.Infos[i].Operands[0]+1)
+		if !ok {
+			continue
+		}
+
+		for j := 0; j < len(infos)-1; j++ {
+			if infos[j].Op != code.OpConstant {
+				continue MAIN_LOOP
+			}
+		}
+
+		builtinInfo := infos[len(infos)-1]
+		if builtinInfo.Op != code.OpGetBuiltin && builtinInfo.Op != code.OpGetGlobalBuiltin {
+			continue
+		}
+
+		var definition *objects.BuiltinDefinition
+		builtinIdx := builtinInfo.Operands[0]
+
+		switch builtinInfo.Op {
+		case code.OpGetBuiltin:
+			definition = &objects.Builtins[builtinIdx]
+		case code.OpGetGlobalBuiltin:
+			scopeIdx := uint8(builtinIdx >> 8)
+			builtIdx := uint8(builtinIdx & 0xFF)
+
+			definition = objects.Globals[scopeIdx].Builtins[builtIdx]
+		}
+
+		if definition == nil || definition.OmitOptimization {
+			continue
+		}
+
+		args := make([]objects.Object, len(infos)-1)
+		for j := 0; j < len(infos)-1; j++ {
+			constIdx := infos[j].Operands[0]
+			args[len(infos)-2-j] = b.Constants[constIdx]
+		}
+
+		result, err := definition.Builtin.Fn(args...)
+		if err != nil {
+			continue
+		}
+
+		newConstIdx := len(b.Constants)
+		b.Constants = append(b.Constants, result)
+
+		for j := range infos {
+			infos[j].Keep = false
+		}
+
+		b.setInstructionInfoOpcode(i, code.OpConstant, []int{newConstIdx})
+	}
+
+	return nil
+}
+
 func removeInstructionsAfterReturn(b *BytecodeOptimization) error {
 	foundReturn := false
 
