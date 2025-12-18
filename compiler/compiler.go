@@ -495,7 +495,7 @@ func (c *Compiler) removeLastPop() {
 
 func (c *Compiler) shouldPopExpression(expr ast.Expression) bool {
 	switch expr := expr.(type) {
-	case *ast.AssignmentExpression, *ast.WhileExpression:
+	case *ast.WhileExpression:
 		return false
 	case *ast.ChainExpression:
 		if _, ok := expr.Right.(*ast.AssignmentExpression); ok {
@@ -947,7 +947,6 @@ func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) *
 		c.setSymbolKind(symbol, node.Right)
 		c.setSymbol(symbol)
 		c.loadSymbol(symbol)
-
 	case *ast.IndexExpression:
 		err := c.compileInstruction(left.Left)
 		if err != nil {
