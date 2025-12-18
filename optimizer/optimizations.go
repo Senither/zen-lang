@@ -12,6 +12,20 @@ type instructionSwap struct {
 	Op       code.Opcode
 }
 
+// Removes initial OpSetGlobal instructions that are never reassigned a new value,
+// and replaces all OpGetGlobal references with the OpConstant equivalent.
+//
+// Example:
+//
+//	OpConstant 0   (value 42)
+//	OpSetGlobal 0  (variable a)
+//	...
+//	OpGetGlobal 0  (variable a)
+//
+// -->
+//
+//	...
+//	OpConstant 0   (value 42)
 func unfoldNonReassignedVariables(b *BytecodeOptimization) error {
 	swaps := map[int]instructionSwap{}
 
@@ -63,6 +77,20 @@ func unfoldNonReassignedVariables(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Removes OpSetGlobal instructions if the global variable is never referenced anywhere, including
+// the initialization of the value being stored in the global (array or hash construction).
+//
+// Example:
+//
+//	OpConstant 0   (value 42)
+//	OpConstant 1   (value "hello")
+//	OpConstant 2   (value "world")
+//	OpArray 3      (3 elements)
+//	OpSetGlobal 0  (variable a)
+//
+// -->
+//
+//	(nothing)
 func removeUnusedVariableInitializations(b *BytecodeOptimization) error {
 	for i := range b.Infos {
 		if b.Infos[i].Op != code.OpSetGlobal || len(b.Infos[i].Operands) == 0 {
@@ -142,6 +170,20 @@ func deleteArrayOrHashInitializer(b *BytecodeOptimization, idx int) {
 	}
 }
 
+// Pre-calculates operations that only involve constant values that are numbers, such as addition,
+// subtraction, multiplication, division, etc. The result is stored as a new constant.
+//
+// Example:
+//
+//	OpConstant 0   (value 9)
+//	OpConstant 1   (value 10)
+//	OpConstant 2   (value 42)
+//	OpMul          (multiplies top two constants)
+//	OpAdd          (adds top two constants)
+//
+// -->
+//
+//	OpConstant 0   (value 429)
 func preCalculateNumberConstants(b *BytecodeOptimization) error {
 	for i := range b.Infos {
 		switch b.Infos[i].Op {
@@ -205,6 +247,19 @@ func preCalculateNumberConstants(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Concatenates stringable constants by using the objects.StringifyObject function,
+// and then storing the result as a new constant, at least one of the two
+// constants must be a string object to perform the optimization.
+//
+// Example:
+//
+//	OpConstant 0   (value "Value=")
+//	OpConstant 1   (value 42)
+//	OpAdd          (concatenates top two constants)
+//
+// -->
+//
+//	OpConstant 0   (value "Value=42")
 func concatenateStringableConstants(b *BytecodeOptimization) error {
 	isStringableMatch := func(a, b objects.Object) bool {
 		if a.Type() == objects.STRING_OBJ && objects.IsStringable(b) {
@@ -272,6 +327,18 @@ func concatenateStringableConstants(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Calls built-in functions if all the parameters are known constants, and stores the result as a new constant.
+// Some builtins are skipped because they may have side effects or are non-deterministic.
+//
+// Example:
+//
+//	OpGetBuiltin 2  (builtin "len")
+//	OpConstant 0    (value "hello")
+//	OpCall 1        (1 argument)
+//
+// -->
+//
+//	OpConstant 0    (value 5)
 func callBuiltinsWithKnownConstantParameters(b *BytecodeOptimization) error {
 MAIN_LOOP:
 	for i := range b.Infos {
@@ -340,6 +407,20 @@ MAIN_LOOP:
 	return nil
 }
 
+// Removes instructions that are unreachable because they are after a return statement.
+//
+// Example:
+//
+//	...
+//	OpConstant 0   (value 42)
+//	OpReturnValue
+//	OpConstant 1   (value "unreachable")
+//
+// -->
+//
+//	...
+//	OpConstant 0   (value 42)
+//	OpReturnValue
 func removeInstructionsAfterReturn(b *BytecodeOptimization) error {
 	foundReturn := false
 
@@ -366,6 +447,19 @@ func removeInstructionsAfterReturn(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Reorganizes constant references to remove unused constants and
+// re-index the used ones to a more compact range.
+//
+// Example:
+//
+//	OpConstant 7   (value 42)
+//	OpConstant 19  (value "hello")
+//
+// -->
+//
+//	...
+//	OpConstant 0   (value 42)
+//	OpConstant 1   (value "hello")
 func reorganizeConstantReferences(b *BytecodeOptimization) error {
 	used := map[int]struct{}{}
 
