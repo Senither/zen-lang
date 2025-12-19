@@ -130,6 +130,7 @@ func optimizeInstructions(
 		preCalculateNumberConstants,
 		concatenateStringableConstants,
 		removeUnusedGettersAfterAssignments,
+		replaceIncrementsAndDecrementsWithDirectOperations,
 		callBuiltinsWithKnownConstantParameters,
 		removeInstructionsAfterReturn,
 	)

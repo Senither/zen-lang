@@ -388,6 +388,120 @@ func removeUnusedGettersAfterAssignments(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Replaces increments and decrements of a variable by 1 using OpConstant and OpAdd/Sub
+// with a direct increment or decrement opcode.
+//
+// Example:
+//
+//	OpGetGlobal 0   (variable a)
+//	OpConstant 0    (value 1)
+//	OpAdd
+//	OpSetGlobal 0   (variable a)
+//
+// -->
+//
+//	OpIncGlobal 0   (variable a)
+func replaceIncrementsAndDecrementsWithDirectOperations(b *BytecodeOptimization) error {
+	for i := range b.Infos {
+		if !b.Infos[i].Keep {
+			continue
+		}
+
+		switch b.Infos[i].Op {
+		case code.OpAdd, code.OpSub:
+			if i+1 >= len(b.Infos) {
+				continue
+			}
+
+			var expectedGetter code.Opcode
+			switch b.Infos[i+1].Op {
+			case code.OpSetLocal:
+				expectedGetter = code.OpGetLocal
+			case code.OpSetGlobal:
+				expectedGetter = code.OpGetGlobal
+
+			default:
+				continue
+			}
+
+			if !b.Infos[i+1].Keep || len(b.Infos[i+1].Operands) == 0 {
+				continue
+			}
+
+			infos, ok := b.getKeptInstructionsInfo(i, 2)
+			if !ok {
+				continue
+			}
+
+			rightInfo := infos[0]
+			leftInfo := infos[1]
+			if len(leftInfo.Operands) == 0 || len(rightInfo.Operands) == 0 {
+				continue
+			}
+
+			var constInfo *InstructionInfo
+			var getterInfo *InstructionInfo
+			if leftInfo.Op == code.OpConstant && rightInfo.Op == expectedGetter {
+				constInfo = leftInfo
+				getterInfo = rightInfo
+			} else if rightInfo.Op == code.OpConstant && leftInfo.Op == expectedGetter {
+				constInfo = rightInfo
+				getterInfo = leftInfo
+			} else {
+				continue
+			}
+
+			if b.Infos[i+1].Operands[0] != getterInfo.Operands[0] {
+				continue
+			}
+
+			constIdx := constInfo.Operands[0]
+			if constIdx < 0 || constIdx >= len(b.Constants) {
+				continue
+			}
+
+			constObj := b.Constants[constIdx]
+			if constObj.Type() != objects.INTEGER_OBJ {
+				continue
+			}
+
+			if constObj.(*objects.Integer).Value != 1 {
+				continue
+			}
+
+			var replacementOp code.Opcode
+			switch b.Infos[i].Op {
+			case code.OpAdd:
+				switch expectedGetter {
+				case code.OpGetLocal:
+					replacementOp = code.OpIncLocal
+				case code.OpGetGlobal:
+					replacementOp = code.OpIncGlobal
+				}
+			case code.OpSub:
+				switch expectedGetter {
+				case code.OpGetLocal:
+					replacementOp = code.OpDecLocal
+				case code.OpGetGlobal:
+					replacementOp = code.OpDecGlobal
+				}
+			}
+
+			if replacementOp == 0 {
+				continue
+			}
+
+			getterInfo.Keep = false
+			constInfo.Keep = false
+			b.setInstructionInfoOpcode(i+1, code.OpPop, nil)
+
+			b.setInstructionInfoOpcode(i, replacementOp, []int{getterInfo.Operands[0]})
+		}
+	}
+
+	return nil
+}
+
 // Calls built-in functions if all the parameters are known constants, and stores the result as a new constant.
 // Some builtins are skipped because they may have side effects or are non-deterministic.
 //
