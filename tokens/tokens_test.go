@@ -30,9 +30,11 @@ func TestLookupIdentForNonKeywords(t *testing.T) {
 	}
 
 	for _, ident := range nonKeywords {
-		if tokType := LookupIdent(ident); tokType != IDENT {
-			t.Errorf("LookupIdent(%q) = %q; want %q", ident, tokType, IDENT)
-		}
+		t.Run("lookup ident for keyword: "+ident, func(t *testing.T) {
+			if tokType := LookupIdent(ident); tokType != IDENT {
+				t.Errorf("LookupIdent(%q) = %q; want %q", ident, tokType, IDENT)
+			}
+		})
 	}
 }
 

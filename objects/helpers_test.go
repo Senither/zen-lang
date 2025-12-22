@@ -175,204 +175,232 @@ func TestIsError(t *testing.T) {
 		t.Errorf("expected IsError to return true for Error object")
 	}
 
-	objects := []Object{
-		TRUE, FALSE, NULL,
-		&String{Value: "test"},
-		&Integer{Value: 10},
-		&Float{Value: 3.14},
-		&Array{Elements: []Object{}},
-		&Hash{Pairs: map[HashKey]HashPair{}},
-		nil,
+	objects := []struct {
+		name  string
+		value Object
+	}{
+		{"true", TRUE},
+		{"false", FALSE},
+		{"null", NULL},
+		{"string", &String{Value: "test"}},
+		{"integer", &Integer{Value: 10}},
+		{"float", &Float{Value: 3.14}},
+		{"array", &Array{Elements: []Object{}}},
+		{"hash", &Hash{Pairs: map[HashKey]HashPair{}}},
+		{"nil", nil},
 	}
 
 	for _, obj := range objects {
-		if IsError(obj) {
-			t.Errorf("expected IsError to return false for object of type %s", obj.Type())
-		}
+		t.Run("checking is error for "+obj.name, func(t *testing.T) {
+			if IsError(obj.value) {
+				t.Errorf("expected IsError to return false for object of type %s", obj.value.Type())
+			}
+		})
 	}
 }
 
 func TestIsTruthy(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    Object
 		expected bool
 	}{
-		{TRUE, true},
-		{FALSE, false},
-		{NULL, false},
-		{&Integer{Value: 10}, true},
-		{&Integer{Value: 0}, true},
-		{&String{Value: "hello"}, true},
-		{&String{Value: ""}, true},
-		{&Array{Elements: []Object{}}, true},
-		{&Hash{Pairs: map[HashKey]HashPair{}}, true},
+		{"true", TRUE, true},
+		{"false", FALSE, false},
+		{"null", NULL, false},
+		{"integer positive", &Integer{Value: 10}, true},
+		{"integer zero", &Integer{Value: 0}, true},
+		{"string non-empty", &String{Value: "hello"}, true},
+		{"string empty", &String{Value: ""}, true},
+		{"array empty", &Array{Elements: []Object{}}, true},
+		{"hash empty", &Hash{Pairs: map[HashKey]HashPair{}}, true},
 	}
 
 	for _, tt := range tests {
-		result := IsTruthy(tt.input)
+		t.Run("is truthy: "+tt.name, func(t *testing.T) {
+			result := IsTruthy(tt.input)
 
-		if result != tt.expected {
-			t.Errorf("IsTruthy(%v) = %v, want %v", tt.input, result, tt.expected)
-		}
+			if result != tt.expected {
+				t.Errorf("IsTruthy(%v) = %v, want %v", tt.input, result, tt.expected)
+			}
+		})
 	}
 }
 
 func TestIsNumber(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    ObjectType
 		expected bool
 	}{
-		{INTEGER_OBJ, true},
-		{FLOAT_OBJ, true},
-		{STRING_OBJ, false},
-		{BOOLEAN_OBJ, false},
-		{ARRAY_OBJ, false},
-		{HASH_OBJ, false},
-		{NULL_OBJ, false},
+		{"integer", INTEGER_OBJ, true},
+		{"float", FLOAT_OBJ, true},
+		{"string", STRING_OBJ, false},
+		{"boolean", BOOLEAN_OBJ, false},
+		{"array", ARRAY_OBJ, false},
+		{"hash", HASH_OBJ, false},
+		{"null", NULL_OBJ, false},
 	}
 
 	for _, tt := range tests {
-		result := IsNumber(tt.input)
+		t.Run("is number: "+tt.name, func(t *testing.T) {
+			result := IsNumber(tt.input)
 
-		if result != tt.expected {
-			t.Errorf("IsNumber(%v) = %v, want %v", tt.input, result, tt.expected)
-		}
+			if result != tt.expected {
+				t.Errorf("IsNumber(%v) = %v, want %v", tt.input, result, tt.expected)
+			}
+		})
 	}
 }
 
 func TestWrapNumberValue(t *testing.T) {
 	tests := []struct {
+		name   string
 		value  float64
 		left   Object
 		right  Object
 		result Object
 	}{
-		{10.0, &Integer{Value: 5}, &Integer{Value: 5}, &Integer{Value: 10}},
-		{10.2, &Integer{Value: 5}, &Integer{Value: 5}, &Float{Value: 10.2}},
-		{10.5, &Float{Value: 5.0}, &Integer{Value: 5}, &Float{Value: 10.5}},
-		{10.0, &Integer{Value: 5}, &Float{Value: 5.0}, &Float{Value: 10.0}},
-		{10.7, &Float{Value: 5.0}, &Float{Value: 5.7}, &Float{Value: 10.7}},
+		{"from integer to integer", 10.0, &Integer{Value: 5}, &Integer{Value: 5}, &Integer{Value: 10}},
+		{"from integer to float", 10.2, &Integer{Value: 5}, &Integer{Value: 5}, &Float{Value: 10.2}},
+		{"from float to float", 10.5, &Float{Value: 5.0}, &Integer{Value: 5}, &Float{Value: 10.5}},
+		{"from integer to float", 10.0, &Integer{Value: 5}, &Float{Value: 5.0}, &Float{Value: 10.0}},
+		{"to float with all floats", 10.7, &Float{Value: 5.0}, &Float{Value: 5.7}, &Float{Value: 10.7}},
 	}
 
 	for _, tt := range tests {
-		result := WrapNumberValue(tt.value, tt.left, tt.right)
+		t.Run("wrap number: "+tt.name, func(t *testing.T) {
+			result := WrapNumberValue(tt.value, tt.left, tt.right)
 
-		if !reflect.DeepEqual(result, tt.result) {
-			t.Errorf(
-				"WrapNumberValue(%v, %v, %v) = %v[%s], want %v[%s]",
-				tt.value, tt.left.Inspect(), tt.right.Inspect(),
-				result.Inspect(), result.Type(), tt.result.Inspect(), tt.result.Type(),
-			)
-		}
+			if !reflect.DeepEqual(result, tt.result) {
+				t.Errorf(
+					"WrapNumberValue(%v, %v, %v) = %v[%s], want %v[%s]",
+					tt.value, tt.left.Inspect(), tt.right.Inspect(),
+					result.Inspect(), result.Type(), tt.result.Inspect(), tt.result.Type(),
+				)
+			}
+		})
 	}
 }
 
 func TestUnwrapNumberValue(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    Object
 		expected float64
 	}{
-		{&Integer{Value: 10}, 10.0},
-		{&Float{Value: 3.14}, 3.14},
-		{&String{Value: "hello"}, 0.0},
-		{TRUE, 0.0},
-		{NULL, 0.0},
+		{"integer", &Integer{Value: 10}, 10.0},
+		{"float", &Float{Value: 3.14}, 3.14},
+		{"string", &String{Value: "hello"}, 0.0},
+		{"true", TRUE, 0.0},
+		{"null", NULL, 0.0},
 	}
 
 	for _, tt := range tests {
-		result := UnwrapNumberValue(tt.input)
+		t.Run("unwrap number: "+tt.name, func(t *testing.T) {
+			result := UnwrapNumberValue(tt.input)
 
-		if result != tt.expected {
-			t.Errorf(
-				"UnwrapNumberValue(%v) = %v, want %v",
-				tt.input.Inspect(), result, tt.expected,
-			)
-		}
+			if result != tt.expected {
+				t.Errorf(
+					"UnwrapNumberValue(%v) = %v, want %v",
+					tt.input.Inspect(), result, tt.expected,
+				)
+			}
+		})
 	}
 }
 
 func TestIsStringable(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    Object
 		expected bool
 	}{
-		{&Integer{Value: 10}, true},
-		{&Float{Value: 3.14}, true},
-		{TRUE, true},
-		{FALSE, true},
-		{&String{Value: "hello"}, false},
-		{&Array{Elements: []Object{}}, false},
-		{&Hash{Pairs: map[HashKey]HashPair{}}, false},
-		{NULL, false},
+		{"integer", &Integer{Value: 10}, true},
+		{"float", &Float{Value: 3.14}, true},
+		{"true", TRUE, true},
+		{"false", FALSE, true},
+		{"string", &String{Value: "hello"}, false},
+		{"array", &Array{Elements: []Object{}}, false},
+		{"hash", &Hash{Pairs: map[HashKey]HashPair{}}, false},
+		{"null", NULL, false},
 	}
 
 	for _, tt := range tests {
-		result := IsStringable(tt.input)
+		t.Run("is stringable: "+tt.name, func(t *testing.T) {
+			result := IsStringable(tt.input)
 
-		if result != tt.expected {
-			t.Errorf(
-				"IsStringable(%v) = %v, want %v",
-				tt.input.Inspect(), result, tt.expected,
-			)
-		}
+			if result != tt.expected {
+				t.Errorf(
+					"IsStringable(%v) = %v, want %v",
+					tt.input.Inspect(), result, tt.expected,
+				)
+			}
+		})
 	}
 }
 
 func TestStringifyObject(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    Object
 		expected string
 	}{
-		{&String{Value: "hello"}, "hello"},
-		{&Integer{Value: 10}, "10"},
-		{&Float{Value: 3.14}, "3.14"},
-		{&Float{Value: 42.198765}, "42.198765"},
-		{TRUE, "true"},
-		{FALSE, "false"},
-		{&Array{Elements: []Object{&Integer{Value: 1}, &Integer{Value: 2}}}, "[1, 2]"},
-		{&Hash{Pairs: map[HashKey]HashPair{
+		{"string", &String{Value: "hello"}, "hello"},
+		{"integer", &Integer{Value: 10}, "10"},
+		{"float", &Float{Value: 3.14}, "3.14"},
+		{"float", &Float{Value: 42.198765}, "42.198765"},
+		{"true", TRUE, "true"},
+		{"false", FALSE, "false"},
+		{"array", &Array{Elements: []Object{&Integer{Value: 1}, &Integer{Value: 2}}}, "[1, 2]"},
+		{"hash", &Hash{Pairs: map[HashKey]HashPair{
 			(&String{Value: "key"}).HashKey(): {
 				Key:   &String{Value: "key"},
 				Value: &String{Value: "value"},
 			}}},
 			"{key: value}",
 		},
-		{NULL, "null"},
+		{"null", NULL, "null"},
 	}
 
 	for _, tt := range tests {
-		result := StringifyObject(tt.input)
+		t.Run("stringify object: "+tt.name, func(t *testing.T) {
+			result := StringifyObject(tt.input)
 
-		if result != tt.expected {
-			t.Errorf(
-				"StringifyObject(%v) = %v, want %v",
-				tt.input.Inspect(), result, tt.expected,
-			)
-		}
+			if result != tt.expected {
+				t.Errorf(
+					"StringifyObject(%v) = %v, want %v",
+					tt.input.Inspect(), result, tt.expected,
+				)
+			}
+		})
 	}
 }
 
 func TestUnwrapReturnValue(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    Object
 		expected Object
 	}{
-		{&ReturnValue{Value: &Integer{Value: 10}}, &Integer{Value: 10}},
-		{&Integer{Value: 20}, &Integer{Value: 20}},
-		{&ReturnValue{Value: &String{Value: "hello"}}, &String{Value: "hello"}},
-		{&String{Value: "world"}, &String{Value: "world"}},
-		{NULL, NULL},
+		{"return value with integer", &ReturnValue{Value: &Integer{Value: 10}}, &Integer{Value: 10}},
+		{"integer", &Integer{Value: 20}, &Integer{Value: 20}},
+		{"return value with string", &ReturnValue{Value: &String{Value: "hello"}}, &String{Value: "hello"}},
+		{"string", &String{Value: "world"}, &String{Value: "world"}},
+		{"null", NULL, NULL},
 	}
 
 	for _, tt := range tests {
-		result := UnwrapReturnValue(tt.input)
+		t.Run("unwrap return value: "+tt.name, func(t *testing.T) {
+			result := UnwrapReturnValue(tt.input)
 
-		if !reflect.DeepEqual(result, tt.expected) {
-			t.Errorf(
-				"UnwrapReturnValue(%v) = %v, want %v",
-				tt.input.Inspect(), result.Inspect(), tt.expected.Inspect(),
-			)
-		}
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf(
+					"UnwrapReturnValue(%v) = %v, want %v",
+					tt.input.Inspect(), result.Inspect(), tt.expected.Inspect(),
+				)
+			}
+		})
 	}
 }
 
@@ -394,19 +422,22 @@ func TestNativeBoolToBooleanObject(t *testing.T) {
 
 func TestEquals(t *testing.T) {
 	tests := []struct {
+		name     string
 		left     Object
 		right    Object
 		expected *Boolean
 	}{
-		{&Integer{Value: 10}, &Integer{Value: 10}, TRUE},
-		{&Float{Value: 3.14}, &Float{Value: 3.14}, TRUE},
-		{&String{Value: "hello"}, &String{Value: "hello"}, TRUE},
+		{"integer", &Integer{Value: 10}, &Integer{Value: 10}, TRUE},
+		{"float", &Float{Value: 3.14}, &Float{Value: 3.14}, TRUE},
+		{"string", &String{Value: "hello"}, &String{Value: "hello"}, TRUE},
 		{
+			"array",
 			&Array{Elements: []Object{&Integer{Value: 1}, &Integer{Value: 2}, &Integer{Value: 3}}},
 			&Array{Elements: []Object{&Integer{Value: 1}, &Integer{Value: 2}, &Integer{Value: 3}}},
 			TRUE,
 		},
 		{
+			"hash",
 			&Hash{Pairs: map[HashKey]HashPair{
 				(&String{Value: "key1"}).HashKey(): {
 					Key:   &String{Value: "key1"},
@@ -430,6 +461,7 @@ func TestEquals(t *testing.T) {
 			TRUE,
 		},
 		{
+			"nested hash",
 			&Hash{Pairs: map[HashKey]HashPair{
 				(&String{Value: "obj"}).HashKey(): {
 					Key: &String{Value: "obj"},
@@ -455,6 +487,7 @@ func TestEquals(t *testing.T) {
 			TRUE,
 		},
 		{
+			"hash with array",
 			&Hash{Pairs: map[HashKey]HashPair{
 				(&String{Value: "obj"}).HashKey(): {
 					Key: &String{Value: "obj"},
@@ -477,21 +510,23 @@ func TestEquals(t *testing.T) {
 			}},
 			TRUE,
 		},
-		{TRUE, TRUE, TRUE},
-		{FALSE, FALSE, TRUE},
-		{NULL, NULL, TRUE},
+		{"true", TRUE, TRUE, TRUE},
+		{"false", FALSE, FALSE, TRUE},
+		{"null", NULL, NULL, TRUE},
 
-		{&Integer{Value: 10}, &Integer{Value: 20}, FALSE},
-		{&Integer{Value: 10}, &Float{Value: 10.0}, FALSE},
-		{&Float{Value: 3.14}, &Float{Value: 3.13}, FALSE},
-		{&String{Value: "hello"}, &String{Value: "world"}, FALSE},
-		{&String{Value: "10"}, &Integer{Value: 10}, FALSE},
+		{"integer", &Integer{Value: 10}, &Integer{Value: 20}, FALSE},
+		{"integer vs float", &Integer{Value: 10}, &Float{Value: 10.0}, FALSE},
+		{"float", &Float{Value: 3.14}, &Float{Value: 3.13}, FALSE},
+		{"string", &String{Value: "hello"}, &String{Value: "world"}, FALSE},
+		{"string vs integer", &String{Value: "10"}, &Integer{Value: 10}, FALSE},
 		{
+			"array values differ",
 			&Array{Elements: []Object{&Integer{Value: 1}, &Integer{Value: 2}, &Integer{Value: 3}}},
 			&Array{Elements: []Object{&Integer{Value: 1}, &Integer{Value: 0}, &Integer{Value: 3}}},
 			FALSE,
 		},
 		{
+			"hash values differ",
 			&Hash{Pairs: map[HashKey]HashPair{
 				(&String{Value: "key1"}).HashKey(): {
 					Key:   &String{Value: "key1"},
@@ -515,6 +550,7 @@ func TestEquals(t *testing.T) {
 			FALSE,
 		},
 		{
+			"nested hash values differ",
 			&Hash{Pairs: map[HashKey]HashPair{
 				(&String{Value: "obj"}).HashKey(): {
 					Key: &String{Value: "obj"},
@@ -540,6 +576,7 @@ func TestEquals(t *testing.T) {
 			FALSE,
 		},
 		{
+			"hash with array values differ",
 			&Hash{Pairs: map[HashKey]HashPair{
 				(&String{Value: "obj"}).HashKey(): {
 					Key: &String{Value: "obj"},
@@ -562,19 +599,21 @@ func TestEquals(t *testing.T) {
 			}},
 			FALSE,
 		},
-		{TRUE, FALSE, FALSE},
-		{NULL, &String{Value: "null"}, FALSE},
+		{"boolean differ", TRUE, FALSE, FALSE},
+		{"string 'null' vs null", NULL, &String{Value: "null"}, FALSE},
 	}
 
 	for _, tt := range tests {
-		result := Equals(tt.left, tt.right)
+		t.Run("equals: "+tt.name, func(t *testing.T) {
+			result := Equals(tt.left, tt.right)
 
-		if result != tt.expected {
-			t.Errorf(
-				"Equals(%v, %v) = %v, want %v",
-				tt.left.Inspect(), tt.right.Inspect(), result.Inspect(), tt.expected.Inspect(),
-			)
-		}
+			if result != tt.expected {
+				t.Errorf(
+					"Equals(%v, %v) = %v, want %v",
+					tt.left.Inspect(), tt.right.Inspect(), result.Inspect(), tt.expected.Inspect(),
+				)
+			}
+		})
 	}
 }
 

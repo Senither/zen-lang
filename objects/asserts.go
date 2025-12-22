@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func AssertExpectedObject(t *testing.T, expected interface{}, actual Object) {
+func AssertExpectedObject(t *testing.T, expected any, actual Object) {
 	t.Helper()
 
 	switch expected := expected.(type) {
