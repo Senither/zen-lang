@@ -16,25 +16,27 @@ func runCompilationTests(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 
 	for _, tt := range tests {
-		program := parse(tt.input)
+		t.Run(tt.name, func(t *testing.T) {
+			program := parse(tt.input)
 
-		compiler := New(nil)
-		err := compiler.Compile(program)
-		if err != nil {
-			t.Fatalf("compiler error: %s", err)
-		}
+			compiler := New(nil)
+			err := compiler.Compile(program)
+			if err != nil {
+				t.Fatalf("compiler error: %s", err)
+			}
 
-		bytecode := compiler.Bytecode()
+			bytecode := compiler.Bytecode()
 
-		err = testInstructions(tt.expectedInstructions, bytecode.Instructions)
-		if err != nil {
-			t.Fatalf("instruction test failed: %s", err)
-		}
+			err = testInstructions(tt.expectedInstructions, bytecode.Instructions)
+			if err != nil {
+				t.Fatalf("instruction test failed: %s", err)
+			}
 
-		err = testConstants(t, tt.expectedConstants, bytecode.Constants)
-		if err != nil {
-			t.Fatalf("constants test failed: %s", err)
-		}
+			err = testConstants(t, tt.expectedConstants, bytecode.Constants)
+			if err != nil {
+				t.Fatalf("constants test failed: %s", err)
+			}
+		})
 	}
 }
 
@@ -97,7 +99,9 @@ func concatInstructions(s []code.Instructions) code.Instructions {
 	return out
 }
 
-func testConstants(t *testing.T, expected []interface{}, actual []objects.Object) error {
+func testConstants(t *testing.T, expected []any, actual []objects.Object) error {
+	t.Helper()
+
 	if len(expected) != len(actual) {
 		return fmt.Errorf("wrong number of constants. got %d, want %d", len(actual), len(expected))
 	}

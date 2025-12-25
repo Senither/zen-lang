@@ -37,10 +37,12 @@ func TestVarStatements(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		stmt := program.Statements[i]
-		if !testVarStatement(t, stmt, tt.expectedIdentifier) {
-			t.Errorf("TestVarStatements failed for statement %d", i)
-		}
+		t.Run("var statement: "+tt.expectedIdentifier, func(t *testing.T) {
+			stmt := program.Statements[i]
+			if !testVarStatement(t, stmt, tt.expectedIdentifier) {
+				t.Errorf("TestVarStatements failed for statement %d", i)
+			}
+		})
 	}
 }
 
@@ -68,118 +70,127 @@ func testVarStatement(t *testing.T, s ast.Statement, name string) bool {
 
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
+		name          string
 		input         string
-		expectedValue interface{}
+		expectedValue any
 	}{
-		{"return 5;", 5},
-		{"return true;", true},
-		{"return foobar;", "foobar"},
+		{"integer", "return 5;", 5},
+		{"boolean", "return true;", true},
+		{"ident", "return foobar;", "foobar"},
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := New(l, nil)
+		t.Run("return statement: "+tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l, nil)
 
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
 
-		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements does not contain 1 statements. got %d", len(program.Statements))
-		}
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements does not contain 1 statements. got %d", len(program.Statements))
+			}
 
-		stmt := program.Statements[0]
-		returnStmt, ok := stmt.(*ast.ReturnStatement)
-		if !ok {
-			t.Fatalf("stmt not *ast.returnStatement. got %T", stmt)
-		}
+			stmt := program.Statements[0]
+			returnStmt, ok := stmt.(*ast.ReturnStatement)
+			if !ok {
+				t.Fatalf("stmt not *ast.returnStatement. got %T", stmt)
+			}
 
-		if returnStmt.TokenLiteral() != "return" {
-			t.Fatalf("returnStmt.TokenLiteral not 'return', got %q", returnStmt.TokenLiteral())
-		}
+			if returnStmt.TokenLiteral() != "return" {
+				t.Fatalf("returnStmt.TokenLiteral not 'return', got %q", returnStmt.TokenLiteral())
+			}
 
-		if testLiteralExpression(t, returnStmt.ReturnValue, tt.expectedValue) {
-			return
-		}
+			if testLiteralExpression(t, returnStmt.ReturnValue, tt.expectedValue) {
+				return
+			}
+		})
 	}
 }
 
 func TestImportStatements(t *testing.T) {
 	tests := []struct {
+		name          string
 		input         string
 		expectedFile  string
-		expectedAlias interface{}
+		expectedAlias any
 	}{
-		{"import 'file'", "file", nil},
-		{"import 'file' as f", "file", "f"},
-		{"import \"another_file\" as af", "another_file", "af"},
+		{"direct", "import 'file'", "file", nil},
+		{"aliased", "import 'file' as f", "file", "f"},
+		{"aliased with underscore", "import \"another_file\" as af", "another_file", "af"},
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := New(l, nil)
+		t.Run("import statement: "+tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l, nil)
 
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
 
-		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
-		}
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+			}
 
-		stmt := program.Statements[0]
-		importStmt, ok := stmt.(*ast.ImportStatement)
-		if !ok {
-			t.Fatalf("stmt is not ast.ImportStatement. got %T", stmt)
-		}
+			stmt := program.Statements[0]
+			importStmt, ok := stmt.(*ast.ImportStatement)
+			if !ok {
+				t.Fatalf("stmt is not ast.ImportStatement. got %T", stmt)
+			}
 
-		if importStmt.TokenLiteral() != "import" {
-			t.Fatalf("importStmt.TokenLiteral is not 'import', got %q", importStmt.TokenLiteral())
-		}
+			if importStmt.TokenLiteral() != "import" {
+				t.Fatalf("importStmt.TokenLiteral is not 'import', got %q", importStmt.TokenLiteral())
+			}
 
-		if importStmt.Path != tt.expectedFile {
-			t.Errorf("importStmt.ImportPath is not %q. got %q", tt.expectedFile, importStmt.Path)
-		}
+			if importStmt.Path != tt.expectedFile {
+				t.Errorf("importStmt.ImportPath is not %q. got %q", tt.expectedFile, importStmt.Path)
+			}
 
-		if importStmt.Aliased != nil && importStmt.Aliased.Value != tt.expectedAlias {
-			t.Errorf("importStmt.Aliased is not %q. got %q", tt.expectedAlias, importStmt.Aliased.Value)
-		}
+			if importStmt.Aliased != nil && importStmt.Aliased.Value != tt.expectedAlias {
+				t.Errorf("importStmt.Aliased is not %q. got %q", tt.expectedAlias, importStmt.Aliased.Value)
+			}
+		})
 	}
 }
 
 func TestExportStatements(t *testing.T) {
 	tests := []struct {
+		name        string
 		input       string
 		expectedAst string
 	}{
-		{"export someValue", "someValue"},
-		{"export someValue;", "someValue"},
-		{"export func(x) {x}", "func (x) { x }"},
-		{"export func(x) {x};", "func (x) { x }"},
+		{"without semicolon", "export someValue", "someValue"},
+		{"with semicolon", "export someValue;", "someValue"},
+		{"without semicolon func", "export func(x) {x}", "func (x) { x }"},
+		{"with semicolon func", "export func(x) {x};", "func (x) { x }"},
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := New(l, nil)
+		t.Run("export statement: "+tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l, nil)
 
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
 
-		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
-		}
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements does not contain 1 statement. got %d", len(program.Statements))
+			}
 
-		stmt := program.Statements[0]
-		exportStmt, ok := stmt.(*ast.ExportStatement)
-		if !ok {
-			t.Fatalf("stmt is not ast.ExportStatement. got %T", stmt)
-		}
+			stmt := program.Statements[0]
+			exportStmt, ok := stmt.(*ast.ExportStatement)
+			if !ok {
+				t.Fatalf("stmt is not ast.ExportStatement. got %T", stmt)
+			}
 
-		if exportStmt.TokenLiteral() != "export" {
-			t.Fatalf("exportStmt.TokenLiteral is not 'export', got %q", exportStmt.TokenLiteral())
-		}
+			if exportStmt.TokenLiteral() != "export" {
+				t.Fatalf("exportStmt.TokenLiteral is not 'export', got %q", exportStmt.TokenLiteral())
+			}
 
-		if exportStmt.Value.String() != tt.expectedAst {
-			t.Errorf("exportStmt.ExportValue is not %q. got %q", tt.expectedAst, exportStmt.Value.String())
-		}
+			if exportStmt.Value.String() != tt.expectedAst {
+				t.Errorf("exportStmt.ExportValue is not %q. got %q", tt.expectedAst, exportStmt.Value.String())
+			}
+		})
 	}
 }
 

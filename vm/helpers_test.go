@@ -13,26 +13,33 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 
 	for _, tt := range tests {
-		Stdout.Clear()
-
-		compiler, err := compile(tt.input)
-		if err != nil {
-			t.Fatalf("compiler error: %s", err)
+		name, ok := tt.name.(string)
+		if !ok || name == "" {
+			name = tt.input
 		}
 
-		vm := New(compiler.Bytecode())
-		vm.EnableStdoutCapture()
+		t.Run(name, func(t *testing.T) {
+			Stdout.Clear()
 
-		stackElem := Stdout.Mute(func() objects.Object {
-			err = vm.Run()
+			compiler, err := compile(tt.input)
 			if err != nil {
-				t.Fatalf("VM run error: %s", err)
+				t.Fatalf("compiler error: %s", err)
 			}
 
-			return vm.LastPoppedStackElem()
-		})
+			vm := New(compiler.Bytecode())
+			vm.EnableStdoutCapture()
 
-		objects.AssertExpectedObject(t, tt.expected, stackElem)
+			stackElem := Stdout.Mute(func() objects.Object {
+				err = vm.Run()
+				if err != nil {
+					t.Fatalf("VM run error: %s", err)
+				}
+
+				return vm.LastPoppedStackElem()
+			})
+
+			objects.AssertExpectedObject(t, tt.expected, stackElem)
+		})
 	}
 }
 

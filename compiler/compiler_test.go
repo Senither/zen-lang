@@ -7,6 +7,7 @@ import (
 )
 
 type compilerTestCase struct {
+	name                 string
 	input                string
 	expectedConstants    []any
 	expectedInstructions []code.Instructions
@@ -15,6 +16,7 @@ type compilerTestCase struct {
 func TestNullExpression(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "null literal",
 			input:             "null;",
 			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
@@ -34,6 +36,7 @@ func BenchmarkNullExpression(b *testing.B) {
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "integer literals",
 			input:             "1; 2;",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
@@ -44,6 +47,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "float literals",
 			input:             "1.5; 3.14;",
 			expectedConstants: []any{1.5, 3.14},
 			expectedInstructions: []code.Instructions{
@@ -54,6 +58,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "addition",
 			input:             "1 + 2",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
@@ -64,6 +69,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "subtraction",
 			input:             "1 - 2",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
@@ -74,6 +80,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "multiplication",
 			input:             "1 * 2",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
@@ -84,6 +91,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "division",
 			input:             "1 / 2",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
@@ -94,6 +102,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "exponentiation",
 			input:             "2 ^ 3",
 			expectedConstants: []any{2, 3},
 			expectedInstructions: []code.Instructions{
@@ -104,6 +113,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "modulus",
 			input:             "1 % 2",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
@@ -114,6 +124,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "unary minus integer",
 			input:             "-1",
 			expectedConstants: []any{1},
 			expectedInstructions: []code.Instructions{
@@ -123,6 +134,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			name:              "unary minus float",
 			input:             "-1.5",
 			expectedConstants: []any{1.5},
 			expectedInstructions: []code.Instructions{
@@ -154,6 +166,7 @@ func BenchmarkIntegerArithmetic(b *testing.B) {
 func TestBooleanExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "boolean true literal",
 			input:             "true",
 			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
@@ -162,6 +175,7 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "boolean false literal",
 			input:             "false",
 			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
@@ -170,6 +184,7 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "greater than expression",
 			input:             "1 > 2",
 			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
@@ -180,6 +195,7 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "less than expression",
 			input:             "1 < 2",
 			expectedConstants: []any{2, 1},
 			expectedInstructions: []code.Instructions{
@@ -190,8 +206,9 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "equal expression",
 			input:             "1 == 2",
-			expectedConstants: []interface{}{1, 2},
+			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -200,8 +217,9 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "not equal expression",
 			input:             "1 != 2",
-			expectedConstants: []interface{}{1, 2},
+			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -210,8 +228,9 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "greater than or equal expression",
 			input:             "1 >= 2",
-			expectedConstants: []interface{}{1, 2},
+			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -220,8 +239,9 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "less than or equal expression",
 			input:             "1 <= 2",
-			expectedConstants: []interface{}{2, 1},
+			expectedConstants: []any{2, 1},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -230,8 +250,9 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "boolean equality expression",
 			input:             "true == false",
-			expectedConstants: []interface{}{},
+			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpFalse),
@@ -240,8 +261,9 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "boolean inequality expression",
 			input:             "true != false",
-			expectedConstants: []interface{}{},
+			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpFalse),
@@ -250,8 +272,9 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "boolean not expression",
 			input:             "!true",
-			expectedConstants: []interface{}{},
+			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpBang),
@@ -282,6 +305,7 @@ func BenchmarkBooleanExpressions(b *testing.B) {
 func TestStringExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "double quoted string literal",
 			input:             `"hello world";`,
 			expectedConstants: []any{"hello world"},
 			expectedInstructions: []code.Instructions{
@@ -290,6 +314,7 @@ func TestStringExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "single quoted string literal",
 			input:             `'hello world';`,
 			expectedConstants: []any{"hello world"},
 			expectedInstructions: []code.Instructions{
@@ -298,6 +323,7 @@ func TestStringExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "string concatenation",
 			input:             `"hello" + 'world';`,
 			expectedConstants: []any{"hello", "world"},
 			expectedInstructions: []code.Instructions{
@@ -323,6 +349,7 @@ func BenchmarkStringExpressions(b *testing.B) {
 func TestArrayLiterals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "empty array literal",
 			input:             "[]",
 			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
@@ -331,6 +358,7 @@ func TestArrayLiterals(t *testing.T) {
 			},
 		},
 		{
+			name:              "array literal with integers",
 			input:             "[1, 2, 3]",
 			expectedConstants: []any{1, 2, 3},
 			expectedInstructions: []code.Instructions{
@@ -342,6 +370,7 @@ func TestArrayLiterals(t *testing.T) {
 			},
 		},
 		{
+			name:              "array literal with expressions",
 			input:             "[1 + 2, 3 - 4, 5 * 6]",
 			expectedConstants: []any{1, 2, 3, 4, 5, 6},
 			expectedInstructions: []code.Instructions{
@@ -374,6 +403,7 @@ func BenchmarkArrayLiterals(b *testing.B) {
 func TestHashLiterals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "empty hash literal",
 			input:             "{}",
 			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
@@ -382,8 +412,9 @@ func TestHashLiterals(t *testing.T) {
 			},
 		},
 		{
+			name:              "hash literal with integer keys and values",
 			input:             "{1: 2, 3: 4, 5: 6}",
-			expectedConstants: []interface{}{1, 2, 3, 4, 5, 6},
+			expectedConstants: []any{1, 2, 3, 4, 5, 6},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -396,6 +427,7 @@ func TestHashLiterals(t *testing.T) {
 			},
 		},
 		{
+			name:              "hash literal with expressions as values",
 			input:             "{1: 2 + 3, 4: 5 * 6, 7: 8 - 9}",
 			expectedConstants: []any{1, 2, 3, 4, 5, 6, 7, 8, 9},
 			expectedInstructions: []code.Instructions{
@@ -416,6 +448,7 @@ func TestHashLiterals(t *testing.T) {
 			},
 		},
 		{
+			name:              "hash literal with string keys and values",
 			input:             "{'key': 'value', 'another': 'pair'}",
 			expectedConstants: []any{"another", "pair", "key", "value"},
 			expectedInstructions: []code.Instructions{
@@ -444,8 +477,9 @@ func BenchmarkHashLiterals(b *testing.B) {
 func TestIndexExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "index expression with array",
 			input:             "[1, 2, 3][1 + 1]",
-			expectedConstants: []interface{}{1, 2, 3, 1, 1},
+			expectedConstants: []any{1, 2, 3, 1, 1},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -459,8 +493,9 @@ func TestIndexExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "index expression with hash",
 			input:             "{1: 2}[2 - 1]",
-			expectedConstants: []interface{}{1, 2, 2, 1},
+			expectedConstants: []any{1, 2, 2, 1},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -487,8 +522,9 @@ func BenchmarkIndexExpressions(b *testing.B) {
 func TestChainIndexExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "chain index expression with single key",
 			input:             "var test = {}; test.key",
-			expectedConstants: []interface{}{"key"},
+			expectedConstants: []any{"key"},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpHash, 0),
 				code.Make(code.OpSetGlobal, 0),
@@ -499,8 +535,9 @@ func TestChainIndexExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "chain index expression with multiple keys",
 			input:             "var test = {}; test.another.key",
-			expectedConstants: []interface{}{"another", "key"},
+			expectedConstants: []any{"another", "key"},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpHash, 0),
 				code.Make(code.OpSetGlobal, 0),
@@ -513,8 +550,9 @@ func TestChainIndexExpressions(t *testing.T) {
 			},
 		},
 		{
+			name:              "chain index expression with array inside hash",
 			input:             "var obj = {'key': [1, 2, 3]}; obj.key[0]",
-			expectedConstants: []interface{}{"key", 1, 2, 3, "key", 0},
+			expectedConstants: []any{"key", 1, 2, 3, "key", 0},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -547,8 +585,9 @@ func BenchmarkChainIndexExpressions(b *testing.B) {
 func TestChainIndexAssignments(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "index assignment with string key",
 			input:             "var obj = {'key': 'value'}; obj['key'] = 42;",
-			expectedConstants: []interface{}{"key", "value", "key", 42},
+			expectedConstants: []any{"key", "value", "key", 42},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -562,8 +601,9 @@ func TestChainIndexAssignments(t *testing.T) {
 			},
 		},
 		{
+			name:              "index assignment with dot notation",
 			input:             "var obj = {'key': 'value'}; obj.key = 42;",
-			expectedConstants: []interface{}{"key", "value", "key", 42},
+			expectedConstants: []any{"key", "value", "key", 42},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -576,8 +616,9 @@ func TestChainIndexAssignments(t *testing.T) {
 			},
 		},
 		{
+			name:              "chain index assignment with multiple keys using bracket notation",
 			input:             "var obj = {'nested': {'key': 'value'}}; obj['nested']['key'] = 42;",
-			expectedConstants: []interface{}{"nested", "key", "value", "nested", "key", 42},
+			expectedConstants: []any{"nested", "key", "value", "nested", "key", 42},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -595,8 +636,9 @@ func TestChainIndexAssignments(t *testing.T) {
 			},
 		},
 		{
+			name:              "chain index assignment with multiple keys using dot notation",
 			input:             "var obj = {'nested': {'key': 'value'}}; obj.nested.key = 42;",
-			expectedConstants: []interface{}{"nested", "key", "value", "nested", "key", 42},
+			expectedConstants: []any{"nested", "key", "value", "nested", "key", 42},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -630,11 +672,12 @@ func BenchmarkChainIndexAssignments(b *testing.B) {
 func TestChainCallExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "chain call expression with single key",
 			input: `
 				var obj = { 'method': func() { 42 } };
 				obj.method()
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				"method",
 				42,
 				[]code.Instructions{
@@ -656,6 +699,7 @@ func TestChainCallExpressions(t *testing.T) {
 			},
 		},
 		{
+			name: "chain call expression with multiple keys",
 			input: `
 				var obj = {
 					'a': {
@@ -667,7 +711,7 @@ func TestChainCallExpressions(t *testing.T) {
 
 				obj.a.b.c(9, 42)
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				"a",
 				"b",
 				"c",
@@ -706,12 +750,13 @@ func TestChainCallExpressions(t *testing.T) {
 			},
 		},
 		{
+			name: "chain call expression with compiled function",
 			input: `
 				maps.keys({});
 				var maps = {'keys': func (a) { a }};
 				maps.keys({})
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				"keys",
 				[]code.Instructions{
 					code.Make(code.OpGetLocal, 0),
@@ -764,6 +809,7 @@ func BenchmarkChainCallExpressions(b *testing.B) {
 func TestConditionals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:              "if statement with true condition",
 			input:             "if (true) { 10 }; 5;",
 			expectedConstants: []any{10, 5},
 			expectedInstructions: []code.Instructions{
@@ -786,6 +832,7 @@ func TestConditionals(t *testing.T) {
 			},
 		},
 		{
+			name:              "if-else statement",
 			input:             "if (true) { 10 } else { 20 }; 5;",
 			expectedConstants: []any{10, 20, 5},
 			expectedInstructions: []code.Instructions{
@@ -808,6 +855,7 @@ func TestConditionals(t *testing.T) {
 			},
 		},
 		{
+			name:              "if-else if-else statement",
 			input:             "if (false) { 10 } else if (true) { 20 } else { 30 }; 5;",
 			expectedConstants: []any{10, 20, 30, 5},
 			expectedInstructions: []code.Instructions{
@@ -853,6 +901,7 @@ func BenchmarkConditionals(b *testing.B) {
 func TestGlobalVarStatements(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "global variable declarations",
 			input: `
 				var one = 1;
 				var two = 2;
@@ -866,6 +915,7 @@ func TestGlobalVarStatements(t *testing.T) {
 			},
 		},
 		{
+			name: "global mutable variable declarations",
 			input: `
 				var mut one = 1;
 				var mut two = 2;
@@ -879,6 +929,7 @@ func TestGlobalVarStatements(t *testing.T) {
 			},
 		},
 		{
+			name: "global variable usage",
 			input: `
 				var one = 1;
 				one;
@@ -892,6 +943,7 @@ func TestGlobalVarStatements(t *testing.T) {
 			},
 		},
 		{
+			name: "global mutable variable usage",
 			input: `
 				var mut one = 1;
 				var two = one;
@@ -908,6 +960,7 @@ func TestGlobalVarStatements(t *testing.T) {
 			},
 		},
 		{
+			name: "global variable arithmetic",
 			input: `
 				var one = 1;
 				var two = 2;
@@ -960,6 +1013,7 @@ func BenchmarkGlobalVarStatements(b *testing.B) {
 func TestVarStatementScopes(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "var statement in global scope",
 			input: `
 				var num = 55;
 				func() { num }
@@ -979,6 +1033,7 @@ func TestVarStatementScopes(t *testing.T) {
 			},
 		},
 		{
+			name: "var statement in function scope",
 			input: `
 				func() {
 					var num = 55;
@@ -1000,6 +1055,7 @@ func TestVarStatementScopes(t *testing.T) {
 			},
 		},
 		{
+			name: "multiple var statements in function scope",
 			input: `
 				func() {
 					var a = 1;
@@ -1056,6 +1112,7 @@ func BenchmarkVarStatementScopes(b *testing.B) {
 func TestVarIncDec(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "global mutable variable increment",
 			input: `
 				var mut a = 1;
 				a++;
@@ -1069,6 +1126,7 @@ func TestVarIncDec(t *testing.T) {
 			},
 		},
 		{
+			name: "global mutable variable decrement",
 			input: `
 				var mut a = 1;
 				a--;
@@ -1102,6 +1160,7 @@ func BenchmarkVarIncDec(b *testing.B) {
 func TestFuncLocalIncDec(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "func local mutable variable increment",
 			input: `
 				func() {
 					var mut a = 1;
@@ -1123,6 +1182,7 @@ func TestFuncLocalIncDec(t *testing.T) {
 			},
 		},
 		{
+			name: "func local mutable variable decrement",
 			input: `
 				func() {
 					var mut a = 1;
@@ -1229,8 +1289,9 @@ func TestCompilerScopes(t *testing.T) {
 func TestFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:  "function with explicit return",
 			input: "func() { return 5 + 10 }",
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				5,
 				10,
 				[]code.Instructions{
@@ -1246,8 +1307,9 @@ func TestFunctions(t *testing.T) {
 			},
 		},
 		{
+			name:  "function with implicit return",
 			input: "func() { 5 + 10 }",
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				5,
 				10,
 				[]code.Instructions{
@@ -1263,8 +1325,9 @@ func TestFunctions(t *testing.T) {
 			},
 		},
 		{
+			name:  "function with multiple statements",
 			input: "func() { 1; 2 }",
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				1,
 				2,
 				[]code.Instructions{
@@ -1280,8 +1343,9 @@ func TestFunctions(t *testing.T) {
 			},
 		},
 		{
+			name:  "function with no return value",
 			input: "func() { }",
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpReturn),
 				},
@@ -1308,6 +1372,7 @@ func BenchmarkFunctions(b *testing.B) {
 func TestClosures(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "closure with one free variable",
 			input: `
 				func(a) {
 					func(b) {
@@ -1315,7 +1380,7 @@ func TestClosures(t *testing.T) {
 					}
 				}
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpGetFree, 0),
 					code.Make(code.OpGetLocal, 0),
@@ -1334,6 +1399,7 @@ func TestClosures(t *testing.T) {
 			},
 		},
 		{
+			name: "closure with multiple free variables",
 			input: `
 				func(a) {
 					func(b) {
@@ -1343,7 +1409,7 @@ func TestClosures(t *testing.T) {
 					}
 				}
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpGetFree, 0),
 					code.Make(code.OpGetFree, 1),
@@ -1370,6 +1436,7 @@ func TestClosures(t *testing.T) {
 			},
 		},
 		{
+			name: "nested closures with free variables",
 			input: `
 				var global = 55;
 
@@ -1387,7 +1454,7 @@ func TestClosures(t *testing.T) {
 					}
 				}
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				55,
 				66,
 				77,
@@ -1473,12 +1540,13 @@ func BenchmarkClosures(b *testing.B) {
 func TestNamedFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "named function with explicit return",
 			input: `
 				func example() {
 					return 5;
 				}
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				5,
 				[]code.Instructions{
 					code.Make(code.OpConstant, 0),
@@ -1491,12 +1559,13 @@ func TestNamedFunctions(t *testing.T) {
 			},
 		},
 		{
+			name: "named function with parameters",
 			input: `
 				func sum(a, b) {
 					return a + b;
 				}
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpGetLocal, 1),
@@ -1510,6 +1579,7 @@ func TestNamedFunctions(t *testing.T) {
 			},
 		},
 		{
+			name: "nested named functions with free variables",
 			input: `
 				func alpha(a, b) {
 					return func bravo(c, d) {
@@ -1519,7 +1589,7 @@ func TestNamedFunctions(t *testing.T) {
 					}
 				}
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpGetFree, 0),
 					code.Make(code.OpGetFree, 1),
@@ -1588,11 +1658,12 @@ func BenchmarkNamedFunctions(b *testing.B) {
 func TestRecursiveFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "recursive function in global scope",
 			input: `
 				var countDown = func(x) { countDown(x - 1) }
 				countDown(1)
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				1,
 				[]code.Instructions{
 					code.Make(code.OpCurrentClosure),
@@ -1614,6 +1685,7 @@ func TestRecursiveFunctions(t *testing.T) {
 			},
 		},
 		{
+			name: "recursive function in local scope",
 			input: `
 				var wrapper = func() {
 					var countDown = func(x) { countDown(x - 1) }
@@ -1622,7 +1694,7 @@ func TestRecursiveFunctions(t *testing.T) {
 
 				wrapper()
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				1,
 				[]code.Instructions{
 					code.Make(code.OpCurrentClosure),
@@ -1675,10 +1747,11 @@ func BenchmarkRecursiveFunctions(b *testing.B) {
 func TestFunctionCalls(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "anonymous function call",
 			input: `
 				func() { 10 }()
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				10,
 				[]code.Instructions{
 					code.Make(code.OpConstant, 0),
@@ -1692,11 +1765,12 @@ func TestFunctionCalls(t *testing.T) {
 			},
 		},
 		{
+			name: "function call with no arguments",
 			input: `
 				var noArgs = func() { 10 };
 				noArgs()
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				10,
 				[]code.Instructions{
 					code.Make(code.OpConstant, 0),
@@ -1712,11 +1786,12 @@ func TestFunctionCalls(t *testing.T) {
 			},
 		},
 		{
+			name: "function call with one argument",
 			input: `
 				var oneArg = func(a) { a };
 				oneArg(55)
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpReturnValue),
@@ -1733,11 +1808,12 @@ func TestFunctionCalls(t *testing.T) {
 			},
 		},
 		{
+			name: "function call with multiple arguments",
 			input: `
 				var manyArgs = func(a, b, c) { a; b; c};
 				manyArgs(11, 22, 33)
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpPop),
@@ -1789,11 +1865,12 @@ func BenchmarkFunctionCalls(b *testing.B) {
 func TestBuiltins(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "builtins in global scope",
 			input: `
 				len([])
 				print("Hello, World!", 42)
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				"Hello, World!",
 				42,
 			},
@@ -1810,8 +1887,9 @@ func TestBuiltins(t *testing.T) {
 			},
 		},
 		{
+			name:  "builtins in function scope",
 			input: `func() { len([]) }`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				[]code.Instructions{
 					code.Make(code.OpGetBuiltin, 2),
 					code.Make(code.OpArray, 0),
@@ -1842,11 +1920,12 @@ func BenchmarkBuiltins(b *testing.B) {
 func TestGlobalBuiltins(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "global builtins calls",
 			input: `
 				strings.contains("hello world", "world")
 				arrays.push([1, 2, 3], 4)
 			`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				"hello world",
 				"world",
 				1,
@@ -1871,8 +1950,9 @@ func TestGlobalBuiltins(t *testing.T) {
 			},
 		},
 		{
+			name:  "global builtins in function scope",
 			input: `func() { strings.join([1, 2, 3], "-") }`,
-			expectedConstants: []interface{}{
+			expectedConstants: []any{
 				1,
 				2,
 				3,
@@ -1911,10 +1991,11 @@ func BenchmarkGlobalBuiltins(b *testing.B) {
 func TestWhileLoop(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "while loop with a single statement",
 			input: `
 				while (true) { 10 }
 			`,
-			expectedConstants: []interface{}{10},
+			expectedConstants: []any{10},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpJumpNotTruthy, 11),
@@ -1925,6 +2006,7 @@ func TestWhileLoop(t *testing.T) {
 			},
 		},
 		{
+			name: "nested while loops",
 			input: `
 				while (true) {
 					while (false) {
@@ -1932,7 +2014,7 @@ func TestWhileLoop(t *testing.T) {
 					}
 				}
 			`,
-			expectedConstants: []interface{}{10},
+			expectedConstants: []any{10},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpJumpNotTruthy, 19),
@@ -1947,6 +2029,7 @@ func TestWhileLoop(t *testing.T) {
 			},
 		},
 		{
+			name: "while loop with continue statement",
 			input: `
 				while (true) {
 					if (true) {
@@ -1954,7 +2037,7 @@ func TestWhileLoop(t *testing.T) {
 					}
 				}
 			`,
-			expectedConstants: []interface{}{},
+			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpJumpNotTruthy, 16),
@@ -1968,6 +2051,7 @@ func TestWhileLoop(t *testing.T) {
 			},
 		},
 		{
+			name: "while loop with break statement",
 			input: `
 				while (true) {
 					if (true) {
@@ -1975,7 +2059,7 @@ func TestWhileLoop(t *testing.T) {
 					}
 				}
 			`,
-			expectedConstants: []interface{}{},
+			expectedConstants: []any{},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
 				code.Make(code.OpJumpNotTruthy, 16),
@@ -2025,11 +2109,12 @@ func BenchmarkWhileLoop(b *testing.B) {
 func TestAssignmentExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "simple assignment expression",
 			input: `
 				var mut a = 1;
 				a = 2;
 			`,
-			expectedConstants: []interface{}{1, 2},
+			expectedConstants: []any{1, 2},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpSetGlobal, 0),
@@ -2040,12 +2125,13 @@ func TestAssignmentExpressions(t *testing.T) {
 			},
 		},
 		{
+			name: "assignment expression with binary operation",
 			input: `
 				var mut a = 1;
 				var b = 10;
 				a = a + b;
 			`,
-			expectedConstants: []interface{}{1, 10},
+			expectedConstants: []any{1, 10},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpSetGlobal, 0),
@@ -2081,11 +2167,12 @@ func BenchmarkAssignmentExpressions(b *testing.B) {
 func TestIndexAssignmentExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name: "simple index assignment expression",
 			input: `
 				var mut arr = [1, 2, 3];
 				arr[1] = 42;
 			`,
-			expectedConstants: []interface{}{1, 2, 3, 1, 42},
+			expectedConstants: []any{1, 2, 3, 1, 42},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -2100,11 +2187,12 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 			},
 		},
 		{
+			name: "hash index assignment expression",
 			input: `
 				var mut hash = { "key": 1 };
 				hash["key"] = 99;
 			`,
-			expectedConstants: []interface{}{"key", 1, "key", 99},
+			expectedConstants: []any{"key", 1, "key", 99},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -2118,11 +2206,12 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 			},
 		},
 		{
+			name: "nested object index assignment expression",
 			input: `
 				var mut obj = { "nested": { "key": 1 } };
 				obj["nested"]["key"] = 123;
 			`,
-			expectedConstants: []interface{}{"nested", "key", 1, "nested", "key", 123},
+			expectedConstants: []any{"nested", "key", 1, "nested", "key", 123},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
@@ -2140,11 +2229,12 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 			},
 		},
 		{
+			name: "nested array index assignment expression",
 			input: `
 				var mut obj = { "nested": [1, 2, 3] };
 				obj["nested"][2] = 42;
 			`,
-			expectedConstants: []interface{}{"nested", 1, 2, 3, "nested", 2, 42},
+			expectedConstants: []any{"nested", 1, 2, 3, "nested", 2, 42},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),

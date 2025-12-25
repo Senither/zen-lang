@@ -24,7 +24,7 @@ func checkParserErrors(t *testing.T, p *Parser) {
 func testLiteralExpression(
 	t *testing.T,
 	exp ast.Expression,
-	expected interface{},
+	expected any,
 ) bool {
 	switch v := expected.(type) {
 	case bool:
@@ -105,9 +105,9 @@ func testIdentifier(t *testing.T, ident ast.Expression, value string) bool {
 func testInfixExpression(
 	t *testing.T,
 	exp ast.Expression,
-	left interface{},
+	left any,
 	operator string,
-	right interface{},
+	right any,
 ) bool {
 	expression, ok := exp.(*ast.InfixExpression)
 	if !ok {

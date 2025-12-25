@@ -11,10 +11,12 @@ import (
 
 func TestBytecodeString(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    string
 		expected []string
 	}{
 		{
+			name:  "boolean equality",
 			input: "true == false",
 			expected: []string{
 				"0000x00000000 OpTrue",
@@ -24,6 +26,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "integer addition",
 			input: "1 + 2",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -33,6 +36,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "float addition",
 			input: "2.5 + 3f",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -42,6 +46,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "complex expression",
 			input: "1 + 2 * 3 - 4 / 5 % 6",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -59,6 +64,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "string literal",
 			input: "'Hello, World!'",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -66,6 +72,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "array literal",
 			input: "[1, 2, 3]",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -76,6 +83,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "hash literal",
 			input: "{ 'key': 'value' }",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -85,6 +93,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "variable declarations and usage",
 			input: "var a = 10; var b = 20; a + b",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -98,6 +107,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "array literal with indexing",
 			input: "var arr = [1, 2, 3]; arr[0] + arr[1]",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -116,6 +126,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "object literal with indexing",
 			input: "var obj = { 'key': 'value' }; obj['key']",
 			expected: []string{
 				"0000x00000000 OpConstant 0",
@@ -129,6 +140,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "if-else statement",
 			input: "if (false) { 10 } else if (true) { 20 } else { 30 }",
 			expected: []string{
 				"0000x00000000 OpFalse",
@@ -144,6 +156,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "function with explicit return",
 			input: "func () { return 5 + 10 }",
 			expected: []string{
 				"0001x00000000 OpConstant 0",
@@ -155,6 +168,7 @@ func TestBytecodeString(t *testing.T) {
 			},
 		},
 		{
+			name:  "function with implicit return",
 			input: "func () { 5 + 10 }",
 			expected: []string{
 				"0001x00000000 OpConstant 0",
@@ -167,119 +181,125 @@ func TestBytecodeString(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		program := parse(test.input)
+	for _, tt := range tests {
+		t.Run("bytecode stringify: "+tt.name, func(t *testing.T) {
+			program := parse(tt.input)
 
-		compiler := New(nil)
-		err := compiler.Compile(program)
-		if err != nil {
-			t.Fatalf("Compilation failed: %v", err)
-		}
+			compiler := New(nil)
+			err := compiler.Compile(program)
+			if err != nil {
+				t.Fatalf("Compilation failed: %v", err)
+			}
 
-		bytecode := strings.TrimRight(compiler.Bytecode().String(), "\n")
-		expected := strings.Join(test.expected, "\n")
-		if bytecode != expected {
-			t.Errorf("Stringified bytecode mismatch.\ngot:\n%s\nwant:\n%s", bytecode, expected)
-		}
+			bytecode := strings.TrimRight(compiler.Bytecode().String(), "\n")
+			expected := strings.Join(tt.expected, "\n")
+			if bytecode != expected {
+				t.Errorf("Stringified bytecode mismatch.\ngot:\n%s\nwant:\n%s", bytecode, expected)
+			}
+		})
 	}
 }
 
 func TestBytecodeSerializeDeserialize(t *testing.T) {
-	tests := []string{
-		"1 + 2",
-		"2.5 + 3f",
-		"'Hello, World!'",
-		"[1, 2, 3]",
-		"{ 'key': 'value' }",
-		"1 + 2 * 3 - 4 / 5 % 6",
-		"var a = 10; var b = 20; a + b",
-		"var mut x = 5; x = x + 10; x",
-		"var arr = [1, 2, 3]; arr[0] + arr[1]",
-		"var obj = { 'key': 'value' }; obj['key']",
-		"if (true) { 10 } else if (false) { 20 } else { 30 }",
-		"while (false) { 1 }",
-		"func () { return 5 + 10 }",
-		"func () { 5 + 10 }",
-		"func (a) { a + 10 }(5)",
-		"func (a, b) { a + b }(5, 10)",
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{"integer addition", "1 + 2"},
+		{"float addition", "2.5 + 3f"},
+		{"string literal", "'Hello, World!'"},
+		{"array literal", "[1, 2, 3]"},
+		{"object literal", "{ 'key': 'value' }"},
+		{"arithmetic operations", "1 + 2 * 3 - 4 / 5 % 6"},
+		{"variable declarations and usage", "var a = 10; var b = 20; a + b"},
+		{"mutable variable", "var mut x = 5; x = x + 10; x"},
+		{"array literal with indexing", "var arr = [1, 2, 3]; arr[0] + arr[1]"},
+		{"object literal with indexing", "var obj = { 'key': 'value' }; obj['key']"},
+		{"if-else statement", "if (true) { 10 } else if (false) { 20 } else { 30 }"},
+		{"while loop", "while (false) { 1 }"},
+		{"function with explicit return", "func () { return 5 + 10 }"},
+		{"function with implicit return", "func () { 5 + 10 }"},
+		{"function with one parameter", "func (a) { a + 10 }(5)"},
+		{"function with two parameters", "func (a, b) { a + b }(5, 10)"},
 	}
 
-	for _, input := range tests {
-		program := parse(input)
+	for _, tt := range tests {
+		t.Run("bytecode serialized: "+tt.name, func(t *testing.T) {
+			program := parse(tt.input)
 
-		compiler := New(nil)
-		err := compiler.Compile(program)
-		if err != nil {
-			t.Fatalf("Compilation failed: %v", err)
-		}
-
-		bytecode := compiler.Bytecode()
-		serialized := bytecode.Serialize()
-		deserialized, err := Deserialize(serialized)
-		if err != nil {
-			t.Fatalf("Deserialize failed: %v", err)
-		}
-
-		if !bytes.Equal(deserialized.Instructions, bytecode.Instructions) {
-			t.Errorf(
-				"Instructions mismatch after Deserialize.\ninput: %s\ngot:\n%v\nwant:\n%v",
-				input, deserialized.Instructions, bytecode.Instructions,
-			)
-		}
-
-		if len(deserialized.Constants) != len(bytecode.Constants) {
-			t.Fatalf("Constants length mismatch. got %d, want %d", len(deserialized.Constants), len(bytecode.Constants))
-		}
-
-		for i, constantObject := range bytecode.Constants {
-			deserializedConstant := deserialized.Constants[i]
-			if reflect.TypeOf(constantObject) != reflect.TypeOf(deserializedConstant) {
-				t.Errorf("Constant %d type mismatch. got %T, want %T", i, deserializedConstant, constantObject)
+			compiler := New(nil)
+			err := compiler.Compile(program)
+			if err != nil {
+				t.Fatalf("Compilation failed: %v", err)
 			}
 
-			switch v := constantObject.(type) {
-			case *objects.Null:
-				// nothing to check
-			case *objects.Integer:
-				if v.Value != deserializedConstant.(*objects.Integer).Value {
-					t.Errorf(
-						"Integer constant %d value mismatch. got %d, want %d",
-						i, deserializedConstant.(*objects.Integer).Value, v.Value,
-					)
-				}
-			case *objects.Float:
-				if v.Value != deserializedConstant.(*objects.Float).Value {
-					t.Errorf(
-						"Float constant %d value mismatch. got %f, want %f",
-						i, deserializedConstant.(*objects.Float).Value, v.Value,
-					)
-				}
-			case *objects.Boolean:
-				if v.Value != deserializedConstant.(*objects.Boolean).Value {
-					t.Errorf(
-						"Boolean constant %d value mismatch. got %v, want %v",
-						i, deserializedConstant.(*objects.Boolean).Value, v.Value,
-					)
-				}
-			case *objects.String:
-				if v.Value != deserializedConstant.(*objects.String).Value {
-					t.Errorf(
-						"String constant %d value mismatch. got %v, want %v",
-						i, deserializedConstant.(*objects.String).Value, v.Value,
-					)
-				}
-			case *objects.CompiledFunction:
-				if !reflect.DeepEqual(v, deserializedConstant) {
-					t.Errorf(
-						"CompiledFunction constant %d value mismatch. got %v, want %v",
-						i, deserializedConstant, v,
-					)
-				}
-
-			default:
-				t.Errorf("Unsupported constant type %T", v)
+			bytecode := compiler.Bytecode()
+			serialized := bytecode.Serialize()
+			deserialized, err := Deserialize(serialized)
+			if err != nil {
+				t.Fatalf("Deserialize failed: %v", err)
 			}
-		}
 
+			if !bytes.Equal(deserialized.Instructions, bytecode.Instructions) {
+				t.Errorf(
+					"Instructions mismatch after Deserialize.\ninput: %s\ngot:\n%v\nwant:\n%v",
+					tt.input, deserialized.Instructions, bytecode.Instructions,
+				)
+			}
+
+			if len(deserialized.Constants) != len(bytecode.Constants) {
+				t.Fatalf("Constants length mismatch. got %d, want %d", len(deserialized.Constants), len(bytecode.Constants))
+			}
+
+			for i, constantObject := range bytecode.Constants {
+				deserializedConstant := deserialized.Constants[i]
+				if reflect.TypeOf(constantObject) != reflect.TypeOf(deserializedConstant) {
+					t.Errorf("Constant %d type mismatch. got %T, want %T", i, deserializedConstant, constantObject)
+				}
+
+				switch v := constantObject.(type) {
+				case *objects.Null:
+					// nothing to check
+				case *objects.Integer:
+					if v.Value != deserializedConstant.(*objects.Integer).Value {
+						t.Errorf(
+							"Integer constant %d value mismatch. got %d, want %d",
+							i, deserializedConstant.(*objects.Integer).Value, v.Value,
+						)
+					}
+				case *objects.Float:
+					if v.Value != deserializedConstant.(*objects.Float).Value {
+						t.Errorf(
+							"Float constant %d value mismatch. got %f, want %f",
+							i, deserializedConstant.(*objects.Float).Value, v.Value,
+						)
+					}
+				case *objects.Boolean:
+					if v.Value != deserializedConstant.(*objects.Boolean).Value {
+						t.Errorf(
+							"Boolean constant %d value mismatch. got %v, want %v",
+							i, deserializedConstant.(*objects.Boolean).Value, v.Value,
+						)
+					}
+				case *objects.String:
+					if v.Value != deserializedConstant.(*objects.String).Value {
+						t.Errorf(
+							"String constant %d value mismatch. got %v, want %v",
+							i, deserializedConstant.(*objects.String).Value, v.Value,
+						)
+					}
+				case *objects.CompiledFunction:
+					if !reflect.DeepEqual(v, deserializedConstant) {
+						t.Errorf(
+							"CompiledFunction constant %d value mismatch. got %v, want %v",
+							i, deserializedConstant, v,
+						)
+					}
+
+				default:
+					t.Errorf("Unsupported constant type %T", v)
+				}
+			}
+		})
 	}
 }

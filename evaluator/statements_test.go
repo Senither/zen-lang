@@ -11,26 +11,36 @@ import (
 
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    string
 		expected int64
 	}{
-		{"func test() { return 10; }; test()", 10},
-		{"func test() { return 10; 9; }; test()", 10},
-		{"func test() { return 2 * 5; 9; }; test()", 10},
-		{"func test() { 9; return 2 * 5; 9; }; test()", 10},
+		{"return int", "return 10;", 10},
+		{"return int with extra statement", "return 10; 9;", 10},
+		{"return expression with extra statement", "return 2 * 5; 9;", 10},
+		{"expression before return with extra statement", "9; return 2 * 5; 9;", 10},
 	}
 
 	for _, tt := range tests {
-		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		t.Run(tt.name, func(t *testing.T) {
+			objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		})
 	}
 }
 
 func TestNestedReturnStatements(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    string
 		expected int64
 	}{
 		{
+			"nested return",
+			"if (10 > 1) { if (10 > 1) { return 10; } return 1; }",
+			10,
+		},
+		{
+			"nested return in function",
 			`
 				func test() {
 					if (10 > 1) {
@@ -48,68 +58,94 @@ func TestNestedReturnStatements(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		t.Run(tt.name, func(t *testing.T) {
+			objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		})
 	}
 }
 
 func TestVarStatements(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    string
 		expected int64
 	}{
-		{"var x = 5; x;", 5},
-		{"var x = 5 * 5; x;", 25},
-		{"var x = 5; var y = 10; x + y;", 15},
+		{"variable declaration", "var x = 5; x;", 5},
+		{"variable declaration with expression", "var x = 5 * 5; x;", 25},
+		{"multiple variable declarations", "var x = 5; var y = 10; x + y;", 15},
 	}
 
 	for _, tt := range tests {
-		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		t.Run(tt.name, func(t *testing.T) {
+			objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		})
 	}
 }
 
 func TestCompoundAssignments(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    string
 		expected int64
 	}{
-		{"var mut x = 5; x += 5;", 10},
-		{"var mut x = 5; x -= 5;", 0},
-		{"var mut x = 5; x *= 5;", 25},
-		{"var mut x = 5; x /= 5;", 1},
-		{"var mut x = 5; x %= 5;", 0},
-		{"var mut x = 5; x ^= 5;", 3125},
+		{"addition assignment", "var mut x = 5; x += 5;", 10},
+		{"subtraction assignment", "var mut x = 5; x -= 5;", 0},
+		{"multiplication assignment", "var mut x = 5; x *= 5;", 25},
+		{"division assignment", "var mut x = 5; x /= 5;", 1},
+		{"modulus assignment", "var mut x = 5; x %= 5;", 0},
+		{"exponentiation assignment", "var mut x = 5; x ^= 5;", 3125},
 	}
 
 	for _, tt := range tests {
-		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		t.Run(tt.name, func(t *testing.T) {
+			objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		})
 	}
 }
 
 func TestWhileBreakStatements(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    string
 		expected int64
 	}{
-		{"var mut i = 0; while (true) { if (i > 10) { break; } i = i + 1; } i;", 11},
-		{"var mut i = 0; while (true) { if (i > 10) { break; } i = i + 2; } i;", 12},
-		{"var mut i = 0; while (true) { if (i >= 10) { break; } i = i + 2; } i;", 10},
+		{
+			"break in while loop with increment of 1",
+			"var mut i = 0; while (true) { if (i > 10) { break; } i = i + 1; } i;",
+			11,
+		},
+		{
+			"break in while loop with increment of 2",
+			"var mut i = 0; while (true) { if (i > 10) { break; } i = i + 2; } i;",
+			12,
+		},
+		{
+			"break in while loop with increment of 2 and greater or equal condition",
+			"var mut i = 0; while (true) { if (i >= 10) { break; } i = i + 2; } i;",
+			10,
+		},
 	}
 
 	for _, tt := range tests {
-		objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		t.Run(tt.name, func(t *testing.T) {
+			objects.AssertExpectedObject(t, tt.expected, testEval(tt.input))
+		})
 	}
 }
 
 func TestExportStatement(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    string
 		expected []string
 	}{
 		{
+			"export single function",
 			`export func name(x) {x};`,
 			[]string{"name"},
 		},
 		{
+			"export after function declaration",
 			`
 				func name(x) {x};
 				export name;
@@ -117,6 +153,7 @@ func TestExportStatement(t *testing.T) {
 			[]string{"name"},
 		},
 		{
+			"export multiple functions",
 			`
 				export func functionOne() {}
 				func functionTwo(x) {x};
@@ -127,29 +164,31 @@ func TestExportStatement(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := parser.New(l, nil)
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := parser.New(l, nil)
 
-		env := objects.NewEnvironment(nil)
-		evaluated := Eval(p.ParseProgram(), env)
-		if evaluated == nil {
-			t.Errorf("Failed to evaluate program, evaluation returned nil")
-		}
-
-		exports := env.GetExports()
-		exportKeys := []string{}
-		for k := range exports {
-			exportKeys = append(exportKeys, k)
-		}
-
-		if len(exportKeys) != len(tt.expected) {
-			t.Errorf("Expected %d exported keys, got %d", len(tt.expected), len(exportKeys))
-		}
-
-		for _, v := range tt.expected {
-			if !slices.Contains(exportKeys, v) {
-				t.Errorf("Expected exported key %q to be in %v", v, exportKeys)
+			env := objects.NewEnvironment(nil)
+			evaluated := Eval(p.ParseProgram(), env)
+			if evaluated == nil {
+				t.Errorf("Failed to evaluate program, evaluation returned nil")
 			}
-		}
+
+			exports := env.GetExports()
+			exportKeys := []string{}
+			for k := range exports {
+				exportKeys = append(exportKeys, k)
+			}
+
+			if len(exportKeys) != len(tt.expected) {
+				t.Errorf("Expected %d exported keys, got %d", len(tt.expected), len(exportKeys))
+			}
+
+			for _, v := range tt.expected {
+				if !slices.Contains(exportKeys, v) {
+					t.Errorf("Expected exported key %q to be in %v", v, exportKeys)
+				}
+			}
+		})
 	}
 }

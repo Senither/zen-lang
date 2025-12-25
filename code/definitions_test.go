@@ -6,82 +6,86 @@ import (
 
 func TestMake(t *testing.T) {
 	tests := []struct {
+		name     string
 		op       Opcode
 		operands []int
 		expected []byte
 	}{
-		{OpConstant, []int{65534}, []byte{byte(OpConstant), 255, 254}},
-		{OpPop, []int{}, []byte{byte(OpPop)}},
+		{"OpConstant", OpConstant, []int{65534}, []byte{byte(OpConstant), 255, 254}},
+		{"OpPop", OpPop, []int{}, []byte{byte(OpPop)}},
 		// Jumps
-		{OpJump, []int{1024}, []byte{byte(OpJump), 4, 0}},
-		{OpJumpNotTruthy, []int{1024}, []byte{byte(OpJumpNotTruthy), 4, 0}},
+		{"OpJump", OpJump, []int{1024}, []byte{byte(OpJump), 4, 0}},
+		{"OpJumpNotTruthy", OpJumpNotTruthy, []int{1024}, []byte{byte(OpJumpNotTruthy), 4, 0}},
 		// Globals
-		{OpSetGlobal, []int{255}, []byte{byte(OpSetGlobal), 0, 255}},
-		{OpGetGlobal, []int{255}, []byte{byte(OpGetGlobal), 0, 255}},
+		{"OpSetGlobal", OpSetGlobal, []int{255}, []byte{byte(OpSetGlobal), 0, 255}},
+		{"OpGetGlobal", OpGetGlobal, []int{255}, []byte{byte(OpGetGlobal), 0, 255}},
 		// Locals
-		{OpSetLocal, []int{255}, []byte{byte(OpSetLocal), 255}},
-		{OpGetLocal, []int{255}, []byte{byte(OpGetLocal), 255}},
+		{"OpSetLocal", OpSetLocal, []int{255}, []byte{byte(OpSetLocal), 255}},
+		{"OpGetLocal", OpGetLocal, []int{255}, []byte{byte(OpGetLocal), 255}},
 		// Arithmetic
-		{OpAdd, []int{}, []byte{byte(OpAdd)}},
-		{OpSub, []int{}, []byte{byte(OpSub)}},
-		{OpMul, []int{}, []byte{byte(OpMul)}},
-		{OpDiv, []int{}, []byte{byte(OpDiv)}},
-		{OpPow, []int{}, []byte{byte(OpPow)}},
-		{OpMod, []int{}, []byte{byte(OpMod)}},
+		{"OpAdd", OpAdd, []int{}, []byte{byte(OpAdd)}},
+		{"OpSub", OpSub, []int{}, []byte{byte(OpSub)}},
+		{"OpMul", OpMul, []int{}, []byte{byte(OpMul)}},
+		{"OpDiv", OpDiv, []int{}, []byte{byte(OpDiv)}},
+		{"OpPow", OpPow, []int{}, []byte{byte(OpPow)}},
+		{"OpMod", OpMod, []int{}, []byte{byte(OpMod)}},
 		// Increment/Decrement
-		{OpIncGlobal, []int{65535}, []byte{byte(OpIncGlobal), 255, 255}},
-		{OpDecGlobal, []int{65535}, []byte{byte(OpDecGlobal), 255, 255}},
-		{OpIncLocal, []int{255}, []byte{byte(OpIncLocal), 255}},
-		{OpDecLocal, []int{255}, []byte{byte(OpDecLocal), 255}},
+		{"OpIncGlobal", OpIncGlobal, []int{65535}, []byte{byte(OpIncGlobal), 255, 255}},
+		{"OpDecGlobal", OpDecGlobal, []int{65535}, []byte{byte(OpDecGlobal), 255, 255}},
+		{"OpIncLocal", OpIncLocal, []int{255}, []byte{byte(OpIncLocal), 255}},
+		{"OpDecLocal", OpDecLocal, []int{255}, []byte{byte(OpDecLocal), 255}},
 		// Booleans
-		{OpTrue, []int{}, []byte{byte(OpTrue)}},
-		{OpFalse, []int{}, []byte{byte(OpFalse)}},
+		{"OpTrue", OpTrue, []int{}, []byte{byte(OpTrue)}},
+		{"OpFalse", OpFalse, []int{}, []byte{byte(OpFalse)}},
 		// Comparisons
-		{OpEqual, []int{}, []byte{byte(OpEqual)}},
-		{OpNotEqual, []int{}, []byte{byte(OpNotEqual)}},
-		{OpGreaterThan, []int{}, []byte{byte(OpGreaterThan)}},
-		{OpGreaterThanOrEqual, []int{}, []byte{byte(OpGreaterThanOrEqual)}},
-		{OpAnd, []int{}, []byte{byte(OpAnd)}},
-		{OpOr, []int{}, []byte{byte(OpOr)}},
+		{"OpEqual", OpEqual, []int{}, []byte{byte(OpEqual)}},
+		{"OpNotEqual", OpNotEqual, []int{}, []byte{byte(OpNotEqual)}},
+		{"OpGreaterThan", OpGreaterThan, []int{}, []byte{byte(OpGreaterThan)}},
+		{"OpGreaterThanOrEqual", OpGreaterThanOrEqual, []int{}, []byte{byte(OpGreaterThanOrEqual)}},
+		{"OpAnd", OpAnd, []int{}, []byte{byte(OpAnd)}},
+		{"OpOr", OpOr, []int{}, []byte{byte(OpOr)}},
 		// Prefixes
-		{OpMinus, []int{}, []byte{byte(OpMinus)}},
-		{OpBang, []int{}, []byte{byte(OpBang)}},
+		{"OpMinus", OpMinus, []int{}, []byte{byte(OpMinus)}},
+		{"OpBang", OpBang, []int{}, []byte{byte(OpBang)}},
 		// Suffixes
-		{OpIndex, []int{}, []byte{byte(OpIndex)}},
-		{OpIndexAssign, []int{}, []byte{byte(OpIndexAssign)}},
+		{"OpIndex", OpIndex, []int{}, []byte{byte(OpIndex)}},
+		{"OpIndexAssign", OpIndexAssign, []int{}, []byte{byte(OpIndexAssign)}},
 		// Objects
-		{OpArray, []int{255}, []byte{byte(OpArray), 0, 255}},
-		{OpHash, []int{255}, []byte{byte(OpHash), 0, 255}},
+		{"OpArray", OpArray, []int{255}, []byte{byte(OpArray), 0, 255}},
+		{"OpHash", OpHash, []int{255}, []byte{byte(OpHash), 0, 255}},
 		// Loop control
-		{OpLoopEnd, []int{}, []byte{byte(OpLoopEnd)}},
+		{"OpLoopEnd", OpLoopEnd, []int{}, []byte{byte(OpLoopEnd)}},
 		// Functions
-		{OpCall, []int{255}, []byte{byte(OpCall), 255}},
-		{OpReturnValue, []int{}, []byte{byte(OpReturnValue)}},
-		{OpReturn, []int{}, []byte{byte(OpReturn)}},
+		{"OpCall", OpCall, []int{255}, []byte{byte(OpCall), 255}},
+		{"OpReturnValue", OpReturnValue, []int{}, []byte{byte(OpReturnValue)}},
+		{"OpReturn", OpReturn, []int{}, []byte{byte(OpReturn)}},
 		// Internal Functions
-		{OpGetBuiltin, []int{255}, []byte{byte(OpGetBuiltin), 255}},
-		{OpGetGlobalBuiltin, []int{65535}, []byte{byte(OpGetGlobalBuiltin), 255, 255}},
+		{"OpGetBuiltin", OpGetBuiltin, []int{255}, []byte{byte(OpGetBuiltin), 255}},
+		{"OpGetGlobalBuiltin", OpGetGlobalBuiltin, []int{65535}, []byte{byte(OpGetGlobalBuiltin), 255, 255}},
 		// Closures
-		{OpClosure, []int{65534, 255}, []byte{byte(OpClosure), 255, 254, 255}},
-		{OpGetFree, []int{255}, []byte{byte(OpGetFree), 255}},
-		{OpCurrentClosure, []int{}, []byte{byte(OpCurrentClosure)}},
+		{"OpClosure", OpClosure, []int{65534, 255}, []byte{byte(OpClosure), 255, 254, 255}},
+		{"OpGetFree", OpGetFree, []int{255}, []byte{byte(OpGetFree), 255}},
+		{"OpCurrentClosure", OpCurrentClosure, []int{}, []byte{byte(OpCurrentClosure)}},
 		// Import/Export
-		{OpImport, []int{65534}, []byte{byte(OpImport), 255, 254}},
-		{OpExport, []int{}, []byte{byte(OpExport)}},
+		{"OpImport", OpImport, []int{65534}, []byte{byte(OpImport), 255, 254}},
+		{"OpExport", OpExport, []int{}, []byte{byte(OpExport)}},
 	}
 
 	for _, tt := range tests {
-		instruction := Make(tt.op, tt.operands...)
+		t.Run("making "+tt.name, func(t *testing.T) {
 
-		if len(instruction) != len(tt.expected) {
-			t.Fatalf("instruction has wrong length. got %d, want %d", len(instruction), len(tt.expected))
-		}
+			instruction := Make(tt.op, tt.operands...)
 
-		for i := range tt.expected {
-			if instruction[i] != tt.expected[i] {
-				t.Fatalf("wrong byte at position %d. got %d, want %d", i, instruction[i], tt.expected[i])
+			if len(instruction) != len(tt.expected) {
+				t.Fatalf("instruction has wrong length. got %d, want %d", len(instruction), len(tt.expected))
 			}
-		}
+
+			for i := range tt.expected {
+				if instruction[i] != tt.expected[i] {
+					t.Fatalf("wrong byte at position %d. got %d, want %d", i, instruction[i], tt.expected[i])
+				}
+			}
+		})
 	}
 }
 
@@ -130,33 +134,36 @@ func TestInstructionsString(t *testing.T) {
 
 func TestReadOperands(t *testing.T) {
 	tests := []struct {
+		name      string
 		op        Opcode
 		operands  []int
 		bytesRead int
 	}{
-		{OpGetLocal, []int{255}, 1},
-		{OpConstant, []int{65535}, 2},
-		{OpClosure, []int{65535, 255}, 3},
+		{"OpGetLocal", OpGetLocal, []int{255}, 1},
+		{"OpConstant", OpConstant, []int{65535}, 2},
+		{"OpClosure", OpClosure, []int{65535, 255}, 3},
 	}
 
 	for _, tt := range tests {
-		instruction := Make(tt.op, tt.operands...)
+		t.Run("reading operands for "+tt.name, func(t *testing.T) {
+			instruction := Make(tt.op, tt.operands...)
 
-		def, err := Lookup(tt.op)
-		if err != nil {
-			t.Fatalf("definition not found: %q\n", err)
-		}
-
-		operandsRead, n := ReadOperands(def, instruction[1:])
-		if n != tt.bytesRead {
-			t.Fatalf("n wrong. got %d, want %d", n, tt.bytesRead)
-		}
-
-		for i, want := range tt.operands {
-			if operandsRead[i] != want {
-				t.Fatalf("operand %d wrong. got %d, want %d", i, operandsRead[i], want)
+			def, err := Lookup(tt.op)
+			if err != nil {
+				t.Fatalf("definition not found: %q\n", err)
 			}
-		}
+
+			operandsRead, n := ReadOperands(def, instruction[1:])
+			if n != tt.bytesRead {
+				t.Fatalf("n wrong. got %d, want %d", n, tt.bytesRead)
+			}
+
+			for i, want := range tt.operands {
+				if operandsRead[i] != want {
+					t.Fatalf("operand %d wrong. got %d, want %d", i, operandsRead[i], want)
+				}
+			}
+		})
 	}
 }
 
