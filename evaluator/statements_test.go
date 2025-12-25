@@ -15,10 +15,10 @@ func TestReturnStatements(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"return int", "return 10;", 10},
-		{"return int with extra statement", "return 10; 9;", 10},
-		{"return expression with extra statement", "return 2 * 5; 9;", 10},
-		{"expression before return with extra statement", "9; return 2 * 5; 9;", 10},
+		{"return int", "func () { return 10; }()", 10},
+		{"return int with extra statement", "func () { return 10; 9; }()", 10},
+		{"return expression with extra statement", "func () { return 2 * 5; 9; }()", 10},
+		{"expression before return with extra statement", "func () { 9; return 2 * 5; 9; }()", 10},
 	}
 
 	for _, tt := range tests {
@@ -32,12 +32,19 @@ func TestNestedReturnStatements(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected int64
+		expected any
 	}{
 		{
-			"nested return",
-			"if (10 > 1) { if (10 > 1) { return 10; } return 1; }",
-			10,
+			"nested return outside function",
+			`
+				if (10 > 1) {
+					if (10 > 1) {
+						return 10;
+					}
+					return 1;
+				}
+			`,
+			&objects.Error{Message: "return statement cannot be used outside of a function scope"},
 		},
 		{
 			"nested return in function",
