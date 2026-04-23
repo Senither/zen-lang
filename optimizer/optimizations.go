@@ -2,6 +2,7 @@ package optimizer
 
 import (
 	"math"
+	"strconv"
 
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
@@ -638,18 +639,20 @@ func removeInstructionsAfterReturn(b *BytecodeOptimization) error {
 }
 
 // Reorganizes constant references to remove unused constants and
-// re-index the used ones to a more compact range.
+// re-index the used and duplicated ones to a more compact range.
 //
 // Example:
 //
 //	OpConstant 7   (value 42)
 //	OpConstant 19  (value "hello")
+//	OpConstant 25  (value 42)
 //
 // -->
 //
 //	...
 //	OpConstant 0   (value 42)
 //	OpConstant 1   (value "hello")
+//	OpConstant 0   (value 42)
 func reorganizeConstantReferences(b *BytecodeOptimization) error {
 	used := map[int]struct{}{}
 
@@ -683,21 +686,29 @@ func reorganizeConstantReferences(b *BytecodeOptimization) error {
 		markUsedFromInfos(nestedInfos)
 	}
 
-	if len(used) == len(b.Constants) {
-		return nil
-	}
-
 	indexMap := make(map[int]int, len(used))
 	newConstants := make([]objects.Object, 0, len(used))
+	immutableConstantIndex := make(map[string]int, len(used))
 
 	for oldIdx, c := range b.Constants {
 		if _, ok := used[oldIdx]; !ok {
 			continue
 		}
 
+		if key, immutable := immutableConstantReuseKey(c); immutable {
+			if idx, exists := immutableConstantIndex[key]; exists {
+				indexMap[oldIdx] = idx
+				continue
+			}
+		}
+
 		newIdx := len(newConstants)
 		indexMap[oldIdx] = newIdx
 		newConstants = append(newConstants, c)
+
+		if key, immutable := immutableConstantReuseKey(c); immutable {
+			immutableConstantIndex[key] = newIdx
+		}
 	}
 
 	for i := range b.Infos {
@@ -755,4 +766,26 @@ func reorganizeConstantReferences(b *BytecodeOptimization) error {
 	b.Constants = newConstants
 
 	return nil
+}
+
+func immutableConstantReuseKey(obj objects.Object) (string, bool) {
+	switch value := obj.(type) {
+	case *objects.Null:
+		return "null", true
+	case *objects.Boolean:
+		if value.Value {
+			return "bool:1", true
+		}
+
+		return "bool:0", true
+	case *objects.Integer:
+		return "int:" + strconv.FormatInt(value.Value, 10), true
+	case *objects.Float:
+		return "float:" + strconv.FormatUint(math.Float64bits(value.Value), 16), true
+	case *objects.String:
+		return "string:" + strconv.Itoa(len(value.Value)) + ":" + value.Value, true
+
+	default:
+		return "", false
+	}
 }
