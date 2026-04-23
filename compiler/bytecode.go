@@ -61,6 +61,21 @@ func (b *Bytecode) InstructionsCount() int {
 	return count
 }
 
+func (b *Bytecode) ConstantsCount() int {
+	count := len(b.Constants)
+
+	for _, constant := range b.Constants {
+		if cfi, ok := constant.(*objects.CompiledZenFileImport); ok {
+			count += (&Bytecode{
+				Instructions: cfi.OpcodeInstructions,
+				Constants:    cfi.Constants,
+			}).ConstantsCount()
+		}
+	}
+
+	return count
+}
+
 func (b *Bytecode) String() string {
 	return b.stringFromDepth(0)
 }

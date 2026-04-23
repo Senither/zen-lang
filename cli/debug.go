@@ -84,16 +84,23 @@ var debugCommand = &cobra.Command{
 				}
 
 				if optimizedBytecode != nil {
-					reduction := float64(optimizedBytecode.InstructionsCount()) / float64(bytecode.InstructionsCount())
-					percentage := (1.0 - reduction) * 100.0
-					if math.IsNaN(percentage) || math.IsInf(percentage, 0) {
-						percentage = 0
+					instructionReduction := float64(optimizedBytecode.InstructionsCount()) / float64(bytecode.InstructionsCount())
+					instructionReductionPercentage := (1.0 - instructionReduction) * 100.0
+					if math.IsNaN(instructionReductionPercentage) || math.IsInf(instructionReductionPercentage, 0) {
+						instructionReductionPercentage = 0
 					}
 
-					fmt.Printf("=====[ Optimized Bytecode (Ins: %d | Ops: %d | Red: %.2f%%)]=====\n",
+					constantReduction := float64(optimizedBytecode.ConstantsCount()) / float64(bytecode.ConstantsCount())
+					constantReductionPercentage := (1.0 - constantReduction) * 100.0
+					if math.IsNaN(constantReductionPercentage) || math.IsInf(constantReductionPercentage, 0) {
+						constantReductionPercentage = 0
+					}
+
+					fmt.Printf("=====[ Optimized Bytecode (Ins: %d | Ops: %d | Red: (Ins: %.2f%% | Const: %.2f%%)]=====\n",
 						optimizedBytecode.InstructionsCount(),
 						optimizedBytecode.OperationsCount(),
-						percentage,
+						instructionReductionPercentage,
+						constantReductionPercentage,
 					)
 
 					if !serialize {
