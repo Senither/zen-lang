@@ -137,6 +137,21 @@ func removeUnusedVariableInitializations(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Deletes the instructions that are used to initialize an array or hash if the value is never used,
+// this is done by calculating the stack delta of the instructions until it matches the number of
+// elements in the array or hash, if a jump target is found during the process the optimization
+// is aborted since it may be used somewhere else.
+//
+// Example:
+//
+//	OpConstant 0   (value 42)
+//	OpConstant 1   (value "hello")
+//	OpConstant 2   (value "world")
+//	OpArray 3      (3 elements)
+//
+// -->
+//
+//	(nothing)
 func deleteArrayOrHashInitializer(b *BytecodeOptimization, idx int) {
 	info := &b.Infos[idx]
 	if len(info.Operands) == 0 {
