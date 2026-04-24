@@ -262,6 +262,93 @@ func preCalculateNumberConstants(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Folds comparison and logical operations into OpTrue/OpFalse when both operands
+// are known constants in advance.
+//
+// Example:
+//
+//	OpConstant 0   (value 5)
+//	OpConstant 1   (value 10)
+//	OpGreaterThan
+//
+// -->
+//
+//	OpFalse
+func constantFoldComparisonLogicalOps(b *BytecodeOptimization) error {
+	for i := range b.Infos {
+		switch b.Infos[i].Op {
+		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan, code.OpGreaterThanOrEqual, code.OpAnd, code.OpOr:
+			if !b.Infos[i].Keep {
+				continue
+			}
+
+			infos, ok := b.getKeptInstructionsInfo(i, 2)
+			if !ok {
+				continue
+			}
+
+			rightInfo := infos[0]
+			leftInfo := infos[1]
+
+			if leftInfo.Op != code.OpConstant || rightInfo.Op != code.OpConstant {
+				continue
+			}
+
+			leftConstIdx := leftInfo.Operands[0]
+			rightConstIdx := rightInfo.Operands[0]
+			if leftConstIdx < 0 || leftConstIdx >= len(b.Constants) || rightConstIdx < 0 || rightConstIdx >= len(b.Constants) {
+				continue
+			}
+
+			leftObj := b.Constants[leftConstIdx]
+			rightObj := b.Constants[rightConstIdx]
+
+			var result bool
+			switch b.Infos[i].Op {
+			case code.OpEqual:
+				if objects.IsNumber(leftObj.Type()) && objects.IsNumber(rightObj.Type()) {
+					result = objects.UnwrapNumberValue(leftObj) == objects.UnwrapNumberValue(rightObj)
+				} else {
+					result = objects.Equals(leftObj, rightObj) == objects.TRUE
+				}
+			case code.OpNotEqual:
+				if objects.IsNumber(leftObj.Type()) && objects.IsNumber(rightObj.Type()) {
+					result = objects.UnwrapNumberValue(leftObj) != objects.UnwrapNumberValue(rightObj)
+				} else {
+					result = objects.Equals(leftObj, rightObj) == objects.FALSE
+				}
+			case code.OpGreaterThan:
+				if !objects.IsNumber(leftObj.Type()) || !objects.IsNumber(rightObj.Type()) {
+					continue
+				}
+
+				result = objects.UnwrapNumberValue(leftObj) > objects.UnwrapNumberValue(rightObj)
+			case code.OpGreaterThanOrEqual:
+				if !objects.IsNumber(leftObj.Type()) || !objects.IsNumber(rightObj.Type()) {
+					continue
+				}
+
+				result = objects.UnwrapNumberValue(leftObj) >= objects.UnwrapNumberValue(rightObj)
+			case code.OpAnd:
+				result = objects.IsTruthy(leftObj) && objects.IsTruthy(rightObj)
+			case code.OpOr:
+				result = objects.IsTruthy(leftObj) || objects.IsTruthy(rightObj)
+			}
+
+			rightInfo.Keep = false
+			leftInfo.Keep = false
+
+			if result {
+				b.setInstructionInfoOpcode(i, code.OpTrue, nil)
+			} else {
+				b.setInstructionInfoOpcode(i, code.OpFalse, nil)
+			}
+		}
+	}
+
+	return nil
+}
+
 // Concatenates stringable constants by using the objects.StringifyObject function,
 // and then storing the result as a new constant, at least one of the two
 // constants must be a string object to perform the optimization.
