@@ -132,6 +132,7 @@ func optimizeInstructions(
 		removeUnusedGettersAfterAssignments,
 		replaceIncrementsAndDecrementsWithDirectOperations,
 		callBuiltinsWithKnownConstantParameters,
+		removeRedundantJumpInstructions,
 		removeInstructionsAfterReturn,
 	)
 

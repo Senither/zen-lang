@@ -2,7 +2,6 @@ package optimizer
 
 import (
 	"math"
-	"strconv"
 
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
@@ -638,6 +637,147 @@ func removeInstructionsAfterReturn(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Removes OpJumpNotTruthy instructions that jump to an instruction that is
+// effectively a no-op, meaning it doesn't have any side effects and just
+// continues to the next instruction, this includes jumps to OpNull or
+// OpPop instructions that are not jump targets themselves.
+//
+// Example:
+//
+//	OpTrue
+//	OpJumpNotTruthy X
+//	OpJump Y
+//	OpNull      (This would be target X)
+//	OpPop       (This would be target Y)
+//
+// -->
+//
+// (nothing)
+func removeRedundantJumpInstructions(b *BytecodeOptimization) error {
+	for {
+		changed := false
+
+		offsetToIndex := map[int]int{}
+		for i := range b.Infos {
+			offsetToIndex[b.Infos[i].OldOffset] = i
+		}
+
+		incoming := map[int][]int{}
+		for i := range b.Infos {
+			info := &b.Infos[i]
+			if !info.Keep || !info.IsJump || len(info.Operands) == 0 {
+				continue
+			}
+
+			incoming[info.Operands[0]] = append(incoming[info.Operands[0]], i)
+		}
+
+		for i := range b.Infos {
+			if !b.Infos[i].Keep || b.Infos[i].Op != code.OpJumpNotTruthy || len(b.Infos[i].Operands) == 0 {
+				continue
+			}
+
+			condIdx := findPrevKeptInstructionIndex(b.Infos, i)
+			if condIdx < 0 {
+				continue
+			}
+
+			targetIdx, ok := resolveTargetInstructionIndex(b.Infos, offsetToIndex, b.Infos[i].Operands[0])
+			if !ok {
+				continue
+			}
+
+			if targetIdx <= i {
+				continue
+			}
+
+			prevTargetIdx := findPrevKeptInstructionIndex(b.Infos, targetIdx)
+			hasElseJump := false
+			afterElseIdx := len(b.Infos)
+			if prevTargetIdx > i && b.Infos[prevTargetIdx].Op == code.OpJump && len(b.Infos[prevTargetIdx].Operands) > 0 {
+				afterElseIdx, ok = resolveTargetInstructionIndex(b.Infos, offsetToIndex, b.Infos[prevTargetIdx].Operands[0])
+				if ok && b.Infos[prevTargetIdx].Operands[0] > b.Infos[i].Operands[0] {
+					hasElseJump = true
+				}
+			}
+
+			if isNoOpJump(b.Infos, i, targetIdx) {
+				b.Infos[i].Keep = false
+				changed = true
+				break
+			}
+
+			truthy, known := evaluateKnownConditionTruthiness(b, condIdx)
+			if !known {
+				continue
+			}
+
+			toRemove := map[int]struct{}{
+				condIdx: {},
+				i:       {},
+			}
+
+			if isWhileJumpPattern(b.Infos, i, targetIdx, prevTargetIdx, hasElseJump) && !truthy {
+				for idx := condIdx; idx <= targetIdx; idx++ {
+					toRemove[idx] = struct{}{}
+				}
+
+				if !canRemoveIndexes(b.Infos, incoming, toRemove) {
+					continue
+				}
+
+				for idx := range toRemove {
+					b.Infos[idx].Keep = false
+				}
+
+				changed = true
+				break
+			}
+
+			if hasElseJump {
+				if afterElseIdx <= targetIdx {
+					continue
+				}
+
+				if truthy {
+					toRemove[prevTargetIdx] = struct{}{}
+					for idx := targetIdx; idx < afterElseIdx; idx++ {
+						toRemove[idx] = struct{}{}
+					}
+				} else {
+					toRemove[prevTargetIdx] = struct{}{}
+					for idx := i + 1; idx < prevTargetIdx; idx++ {
+						toRemove[idx] = struct{}{}
+					}
+				}
+			} else if !truthy {
+				for idx := i + 1; idx < targetIdx; idx++ {
+					toRemove[idx] = struct{}{}
+				}
+			}
+
+			if !canRemoveIndexes(b.Infos, incoming, toRemove) {
+				continue
+			}
+
+			for idx := range toRemove {
+				b.Infos[idx].Keep = false
+			}
+
+			changed = true
+			break
+		}
+
+		if !changed {
+			break
+		}
+	}
+
+	b.Targets = findJumpTargetsFromKeptInstructions(b.Infos)
+
+	return nil
+}
+
 // Reorganizes constant references to remove unused constants and
 // re-index the used and duplicated ones to a more compact range.
 //
@@ -766,26 +906,4 @@ func reorganizeConstantReferences(b *BytecodeOptimization) error {
 	b.Constants = newConstants
 
 	return nil
-}
-
-func immutableConstantReuseKey(obj objects.Object) (string, bool) {
-	switch value := obj.(type) {
-	case *objects.Null:
-		return "null", true
-	case *objects.Boolean:
-		if value.Value {
-			return "bool:1", true
-		}
-
-		return "bool:0", true
-	case *objects.Integer:
-		return "int:" + strconv.FormatInt(value.Value, 10), true
-	case *objects.Float:
-		return "float:" + strconv.FormatUint(math.Float64bits(value.Value), 16), true
-	case *objects.String:
-		return "string:" + strconv.Itoa(len(value.Value)) + ":" + value.Value, true
-
-	default:
-		return "", false
-	}
 }
