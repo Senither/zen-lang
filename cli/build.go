@@ -6,12 +6,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/senither/zen-lang/optimizer"
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	rootCommand.AddCommand(buildCommand)
 	buildCommand.Flags().StringP("output", "o", "", "Output file name (default: same as input with .zenb extension)")
+	buildCommand.Flags().BoolP("optimize-disable", "d", false, "Disable optimizations of the bytecode (default: false)")
+	buildCommand.Flags().IntP("optimize-rounds", "r", optimizer.DEFAULT_OPTIMIZATION_ROUNDS, "Number of optimization rounds to perform")
 }
 
 var buildCommand = &cobra.Command{
@@ -50,6 +53,16 @@ var buildCommand = &cobra.Command{
 		if bytecode == nil {
 			fmt.Printf("\nFailed to compile file '%s'\n", inputFile)
 			os.Exit(1)
+		}
+
+		disableOptimization, _ := cmd.Flags().GetBool("disable-optimize")
+		if !disableOptimization {
+			rounds, _ := cmd.Flags().GetInt("optimize-rounds")
+			bytecode, err = optimizer.OptimizeRounds(bytecode, rounds)
+			if err != nil {
+				fmt.Printf("\nFailed to optimize file '%s'\n", inputFile)
+				os.Exit(1)
+			}
 		}
 
 		err = os.WriteFile(outputFile, bytecode.Serialize(), 0644)
