@@ -865,6 +865,37 @@ func removeRedundantJumpInstructions(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Removes OpPop instructions at the beginning of the instructions since they
+// are likely used to discard the result of a previous operation that is no
+// longer needed, this is common after optimizations that remove
+// instructions but leave the OpPop in place.
+//
+// Example:
+//
+//	OpPop
+//	OpConstant 0   (value 42)
+//	OpReturnValue
+//
+// -->
+//
+//	OpConstant 0   (value 42)
+//	OpReturnValue
+func removePopAtBeginningOfInstructions(b *BytecodeOptimization) error {
+	for i := range b.Infos {
+		if !b.Infos[i].Keep {
+			continue
+		}
+
+		if b.Infos[i].Op != code.OpPop {
+			break
+		}
+
+		b.Infos[i].Keep = false
+	}
+
+	return nil
+}
+
 // Reorganizes constant references to remove unused constants and
 // re-index the used and duplicated ones to a more compact range.
 //

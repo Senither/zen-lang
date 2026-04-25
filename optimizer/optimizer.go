@@ -134,6 +134,7 @@ func optimizeInstructions(
 		replaceIncrementsAndDecrementsWithDirectOperations,
 		callBuiltinsWithKnownConstantParameters,
 		removeRedundantJumpInstructions,
+		removePopAtBeginningOfInstructions,
 		removeInstructionsAfterReturn,
 	)
 
