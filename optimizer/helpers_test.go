@@ -2,6 +2,7 @@ package optimizer
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/senither/zen-lang/code"
@@ -75,18 +76,6 @@ func TestFindJumpTargets(t *testing.T) {
 	assertIntSet(t, findJumpTargets(infos), []int{10, 42})
 }
 
-func TestFindUsedGlobalsInInstructions(t *testing.T) {
-	infos := []InstructionInfo{
-		{Op: code.OpGetGlobal, Operands: []int{1}},
-		{Op: code.OpIncGlobal, Operands: []int{2}},
-		{Op: code.OpDecGlobal, Operands: []int{3}},
-		{Op: code.OpSetGlobal, Operands: []int{99}}, // ignored
-		{Op: code.OpGetGlobal, Operands: nil},       // ignored
-	}
-
-	assertIntSet(t, findUsedGlobalsInInstructions(infos), []int{1, 2, 3})
-}
-
 func TestFindUsedGlobals(t *testing.T) {
 	got := findUsedGlobals([]InstructionInfo{
 		{Op: code.OpGetGlobal, Operands: []int{1}},
@@ -101,6 +90,39 @@ func TestFindUsedGlobals(t *testing.T) {
 	})
 
 	assertIntSet(t, got, []int{1, 2})
+}
+
+func TestFindUsedGlobalsInInstructions(t *testing.T) {
+	infos := []InstructionInfo{
+		{Op: code.OpGetGlobal, Operands: []int{1}},
+		{Op: code.OpIncGlobal, Operands: []int{2}},
+		{Op: code.OpDecGlobal, Operands: []int{3}},
+		{Op: code.OpSetGlobal, Operands: []int{99}}, // ignored
+		{Op: code.OpGetGlobal, Operands: nil},       // ignored
+	}
+
+	assertIntSet(t, findUsedGlobalsInInstructions(infos), []int{1, 2, 3})
+}
+
+func TestFindChangedGlobals(t *testing.T) {
+	// Top-level changes:
+	// - global 5 set twice => changed
+	// - global 7 set once, but nested fn also mutates once => changed
+	// - global 9 set once => not changed
+	topLevelInfos := []InstructionInfo{
+		{Op: code.OpSetGlobal, Operands: []int{5}},
+		{Op: code.OpSetGlobal, Operands: []int{5}},
+		{Op: code.OpSetGlobal, Operands: []int{7}},
+		{Op: code.OpSetGlobal, Operands: []int{9}},
+	}
+
+	nestedFn := &objects.CompiledFunction{OpcodeInstructions: concatInstructions(
+		code.Make(code.OpIncGlobal, 7),
+		code.Make(code.OpReturn),
+	)}
+
+	got := findChangedGlobals(topLevelInfos, []objects.Object{nestedFn})
+	assertIntSet(t, got, []int{5, 7})
 }
 
 func TestFindChangedGlobalsInInstructions(t *testing.T) {
@@ -126,25 +148,203 @@ func TestFindChangedGlobalsInInstructions(t *testing.T) {
 	}
 }
 
-func TestFindChangedGlobals(t *testing.T) {
-	// Top-level changes:
-	// - global 5 set twice => changed
-	// - global 7 set once, but nested fn also mutates once => changed
-	// - global 9 set once => not changed
-	topLevelInfos := []InstructionInfo{
-		{Op: code.OpSetGlobal, Operands: []int{5}},
-		{Op: code.OpSetGlobal, Operands: []int{5}},
-		{Op: code.OpSetGlobal, Operands: []int{7}},
-		{Op: code.OpSetGlobal, Operands: []int{9}},
+func TestFindPrevKeptInstructionIndex(t *testing.T) {
+	infos := []InstructionInfo{
+		{Keep: false},
+		{Keep: true},
+		{Keep: false},
+		{Keep: false},
+		{Keep: true},
 	}
 
-	nestedFn := &objects.CompiledFunction{OpcodeInstructions: concatInstructions(
-		code.Make(code.OpIncGlobal, 7),
-		code.Make(code.OpReturn),
-	)}
+	for i, want := range []int{-1, -1, 1, 1, 1, 4} {
+		t.Run("index "+strconv.Itoa(i), func(t *testing.T) {
+			index := findPrevKeptInstructionIndex(infos, i)
+			if index != want {
+				t.Fatalf("unexpected value for index of %d: got %d want %d", i, index, want)
+			}
+		})
+	}
+}
 
-	got := findChangedGlobals(topLevelInfos, []objects.Object{nestedFn})
-	assertIntSet(t, got, []int{5, 7})
+func TestFindNextKeptInstructionIndex(t *testing.T) {
+	infos := []InstructionInfo{
+		{Keep: false},
+		{Keep: true},
+		{Keep: false},
+		{Keep: false},
+		{Keep: true},
+	}
+
+	for i, want := range []int{1, 4, 4, 4, -1, -1} {
+		t.Run("index "+strconv.Itoa(i), func(t *testing.T) {
+			index := findNextKeptInstructionIndex(infos, i)
+			if index != want {
+				t.Fatalf("unexpected value for index of %d: got %d want %d", i, index, want)
+			}
+		})
+	}
+}
+
+func TestFindJumpTargetsFromKeptInstructions(t *testing.T) {
+	infos := []InstructionInfo{
+		{Keep: false, IsJump: true, Operands: []int{9}},
+		{Keep: true, IsJump: true, Operands: []int{10}},
+		{Keep: false, IsJump: true, Operands: []int{42}},
+		{Keep: true, IsJump: false, Operands: []int{123}},
+		{Keep: true, IsJump: true, Operands: []int{999}},
+	}
+
+	kept := findJumpTargetsFromKeptInstructions(infos)
+
+	if len(kept) != 2 {
+		t.Fatalf("unexpected number of kept targets: got %d want 2", len(kept))
+	}
+
+	if _, ok := kept[10]; !ok {
+		t.Fatalf("expected target 10 to be kept")
+	}
+
+	if _, ok := kept[999]; !ok {
+		t.Fatalf("expected target 999 to be kept")
+	}
+}
+
+func TestIsNoOpJump(t *testing.T) {
+	infos := []InstructionInfo{
+		{Keep: true, IsJump: true, Operands: []int{3}},
+		{Keep: false},
+		{Keep: false},
+		{Keep: true},
+		{Keep: false},
+		{Keep: true},
+	}
+
+	results := map[int]bool{
+		0: false,
+		1: false,
+		2: false,
+		3: true,
+		4: false,
+		5: false,
+	}
+
+	for idx, want := range results {
+		t.Run("index "+strconv.Itoa(idx), func(t *testing.T) {
+			if isNoOpJump(infos, 0, idx) != want {
+				t.Fatalf("unexpected value for index %d: got %v want %v", idx, !want, want)
+			}
+		})
+	}
+}
+
+func TestIsWhileJumpPattern(t *testing.T) {
+	t.Run("returns false when hasElseJump is true", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpJump, IsJump: true, Operands: []int{0}, OldOffset: 0},
+		}
+
+		if isWhileJumpPattern(infos, 0, 0, 0, true) {
+			t.Fatalf("expected false when hasElseJump is true")
+		}
+	})
+
+	t.Run("returns false when prevTargetIdx <= jumpNotTruthyIdx", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpJump, IsJump: true, Operands: []int{0}, OldOffset: 0},
+		}
+
+		// prevTargetIdx=0, jumpNotTruthyIdx=0 (equal)
+		if isWhileJumpPattern(infos, 0, 0, 0, false) {
+			t.Fatalf("expected false when prevTargetIdx == jumpNotTruthyIdx")
+		}
+
+		// prevTargetIdx=0, jumpNotTruthyIdx=1 (less than)
+		if isWhileJumpPattern(infos, 1, 1, 0, false) {
+			t.Fatalf("expected false when prevTargetIdx < jumpNotTruthyIdx")
+		}
+	})
+
+	t.Run("returns false when prevTarget is not OpJump", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpJumpNotTruthy, IsJump: true, Operands: nil, OldOffset: 20},
+			{Op: code.OpAdd, IsJump: false, Operands: []int{5}, OldOffset: 10},
+		}
+
+		// prevTargetIdx=1 > jumpNotTruthyIdx=0, but prevTarget at index 1 is OpAdd, not OpJump
+		if isWhileJumpPattern(infos, 0, 100, 1, false) {
+			t.Fatalf("expected false when prevTarget is not OpJump")
+		}
+	})
+
+	t.Run("returns false when prevTarget has no operands", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpJumpNotTruthy, IsJump: true, Operands: []int{50}, OldOffset: 10},
+			{Op: code.OpJump, IsJump: true, Operands: nil, OldOffset: 20},
+		}
+
+		// prevTargetIdx=1 > jumpNotTruthyIdx=0, prevTarget has OpJump but no operands
+		if isWhileJumpPattern(infos, 0, 100, 1, false) {
+			t.Fatalf("expected false when prevTarget has no operands")
+		}
+	})
+
+	t.Run("returns false when prevTarget jump target > jumpNotTruthyIdx OldOffset", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpJumpNotTruthy, IsJump: true, Operands: []int{100}, OldOffset: 10},
+			{Op: code.OpJump, IsJump: true, Operands: []int{50}, OldOffset: 20},
+		}
+
+		// prevTargetIdx=1 > jumpNotTruthyIdx=0
+		// prevTarget.Operands[0]=50 > jumpNotTruthyIdx.OldOffset=10
+		if isWhileJumpPattern(infos, 0, 100, 1, false) {
+			t.Fatalf("expected false when prevTarget jump target > jumpNotTruthyIdx OldOffset")
+		}
+	})
+
+	t.Run("returns true for valid while loop pattern", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpJumpNotTruthy, IsJump: true, Operands: []int{100}, OldOffset: 20},
+			{Op: code.OpJump, IsJump: true, Operands: []int{10}, OldOffset: 5},
+		}
+
+		// prevTargetIdx=1 > jumpNotTruthyIdx=0
+		// prevTarget.Op == OpJump
+		// prevTarget has operands
+		// prevTarget.Operands[0]=10 <= jumpNotTruthyIdx.OldOffset=20
+		if !isWhileJumpPattern(infos, 0, 100, 1, false) {
+			t.Fatalf("expected true for valid while loop pattern")
+		}
+	})
+
+	t.Run("returns true when prevTarget jump target equals jumpNotTruthyIdx OldOffset", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpJumpNotTruthy, IsJump: true, Operands: []int{100}, OldOffset: 20},
+			{Op: code.OpJump, IsJump: true, Operands: []int{20}, OldOffset: 5},
+		}
+
+		// prevTarget.Operands[0]=20 == jumpNotTruthyIdx.OldOffset=20
+		if !isWhileJumpPattern(infos, 0, 100, 1, false) {
+			t.Fatalf("expected true when jump target equals OldOffset")
+		}
+	})
+
+	t.Run("returns true in complex multi-instruction scenario", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Op: code.OpConstant, Operands: []int{0}, OldOffset: 0},
+			{Op: code.OpSetLocal, Operands: []int{0}, OldOffset: 3},
+			{Op: code.OpGetLocal, Operands: []int{0}, OldOffset: 5},
+			{Op: code.OpJumpNotTruthy, IsJump: true, Operands: []int{50}, OldOffset: 11},
+			{Op: code.OpJump, IsJump: true, Operands: []int{5}, OldOffset: 8},
+		}
+
+		// prevTargetIdx=4 > jumpNotTruthyIdx=3
+		// prevTarget.Op == OpJump
+		// prevTarget.Operands[0]=5 <= jumpNotTruthyIdx.OldOffset=11
+		if !isWhileJumpPattern(infos, 3, 100, 4, false) {
+			t.Fatalf("expected true in complex scenario")
+		}
+	})
 }
 
 func TestComputeGlobalSwaps(t *testing.T) {
@@ -310,6 +510,369 @@ func TestStackDeltaBinaryAndComparisonOp(t *testing.T) {
 			delta := stackDelta(&info)
 			if delta != -1 {
 				t.Fatalf("unexpected delta for op %v: got %d want -1", op, delta)
+			}
+		})
+	}
+}
+
+func TestResolveTargetInstructionIndex(t *testing.T) {
+	t.Run("found in offsetToIndex map", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{OldOffset: 0, Width: 3},
+			{OldOffset: 3, Width: 3},
+		}
+		offsetToIndex := map[int]int{0: 0, 3: 1}
+
+		idx, ok := resolveTargetInstructionIndex(infos, offsetToIndex, 3)
+		if !ok {
+			t.Fatalf("expected offset index to exist")
+		}
+
+		if idx != 1 {
+			t.Fatalf("unexpected index: got %d want 1", idx)
+		}
+	})
+
+	t.Run("not found in map but matches end offset", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{OldOffset: 0, Width: 3},
+			{OldOffset: 3, Width: 4},
+		}
+		offsetToIndex := map[int]int{0: 0, 3: 1}
+
+		// end offset = 3 + 4 = 7
+		idx, ok := resolveTargetInstructionIndex(infos, offsetToIndex, 7)
+		if !ok {
+			t.Fatalf("expected offset index to exist")
+		}
+
+		if idx != len(infos) {
+			t.Fatalf("unexpected index: got %d want %d", idx, len(infos))
+		}
+	})
+
+	t.Run("empty infos returns not found", func(t *testing.T) {
+		idx, ok := resolveTargetInstructionIndex([]InstructionInfo{}, map[int]int{}, 10)
+		if ok {
+			t.Fatalf("expected offset to not be found")
+		}
+
+		if idx != -1 {
+			t.Fatalf("unexpected index: got %d want -1", idx)
+		}
+	})
+
+	t.Run("nil map and empty infos returns not found", func(t *testing.T) {
+		idx, ok := resolveTargetInstructionIndex([]InstructionInfo{}, nil, 0)
+		if ok {
+			t.Fatalf("expected offset to not be found")
+		}
+
+		if idx != -1 {
+			t.Fatalf("unexpected index: got %d want -1", idx)
+		}
+	})
+
+	t.Run("offset not in map and not at end returns not found", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{OldOffset: 0, Width: 3},
+			{OldOffset: 3, Width: 3},
+		}
+		offsetToIndex := map[int]int{0: 0, 3: 1}
+
+		idx, ok := resolveTargetInstructionIndex(infos, offsetToIndex, 99)
+		if ok {
+			t.Fatalf("expected offset to not be found")
+		}
+
+		if idx != -1 {
+			t.Fatalf("unexpected index: got %d want -1", idx)
+		}
+	})
+
+	t.Run("single instruction end offset resolves to len(infos)", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{OldOffset: 5, Width: 2},
+		}
+		offsetToIndex := map[int]int{5: 0}
+
+		// end offset = 5 + 2 = 7
+		idx, ok := resolveTargetInstructionIndex(infos, offsetToIndex, 7)
+		if !ok {
+			t.Fatalf("expected offset index to exist")
+		}
+
+		if idx != 1 {
+			t.Fatalf("unexpected index: got %d want 1", idx)
+		}
+	})
+}
+
+func TestEvaluateKnownConditionTruthiness(t *testing.T) {
+	t.Run("OpTrue is truthy", func(t *testing.T) {
+		b := &BytecodeOptimization{
+			Infos: []InstructionInfo{
+				{Op: code.OpTrue},
+			},
+		}
+
+		truthy, ok := evaluateKnownConditionTruthiness(b, 0)
+		if !ok {
+			t.Fatalf("expected condition to be known")
+		}
+
+		if !truthy {
+			t.Fatalf("expected OpTrue to be truthy")
+		}
+	})
+
+	t.Run("OpFalse is not truthy", func(t *testing.T) {
+		b := &BytecodeOptimization{
+			Infos: []InstructionInfo{
+				{Op: code.OpFalse},
+			},
+		}
+
+		truthy, ok := evaluateKnownConditionTruthiness(b, 0)
+		if !ok {
+			t.Fatalf("expected condition to be known")
+		}
+
+		if truthy {
+			t.Fatalf("expected OpFalse to not be truthy")
+		}
+	})
+
+	t.Run("OpNull is not truthy", func(t *testing.T) {
+		b := &BytecodeOptimization{
+			Infos: []InstructionInfo{
+				{Op: code.OpNull},
+			},
+		}
+
+		truthy, ok := evaluateKnownConditionTruthiness(b, 0)
+		if !ok {
+			t.Fatalf("expected condition to be known")
+		}
+
+		if truthy {
+			t.Fatalf("expected OpNull to not be truthy")
+		}
+	})
+
+	t.Run("OpConstant with integer is truthy", func(t *testing.T) {
+		b := &BytecodeOptimization{
+			Infos: []InstructionInfo{
+				{Op: code.OpConstant, Operands: []int{0}},
+			},
+			Constants: []objects.Object{
+				&objects.Integer{Value: 42},
+			},
+		}
+
+		truthy, ok := evaluateKnownConditionTruthiness(b, 0)
+		if !ok {
+			t.Fatalf("expected condition to be known")
+		}
+
+		if !truthy {
+			t.Fatalf("expected non-zero integer to be truthy")
+		}
+	})
+
+	t.Run("OpConstant with no operands is unknown", func(t *testing.T) {
+		b := &BytecodeOptimization{
+			Infos: []InstructionInfo{
+				{Op: code.OpConstant},
+			},
+			Constants: []objects.Object{},
+		}
+
+		_, ok := evaluateKnownConditionTruthiness(b, 0)
+		if ok {
+			t.Fatalf("expected condition to be unknown")
+		}
+	})
+
+	t.Run("OpConstant with out-of-bounds index is unknown", func(t *testing.T) {
+		b := &BytecodeOptimization{
+			Infos: []InstructionInfo{
+				{Op: code.OpConstant, Operands: []int{5}},
+			},
+			Constants: []objects.Object{
+				&objects.Integer{Value: 1},
+			},
+		}
+
+		_, ok := evaluateKnownConditionTruthiness(b, 0)
+		if ok {
+			t.Fatalf("expected condition to be unknown")
+		}
+	})
+
+	t.Run("unknown opcode is unknown", func(t *testing.T) {
+		b := &BytecodeOptimization{
+			Infos: []InstructionInfo{
+				{Op: code.OpAdd},
+			},
+		}
+
+		_, ok := evaluateKnownConditionTruthiness(b, 0)
+		if ok {
+			t.Fatalf("expected condition to be unknown for OpAdd")
+		}
+	})
+}
+
+func TestCanRemoveIndexes(t *testing.T) {
+	t.Run("empty toRemove returns true", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Keep: true, OldOffset: 0},
+		}
+
+		if !canRemoveIndexes(infos, map[int][]int{}, map[int]struct{}{}) {
+			t.Fatalf("expected true for empty toRemove")
+		}
+	})
+
+	t.Run("toRemove index not kept is skipped", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Keep: false, OldOffset: 0},
+		}
+
+		if !canRemoveIndexes(infos, map[int][]int{}, map[int]struct{}{0: {}}) {
+			t.Fatalf("expected true when removed instruction is not kept")
+		}
+	})
+
+	t.Run("kept instruction with no incoming sources can be removed", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Keep: true, OldOffset: 10},
+		}
+
+		if !canRemoveIndexes(infos, map[int][]int{}, map[int]struct{}{0: {}}) {
+			t.Fatalf("expected true when no incoming sources")
+		}
+	})
+
+	t.Run("returns true when all sources are also being removed", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Keep: true, OldOffset: 0},
+			{Keep: true, OldOffset: 5},
+		}
+
+		// instruction at index 1 (offset 5) has source at index 0
+		incoming := map[int][]int{5: {0}}
+		toRemove := map[int]struct{}{0: {}, 1: {}}
+
+		if !canRemoveIndexes(infos, incoming, toRemove) {
+			t.Fatalf("expected true when all sources are also being removed")
+		}
+	})
+
+	t.Run("returns false when kept source is not being removed", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Keep: true, OldOffset: 0},
+			{Keep: true, OldOffset: 5},
+		}
+
+		// instruction at index 1 (offset 5) has source at index 0, but index 0 is not in toRemove
+		incoming := map[int][]int{5: {0}}
+		toRemove := map[int]struct{}{1: {}}
+
+		if canRemoveIndexes(infos, incoming, toRemove) {
+			t.Fatalf("expected false when source is kept and not being removed")
+		}
+	})
+
+	t.Run("returns true when source is not kept", func(t *testing.T) {
+		infos := []InstructionInfo{
+			{Keep: false, OldOffset: 0},
+			{Keep: true, OldOffset: 5},
+		}
+
+		// source at index 0 is not kept, so it is skipped
+		incoming := map[int][]int{5: {0}}
+		toRemove := map[int]struct{}{1: {}}
+
+		if !canRemoveIndexes(infos, incoming, toRemove) {
+			t.Fatalf("expected true when source is not kept")
+		}
+	})
+}
+
+func TestImmutableConstantReuseKey(t *testing.T) {
+	tests := []struct {
+		name string
+		obj  objects.Object
+		want string
+		ok   bool
+	}{
+		{
+			name: "null",
+			obj:  &objects.Null{},
+			want: "null",
+			ok:   true,
+		},
+		{
+			name: "boolean true",
+			obj:  &objects.Boolean{Value: true},
+			want: "bool:1",
+			ok:   true,
+		},
+		{
+			name: "boolean false",
+			obj:  &objects.Boolean{Value: false},
+			want: "bool:0",
+			ok:   true,
+		},
+		{
+			name: "integer",
+			obj:  &objects.Integer{Value: 99},
+			want: "int:99",
+			ok:   true,
+		},
+		{
+			name: "negative integer",
+			obj:  &objects.Integer{Value: -7},
+			want: "int:-7",
+			ok:   true,
+		},
+		{
+			name: "float",
+			obj:  &objects.Float{Value: 1.5},
+			want: "float:3ff8000000000000",
+			ok:   true,
+		},
+		{
+			name: "string",
+			obj:  &objects.String{Value: "hello"},
+			want: "string:5:hello",
+			ok:   true,
+		},
+		{
+			name: "empty string",
+			obj:  &objects.String{Value: ""},
+			want: "string:0:",
+			ok:   true,
+		},
+		{
+			name: "unsupported type returns empty key",
+			obj:  &objects.Array{},
+			want: "",
+			ok:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := immutableConstantReuseKey(tt.obj)
+			if ok != tt.ok {
+				t.Fatalf("unexpected ok: got %v want %v", ok, tt.ok)
+			}
+
+			if got != tt.want {
+				t.Fatalf("unexpected key: got %q want %q", got, tt.want)
 			}
 		})
 	}
