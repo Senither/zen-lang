@@ -729,7 +729,7 @@ func TestBuiltImmutableHash(t *testing.T) {
 }
 
 func TestWrapBuiltinFunctionInASTAwareMap(t *testing.T) {
-	builtinFn := &Builtin{Fn: func(args ...Object) (Object, error) {
+	builtinFn := &Builtin{CaptureStdout: true, Fn: func(args ...Object) (Object, error) {
 		return &String{Value: "hello from builtin"}, nil
 	}}
 
@@ -755,6 +755,12 @@ func TestWrapBuiltinFunctionInASTAwareMap(t *testing.T) {
 		t.Errorf(
 			"expected builtin function to return 'hello from builtin', got '%s'",
 			result.Inspect(),
+		)
+	}
+
+	if !astAwareBuiltin.CaptureStdout {
+		t.Errorf(
+			"expected builtin function to carry CaptureStdout = true, got false",
 		)
 	}
 }
