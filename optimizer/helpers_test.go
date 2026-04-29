@@ -1,13 +1,139 @@
 package optimizer
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 
+	"github.com/senither/zen-lang/ast"
 	"github.com/senither/zen-lang/code"
+	"github.com/senither/zen-lang/compiler"
+	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/parser"
 )
+
+func runOptimizerTests(t *testing.T, tests []optimizerTestCase) {
+	t.Helper()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			program := parseOptimizerInput(t, tt.input)
+
+			compiler := compiler.New(nil)
+			if err := compiler.Compile(program); err != nil {
+				t.Fatalf("compiler error: %s", err)
+			}
+
+			bytecode, err := Optimize(compiler.Bytecode())
+			if err != nil {
+				t.Fatalf("optimizer error: %s", err)
+			}
+
+			if err := testOptimizerInstructions(tt.expectedInstructions, bytecode.Instructions); err != nil {
+				t.Fatalf("instruction test failed: %s", err)
+			}
+
+			if err := testOptimizerConstants(t, tt.expectedConstants, bytecode.Constants); err != nil {
+				t.Fatalf("constants test failed: %s", err)
+			}
+		})
+	}
+}
+
+func parseOptimizerInput(t *testing.T, input string) *ast.Program {
+	t.Helper()
+
+	l := lexer.New(input)
+	p := parser.New(l, nil)
+
+	program := p.ParseProgram()
+	if len(p.Errors()) == 0 {
+		return program
+	}
+
+	var buf strings.Builder
+	for _, msg := range p.Errors() {
+		fmt.Fprintf(&buf, "%s\n", msg.String())
+	}
+
+	t.Fatalf("parser errors encountered\n%s", buf.String())
+	return nil
+}
+
+func testOptimizerInstructions(expected []code.Instructions, actual code.Instructions) error {
+	combined := flattenOptimizerInstructions(expected)
+	if len(actual) != len(combined) {
+		return fmt.Errorf("wrong instructions length.\n\twant:\n%s\n\tgot:\n%s", combined, actual)
+	}
+
+	for i, ins := range combined {
+		if actual[i] != ins {
+			return fmt.Errorf("wrong instruction at %d.\n\tinstruction: %d\n\twant:\n%s\n\tgot:\n%s", i, ins, combined, actual)
+		}
+	}
+
+	return nil
+}
+
+func flattenOptimizerInstructions(parts []code.Instructions) code.Instructions {
+	out := code.Instructions{}
+
+	for _, part := range parts {
+		out = append(out, part...)
+	}
+
+	return out
+}
+
+func testOptimizerConstants(t *testing.T, expected []any, actual []objects.Object) error {
+	t.Helper()
+
+	if len(expected) != len(actual) {
+		return fmt.Errorf("wrong number of constants. got %d, want %d", len(actual), len(expected))
+	}
+
+	for i, constant := range expected {
+		switch constant := constant.(type) {
+		case int:
+			if err := objects.AssertInteger(int64(constant), actual[i]); err != nil {
+				return fmt.Errorf("constant %d - integer assertion failed: %s", i, err)
+			}
+		case float64:
+			if err := objects.AssertFloat(constant, actual[i]); err != nil {
+				return fmt.Errorf("constant %d - float assertion failed: %s", i, err)
+			}
+		case string:
+			if err := objects.AssertString(constant, actual[i]); err != nil {
+				return fmt.Errorf("constant %d - string assertion failed: %s", i, err)
+			}
+		case []code.Instructions:
+			if err := testOptimizerCodeInstructions(constant, actual[i]); err != nil {
+				return fmt.Errorf("constant %d - code instructions assertion failed: %s", i, err)
+			}
+
+		default:
+			return fmt.Errorf("unknown constant type %T", constant)
+		}
+	}
+
+	return nil
+}
+
+func testOptimizerCodeInstructions(expected []code.Instructions, actual objects.Object) error {
+	fn, ok := actual.(*objects.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("object is not CompiledFunction. got %T (%+v)", actual, actual)
+	}
+
+	if err := testOptimizerInstructions(expected, fn.Instructions()); err != nil {
+		return fmt.Errorf("instructions do not match the CompiledFunction instructions: %s", err)
+	}
+
+	return nil
+}
 
 func concatInstructions(parts ...[]byte) code.Instructions {
 	out := code.Instructions{}
