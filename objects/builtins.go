@@ -11,7 +11,7 @@ var Builtins = []BuiltinDefinition{
 	{
 		Name:             "print",
 		OmitOptimization: true,
-		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+		Builtin: &Builtin{CaptureStdout: true, Fn: func(args ...Object) (Object, error) {
 			for _, arg := range args {
 				fmt.Fprint(os.Stdout, arg.Inspect())
 			}
@@ -22,7 +22,7 @@ var Builtins = []BuiltinDefinition{
 	{
 		Name:             "println",
 		OmitOptimization: true,
-		Builtin: &Builtin{Fn: func(args ...Object) (Object, error) {
+		Builtin: &Builtin{CaptureStdout: true, Fn: func(args ...Object) (Object, error) {
 			for _, arg := range args {
 				fmt.Fprint(os.Stdout, arg.Inspect(), "\n")
 			}
@@ -260,6 +260,7 @@ var Builtins = []BuiltinDefinition{
 
 func BuiltinToASTAwareBuiltin(builtin *Builtin) *ASTAwareBuiltin {
 	return &ASTAwareBuiltin{
+		CaptureStdout: builtin.CaptureStdout,
 		Fn: func(
 			node *ast.CallExpression,
 			env *Environment,

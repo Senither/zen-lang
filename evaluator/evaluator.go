@@ -1160,7 +1160,11 @@ func applyFunction(
 			args[i] = WrapFunctionIfNeeded(arg)
 		}
 
-		return captureStdoutForBuiltin(node, fn, args, env)
+		if fn.CaptureStdout {
+			return captureStdoutForBuiltin(node, fn, args, env)
+		}
+
+		return fn.Fn(node, env, args...)
 
 	default:
 		return objects.NewError(

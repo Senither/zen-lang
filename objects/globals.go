@@ -318,7 +318,7 @@ var Globals = []struct {
 				Name:             "exit",
 				OmitOptimization: true,
 				Schema:           BuiltinSchema{NewRequiredArgument(INTEGER_OBJ)},
-				Builtin:          &Builtin{Fn: globalProcessExit},
+				Builtin:          &Builtin{CaptureStdout: true, Fn: globalProcessExit},
 			},
 			{
 				Name:             "argv",

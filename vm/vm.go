@@ -755,7 +755,7 @@ func (vm *VM) callBuiltin(builtin *objects.Builtin, numArgs int) error {
 		args[i] = WrapClosuresIfNeeded(vm, arg)
 	}
 
-	if vm.settings.CaptureStdout {
+	if vm.settings.CaptureStdout && builtin.CaptureStdout {
 		return vm.push(captureStdoutForBuiltin(builtin, args))
 	}
 
