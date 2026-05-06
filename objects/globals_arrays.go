@@ -57,6 +57,41 @@ func globalArraysPop(args ...Object) (Object, error) {
 	return last, nil
 }
 
+func globalArraysMap(args ...Object) (Object, error) {
+	if len(args) != 2 {
+		return nil, NewWrongNumberOfArgumentsError("map", 2, len(args))
+	}
+
+	array, ok := args[0].(*Array)
+	if !ok {
+		return nil, NewInvalidArgumentTypeError("map", ARRAY_OBJ, 0, args)
+	}
+
+	callable, ok := args[1].(Callable)
+	if !ok {
+		return nil, NewInvalidArgumentTypesError("map", []ObjectType{FUNCTION_OBJ, CLOSURE_OBJ}, 1, args)
+	}
+
+	if callable.ParametersCount() != 1 {
+		return nil, NewErrorf("map", "function passed to `map` must take exactly one argument")
+	}
+
+	mapped := make([]Object, len(array.Elements))
+	for i, elem := range array.Elements {
+		rs := callable.Call(elem)
+
+		switch rs := rs.(type) {
+		case *Error:
+			return rs, nil
+
+		default:
+			mapped[i] = rs
+		}
+	}
+
+	return &Array{Elements: mapped}, nil
+}
+
 func globalArraysFilter(args ...Object) (Object, error) {
 	if len(args) != 2 {
 		return nil, NewWrongNumberOfArgumentsError("filter", 2, len(args))

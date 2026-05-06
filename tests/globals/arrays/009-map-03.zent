@@ -1,0 +1,6 @@
+--TEST--
+Can map over an array of mixed numbers
+--FILE--
+println(arrays.map([0, 1.0, 2, 3.0, 4, 5.0, 6, 7.0, 8, 9.0, 10], func (x) { return x * 2 }))
+--EXPECT--
+[0, 2.000000, 4, 6.000000, 8, 10.000000, 12, 14.000000, 16, 18.000000, 20]

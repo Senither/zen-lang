@@ -105,6 +105,14 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalArraysPop},
 			},
 			{
+				Name: "map",
+				Schema: BuiltinSchema{
+					NewRequiredArgument(ARRAY_OBJ),
+					NewRequiredArgument(FUNCTION_OBJ, CLOSURE_OBJ),
+				},
+				Builtin: &Builtin{Fn: globalArraysMap},
+			},
+			{
 				Name: "filter",
 				Schema: BuiltinSchema{
 					NewRequiredArgument(ARRAY_OBJ),

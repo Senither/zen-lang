@@ -1,0 +1,8 @@
+--TEST--
+It fails when callback has no parameters
+--FILE--
+println(arrays.map([], func () { return 123 }))
+--ERROR--
+error in `map`: function passed to `map` must take exactly one argument
+    at <unknown>:1:19
+    at <unknown>:1:8

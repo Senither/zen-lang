@@ -1,0 +1,8 @@
+--TEST--
+It fails when given one argument
+--FILE--
+println(arrays.map([]))
+--ERROR--
+wrong number of arguments to `map`: got 1, want 2
+    at <unknown>:1:19
+    at <unknown>:1:8

@@ -1,0 +1,7 @@
+--TEST--
+It fails when given non-function as second argument
+--FILE--
+println(arrays.map([], 456))
+--ERROR--
+argument 2 to `map` has invalid type: got INTEGER, want FUNCTION|CLOSURE
+    at <unknown>:0:0

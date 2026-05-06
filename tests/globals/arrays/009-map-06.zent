@@ -1,0 +1,10 @@
+--TEST--
+Can map over an array of objects
+--FILE--
+println(arrays.map([{ 'value': 1 }, { 'value': 2 }, { 'value': 3}], func (x) {
+    x.old = x.value;
+    x.value = x.value * 2;
+    return x;
+}))
+--EXPECT--
+[{old: 1, value: 2}, {old: 2, value: 4}, {old: 3, value: 6}]
