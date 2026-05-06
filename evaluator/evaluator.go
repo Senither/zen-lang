@@ -812,7 +812,7 @@ func evalArrayAssignmentExpression(
 		)
 	}
 
-	return value
+	return arr
 }
 
 func evalHashAssignmentExpression(
@@ -838,7 +838,7 @@ func evalHashAssignmentExpression(
 
 	hash.Pairs[key.HashKey()] = objects.HashPair{Key: idx, Value: value}
 
-	return value
+	return hash
 }
 
 func evalNumberInfixExpression(
