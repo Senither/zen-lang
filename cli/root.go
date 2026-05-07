@@ -10,10 +10,15 @@ import (
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/lexer"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/optimizer"
 	"github.com/senither/zen-lang/parser"
 	"github.com/senither/zen-lang/vm"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	rootCommand.Flags().BoolP("optimize", "o", false, "Add optimization steps to the compiled bytecode")
+}
 
 var rootCommand = &cobra.Command{
 	Use:        "zen",
@@ -41,6 +46,17 @@ var rootCommand = &cobra.Command{
 			lexer := inputToLexer(string(content))
 			program := lexerToProgram(lexer, path)
 			bytecode = programToBytecode(path, program, table, constants)
+
+			optimize, _ := cmd.Flags().GetBool("optimize")
+			if optimize {
+				op, err := optimizer.Optimize(bytecode)
+				if err != nil {
+					fmt.Printf("Optimization Error: %s\n", err)
+					os.Exit(1)
+				}
+
+				bytecode = op
+			}
 		}
 
 		os.Args = args[1:]

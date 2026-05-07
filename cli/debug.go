@@ -18,11 +18,10 @@ import (
 )
 
 func init() {
-	debugCommand.Flags().BoolP("verbose", "v", false, "Disables print capture and panic recoveries so failures show full stack traces.")
-	debugCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
-	debugCommand.Flags().BoolP("optimize", "o", false, "Add optimization steps to the compiled bytecode.")
-
 	rootCommand.AddCommand(debugCommand)
+	debugCommand.Flags().BoolP("verbose", "v", false, "Disables print capture and panic recoveries so failures show full stack traces")
+	debugCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
+	debugCommand.Flags().BoolP("optimize", "o", false, "Add optimization steps to the compiled bytecode")
 }
 
 var debugCommand = &cobra.Command{
