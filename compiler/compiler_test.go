@@ -2104,6 +2104,129 @@ func BenchmarkWhileLoop(b *testing.B) {
 	})
 }
 
+func TestDoWhileLoop(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			name: "do-while loop with a single statement",
+			input: `
+				do { 10 } while (true)
+			`,
+			expectedConstants: []any{10},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 11),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			name: "nested do-while loops",
+			input: `
+				do {
+					do {
+						10
+					} while (false)
+				} while (true)
+			`,
+			expectedConstants: []any{10},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+				code.Make(code.OpFalse),
+				code.Make(code.OpJumpNotTruthy, 11),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+				code.Make(code.OpPop),
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 20),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			name: "do-while loop with continue statement",
+			input: `
+				do {
+					if (true) {
+						continue;
+					}
+				} while (true)
+			`,
+			expectedConstants: []any{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 7),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpNull),
+				code.Make(code.OpPop),
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 16),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			name: "do-while loop with break statement",
+			input: `
+				do {
+					if (true) {
+						break;
+					}
+				} while (true)
+			`,
+			expectedConstants: []any{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 7),
+				code.Make(code.OpJump, 16),
+				code.Make(code.OpNull),
+				code.Make(code.OpPop),
+				code.Make(code.OpTrue),
+				code.Make(code.OpJumpNotTruthy, 16),
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpLoopEnd),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}
+
+func BenchmarkDoWhileLoop(b *testing.B) {
+	runCompilationBenchmarks(b, []string{
+		`
+			do { 10 } while (true)
+		`,
+		`
+			do {
+				do {
+					10
+				} while (false)
+			} while (true)
+		`,
+		`
+			do {
+				if (true) {
+					continue;
+				}
+			} while (true)
+		`,
+		`
+			do {
+				if (true) {
+					break;
+				}
+			} while (true)
+		`,
+	})
+}
+
 func TestAssignmentExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{

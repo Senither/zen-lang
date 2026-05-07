@@ -1,0 +1,13 @@
+--TEST--
+It should execute a do-while loop at least once
+--FILE--
+var num = 0;
+
+do {
+    println(num);
+} while (false)
+
+println("Done");
+--EXPECT--
+0
+Done

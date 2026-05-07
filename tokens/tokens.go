@@ -72,6 +72,7 @@ const (
 	ELSE_IF       TokenType = "ELSE_IF"
 	RETURN        TokenType = "RETURN"
 	WHILE         TokenType = "WHILE"
+	DO_WHILE      TokenType = "DO_WHILE"
 	IMPORT        TokenType = "IMPORT"
 	IMPORT_ALIAS  TokenType = "IMPORT_ALIAS"
 	EXPORT        TokenType = "EXPORT"
@@ -92,6 +93,7 @@ var keywords = map[string]TokenType{
 	"else if":  ELSE_IF,
 	"return":   RETURN,
 	"while":    WHILE,
+	"do":       DO_WHILE,
 	"import":   IMPORT,
 	"export":   EXPORT,
 	"as":       IMPORT_ALIAS,

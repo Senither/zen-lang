@@ -120,6 +120,8 @@ func Eval(node ast.Node, env *objects.Environment) objects.Object {
 		return evalIfExpression(node, env)
 	case *ast.WhileExpression:
 		return evalWhileExpression(node, env)
+	case *ast.DoWhileExpression:
+		return evalDoWhileExpression(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
@@ -231,6 +233,30 @@ func evalWhileExpression(we *ast.WhileExpression, env *objects.Environment) obje
 		}
 
 		if body == objects.BREAK {
+			break
+		}
+	}
+
+	return objects.NULL
+}
+
+func evalDoWhileExpression(dwe *ast.DoWhileExpression, env *objects.Environment) objects.Object {
+	for {
+		body := objects.UnwrapReturnValue(Eval(dwe.Body, env))
+		if objects.IsError(body) {
+			return body
+		}
+
+		if body == objects.BREAK {
+			break
+		}
+
+		condition := Eval(dwe.Condition, env)
+		if objects.IsError(condition) {
+			return condition
+		}
+
+		if !objects.IsTruthy(condition) {
 			break
 		}
 	}

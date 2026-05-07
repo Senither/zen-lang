@@ -64,6 +64,7 @@ func New(lexer *lexer.Lexer, filePath interface{}) *Parser {
 	p.registerPrefix(tokens.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(tokens.IF, p.parseIfExpression)
 	p.registerPrefix(tokens.WHILE, p.parseWhileExpression)
+	p.registerPrefix(tokens.DO_WHILE, p.parseDoWhileExpression)
 	p.registerPrefix(tokens.FUNCTION, p.parseFunctionLiteral)
 
 	p.infixParseFns = make(map[tokens.TokenType]infixParseFn)
