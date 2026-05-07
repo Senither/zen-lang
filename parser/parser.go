@@ -34,7 +34,7 @@ func (e *ParserError) String() string {
 	}
 
 	return fmt.Sprintf(
-		"Parser error: %s\n  Token: %q\n  File:  %s%d:%d",
+		"%s\n  Token: %q\n  File:  %s%d:%d",
 		e.Message, e.Token.Literal, path, e.Token.Line, e.Token.Column,
 	)
 }
