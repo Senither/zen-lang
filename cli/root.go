@@ -31,13 +31,13 @@ var rootCommand = &cobra.Command{
 		path, err := filepath.Abs(args[0])
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 
 		content, err := loadFileContents(path)
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 
 		bytecode, err := compiler.Deserialize(content)
@@ -136,6 +136,7 @@ func lexerToProgram(lex *lexer.Lexer, filePath interface{}) *ast.Program {
 	if len(parser.Errors()) > 0 {
 		for _, err := range parser.Errors() {
 			fmt.Println("Parse error:", err.String())
+			os.Exit(1)
 		}
 
 		return nil
@@ -167,7 +168,7 @@ func programToBytecode(
 	compile := compiler.NewWithState(path, table, constants)
 	if err := compile.Compile(prog); err != nil {
 		fmt.Println("Compilation error:", err)
-		return nil
+		os.Exit(1)
 	}
 
 	return compile.Bytecode()

@@ -58,6 +58,7 @@ var testCommand = &cobra.Command{
 
 		if err = runner.RunTests(); err != nil {
 			fmt.Printf("Error running tests: %s\n", err)
+			os.Exit(1)
 		}
 	},
 }
@@ -74,7 +75,7 @@ func getTestRunnerEngine(cmd *cobra.Command) tester.EngineType {
 
 	default:
 		fmt.Printf("Unknown engine value: %s\n", engine)
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	return tester.AllEngines
