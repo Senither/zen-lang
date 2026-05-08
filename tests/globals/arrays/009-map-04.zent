@@ -1,0 +1,6 @@
+--TEST--
+Can map over an array of mixed strings
+--FILE--
+println(arrays.map(['World', 'Zen', 'Test'], func (x) { return 'Hello ' + x }))
+--EXPECT--
+[Hello World, Hello Zen, Hello Test]

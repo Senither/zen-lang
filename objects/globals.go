@@ -114,6 +114,15 @@ var Globals = []struct {
 				Builtin: &Builtin{Fn: globalArraysFilter},
 			},
 			{
+				Name:             "map",
+				OmitOptimization: true,
+				Schema: BuiltinSchema{
+					NewRequiredArgument(ARRAY_OBJ),
+					NewRequiredArgument(FUNCTION_OBJ, CLOSURE_OBJ),
+				},
+				Builtin: &Builtin{Fn: globalArraysMap},
+			},
+			{
 				Name: "concat",
 				Schema: BuiltinSchema{
 					NewRequiredArgument(ARRAY_OBJ),

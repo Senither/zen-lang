@@ -1,0 +1,8 @@
+--TEST--
+It fails when given non-array as first argument
+--FILE--
+println(arrays.map(123, 456))
+--ERROR--
+argument 1 to `map` has invalid type: got INTEGER, want ARRAY
+    at <unknown>:1:19
+    at <unknown>:1:8

@@ -393,6 +393,27 @@ func (w *WhileExpression) String() string {
 	return out.String()
 }
 
+type DoWhileExpression struct {
+	Token     tokens.Token
+	Condition Expression
+	Body      *BlockStatement
+}
+
+func (w *DoWhileExpression) expressionNode()        {}
+func (w *DoWhileExpression) GetToken() tokens.Token { return w.Token }
+func (w *DoWhileExpression) TokenLiteral() string   { return w.Token.Literal }
+func (w *DoWhileExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("do {")
+	out.WriteString(w.Body.String())
+	out.WriteString("} while (")
+	out.WriteString(w.Condition.String())
+	out.WriteString(")")
+
+	return out.String()
+}
+
 type BlockStatement struct {
 	Token      tokens.Token
 	Statements []Statement

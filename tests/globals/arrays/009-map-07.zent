@@ -1,0 +1,18 @@
+--TEST--
+Can map over an array of mixed types
+--FILE--
+println(arrays.map([1, 2.5, 'three', true, [7, 8, 9], { 'key': 'value' }], func (x) {
+    var t = type(x);
+
+    if (t == 'HASH' || t == 'ARRAY') {
+        return json.stringify(x);
+    } else if (t == 'STRING') {
+        return x + '!';
+    } else if (t == 'BOOLEAN') {
+        return !x;
+    }
+
+    return x * 2;
+}))
+--EXPECT--
+[2, 5.000000, three!, false, [7,8,9], {"key":"value"}]

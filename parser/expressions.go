@@ -417,6 +417,31 @@ func (p *Parser) parseWhileExpression() ast.Expression {
 	return expression
 }
 
+func (p *Parser) parseDoWhileExpression() ast.Expression {
+	expression := &ast.DoWhileExpression{
+		Token: p.curToken,
+	}
+
+	if !p.expectPeek(tokens.LBRACE) {
+		return nil
+	}
+
+	expression.Body = p.parseBlockStatement()
+
+	if !p.expectPeek(tokens.WHILE) {
+		return nil
+	}
+
+	p.nextToken()
+	expression.Condition = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(tokens.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return expression
+}
+
 func (p *Parser) parseFunctionLiteral() ast.Expression {
 	funcLiteral := &ast.FunctionLiteral{
 		Token: p.curToken,

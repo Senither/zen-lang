@@ -1,0 +1,17 @@
+--TEST--
+Can loop until a condition is met
+--FILE--
+var num = 0;
+
+do {
+    println(num);
+} while (num++ < 5);
+
+println("Done");
+--EXPECT--
+0
+1
+2
+3
+4
+Done

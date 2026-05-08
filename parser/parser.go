@@ -34,7 +34,7 @@ func (e *ParserError) String() string {
 	}
 
 	return fmt.Sprintf(
-		"Parser error: %s\n  Token: %q\n  File:  %s%d:%d",
+		"%s\n  Token: %q\n  File:  %s%d:%d",
 		e.Message, e.Token.Literal, path, e.Token.Line, e.Token.Column,
 	)
 }
@@ -64,6 +64,7 @@ func New(lexer *lexer.Lexer, filePath interface{}) *Parser {
 	p.registerPrefix(tokens.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(tokens.IF, p.parseIfExpression)
 	p.registerPrefix(tokens.WHILE, p.parseWhileExpression)
+	p.registerPrefix(tokens.DO_WHILE, p.parseDoWhileExpression)
 	p.registerPrefix(tokens.FUNCTION, p.parseFunctionLiteral)
 
 	p.infixParseFns = make(map[tokens.TokenType]infixParseFn)

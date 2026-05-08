@@ -59,12 +59,16 @@ var rootCommand = &cobra.Command{
 			}
 		}
 
+		if bytecode == nil {
+			os.Exit(1)
+		}
+
 		os.Args = args[1:]
 
 		vm := vm.New(bytecode)
 		if err := vm.Run(); err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 
 		stackTop := vm.LastPoppedStackElem()
@@ -85,7 +89,7 @@ func createREPLRunner(
 		content, err := loadFileContents(args[0])
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 
 		path, _ := filepath.Abs(args[0])

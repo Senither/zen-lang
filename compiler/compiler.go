@@ -333,6 +333,11 @@ func (c *Compiler) compileInstruction(node ast.Node) *objects.Error {
 		if err != nil {
 			return err
 		}
+	case *ast.DoWhileExpression:
+		err := c.compileDoWhileExpression(n)
+		if err != nil {
+			return err
+		}
 	case *ast.BreakStatement:
 		if c.loopIndex == 0 {
 			return objects.NewError(
@@ -1061,6 +1066,33 @@ func (c *Compiler) compileWhileExpression(node *ast.WhileExpression) *objects.Er
 	if err != nil {
 		return err
 	}
+
+	c.emit(code.OpJump, startJumpIdx)
+
+	endJumpIdx := len(c.currentInstructions())
+
+	c.emit(code.OpLoopEnd)
+	c.leaveLoop(endJumpIdx)
+
+	c.changeInstructionOperandAt(jumpNotTruthyPos, endJumpIdx)
+
+	return nil
+}
+
+func (c *Compiler) compileDoWhileExpression(node *ast.DoWhileExpression) *objects.Error {
+	startJumpIdx := c.enterLoop()
+
+	err := c.compileInstruction(node.Body)
+	if err != nil {
+		return objects.NewEmptyErrorWithParent(err, node.Token, c.file)
+	}
+
+	err = c.compileInstruction(node.Condition)
+	if err != nil {
+		return objects.NewEmptyErrorWithParent(err, node.Token, c.file)
+	}
+
+	jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
 
 	c.emit(code.OpJump, startJumpIdx)
 
