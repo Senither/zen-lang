@@ -38,6 +38,13 @@ func TestOptimizerUnfoldNonReassignedVariables(t *testing.T) {
 	runOptimizerTests(t, tests)
 }
 
+func BenchmarkUnfoldNonReassignedVariables(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"var a = 42; a;",
+		"var flag = true; flag;",
+	})
+}
+
 func TestOptimizerRemoveUnusedVariableInitializations(t *testing.T) {
 	tests := []optimizerTestCase{
 		{
@@ -63,6 +70,13 @@ func TestOptimizerRemoveUnusedVariableInitializations(t *testing.T) {
 	runOptimizerTests(t, tests)
 }
 
+func BenchmarkRemoveUnusedVariableInitializations(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"var a = 42; 99;",
+		"var arr = [1, 2, 3]; 5;",
+	})
+}
+
 func TestOptimizerDeleteArrayOrHashInitializerIndirect(t *testing.T) {
 	tests := []optimizerTestCase{
 		{
@@ -77,6 +91,12 @@ func TestOptimizerDeleteArrayOrHashInitializerIndirect(t *testing.T) {
 	}
 
 	runOptimizerTests(t, tests)
+}
+
+func BenchmarkDeleteArrayOrHashInitializerIndirect(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"var payload = {\"a\": 1, \"b\": 2}; 7;",
+	})
 }
 
 func TestOptimizerPreCalculateNumberConstants(t *testing.T) {
@@ -212,6 +232,17 @@ func TestOptimizerPreCalculateNumberConstants(t *testing.T) {
 	runOptimizerTests(t, tests)
 }
 
+func BenchmarkPreCalculateNumberConstants(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"1 + 2",
+		"5 - 2",
+		"3 * 4",
+		"12 / 4",
+		"2 ^ 3",
+		"12 % 4",
+	})
+}
+
 func TestOptimizerConstantFoldComparisonLogicalOps(t *testing.T) {
 	tests := []optimizerTestCase{
 		{
@@ -246,6 +277,14 @@ func TestOptimizerConstantFoldComparisonLogicalOps(t *testing.T) {
 	}
 
 	runOptimizerTests(t, tests)
+}
+
+func BenchmarkConstantFoldComparisonLogicalOps(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"5 > 10",
+		"5 == 5.0",
+		"true && false",
+	})
 }
 
 func TestOptimizerConcatenateStringableConstants(t *testing.T) {
@@ -300,6 +339,16 @@ func TestOptimizerConcatenateStringableConstants(t *testing.T) {
 	runOptimizerTests(t, tests)
 }
 
+func BenchmarkConcatenateStringableConstants(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"\"Value=\" + 42",
+		"42 + \" items\"",
+		"\"Pi=\" + 3.14",
+		"3.14 + \" is Pi\"",
+		"\"Hello\" + \" World\"",
+	})
+}
+
 func TestOptimizerRemoveUnusedGettersAfterAssignments(t *testing.T) {
 	tests := []optimizerTestCase{
 		{
@@ -318,6 +367,12 @@ func TestOptimizerRemoveUnusedGettersAfterAssignments(t *testing.T) {
 	}
 
 	runOptimizerTests(t, tests)
+}
+
+func BenchmarkRemoveUnusedGettersAfterAssignments(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"var mut a = 1; a = 2;",
+	})
 }
 
 func TestOptimizerReplaceIncrementsAndDecrementsWithDirectOperations(t *testing.T) {
@@ -353,6 +408,13 @@ func TestOptimizerReplaceIncrementsAndDecrementsWithDirectOperations(t *testing.
 	runOptimizerTests(t, tests)
 }
 
+func BenchmarkReplaceIncrementsAndDecrementsWithDirectOperations(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"var mut a = 1; a = a + 1;",
+		"var mut a = 10; a = a - 1;",
+	})
+}
+
 func TestOptimizerCallBuiltinsWithKnownConstantParameters(t *testing.T) {
 	tests := []optimizerTestCase{
 		{
@@ -367,6 +429,12 @@ func TestOptimizerCallBuiltinsWithKnownConstantParameters(t *testing.T) {
 	}
 
 	runOptimizerTests(t, tests)
+}
+
+func BenchmarkCallBuiltinsWithKnownConstantParameters(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"len(\"hello\")",
+	})
 }
 
 func TestOptimizerRemoveInstructionsAfterReturn(t *testing.T) {
@@ -389,6 +457,12 @@ func TestOptimizerRemoveInstructionsAfterReturn(t *testing.T) {
 	}
 
 	runOptimizerTests(t, tests)
+}
+
+func BenchmarkRemoveInstructionsAfterReturn(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"func() { return 42; 99; };",
+	})
 }
 
 func TestOptimizerRemoveRedundantJumpInstructions(t *testing.T) {
@@ -416,6 +490,13 @@ func TestOptimizerRemoveRedundantJumpInstructions(t *testing.T) {
 	runOptimizerTests(t, tests)
 }
 
+func BenchmarkRemoveRedundantJumpInstructions(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"if (true) { 5 } else { 10 }",
+		"if (false) { 5 } else { 10 }",
+	})
+}
+
 func TestOptimizerRemovePopAtBeginningOfInstructions(t *testing.T) {
 	tests := []optimizerTestCase{
 		{
@@ -432,6 +513,12 @@ func TestOptimizerRemovePopAtBeginningOfInstructions(t *testing.T) {
 	}
 
 	runOptimizerTests(t, tests)
+}
+
+func BenchmarkRemovePopAtBeginningOfInstructions(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"if (false) { 1 }; 2;",
+	})
 }
 
 func TestOptimizerReorganizeConstantReferences(t *testing.T) {
@@ -454,4 +541,10 @@ func TestOptimizerReorganizeConstantReferences(t *testing.T) {
 	}
 
 	runOptimizerTests(t, tests)
+}
+
+func BenchmarkReorganizeConstantReferences(b *testing.B) {
+	runOptimizerBenchmarks(b, []string{
+		"42; 42; 99; 42;",
+	})
 }

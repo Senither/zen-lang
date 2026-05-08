@@ -20,7 +20,10 @@ func runOptimizerTests(t *testing.T, tests []optimizerTestCase) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			program := parseOptimizerInput(t, tt.input)
+			program, err := parse(tt.input)
+			if err != nil {
+				t.Fatalf("parser error: %s", err)
+			}
 
 			compiler := compiler.New(nil)
 			if err := compiler.Compile(program); err != nil {
@@ -43,15 +46,42 @@ func runOptimizerTests(t *testing.T, tests []optimizerTestCase) {
 	}
 }
 
-func parseOptimizerInput(t *testing.T, input string) *ast.Program {
-	t.Helper()
+func runOptimizerBenchmarks(b *testing.B, inputs []string) {
+	b.Helper()
 
+	compiledBytecode := make([]*compiler.Bytecode, len(inputs))
+	for i, input := range inputs {
+		program, err := parse(input)
+		if err != nil {
+			b.Fatalf("parser error: %s", err)
+		}
+
+		compiler := compiler.New(nil)
+		if err := compiler.Compile(program); err != nil {
+			b.Fatalf("compiler error: %s", err)
+		}
+
+		compiledBytecode[i] = compiler.Bytecode()
+	}
+
+	for i, bytecode := range compiledBytecode {
+		b.Run(strconv.Itoa(i), func(b *testing.B) {
+			for b.Loop() {
+				if _, err := Optimize(bytecode); err != nil {
+					b.Fatalf("optimizer error: %s", err)
+				}
+			}
+		})
+	}
+}
+
+func parse(input string) (*ast.Program, error) {
 	l := lexer.New(input)
 	p := parser.New(l, nil)
 
 	program := p.ParseProgram()
 	if len(p.Errors()) == 0 {
-		return program
+		return program, nil
 	}
 
 	var buf strings.Builder
@@ -59,8 +89,7 @@ func parseOptimizerInput(t *testing.T, input string) *ast.Program {
 		fmt.Fprintf(&buf, "%s\n", msg.String())
 	}
 
-	t.Fatalf("parser errors encountered\n%s", buf.String())
-	return nil
+	return nil, fmt.Errorf("parser errors encountered\n%s", buf.String())
 }
 
 func testOptimizerInstructions(expected []code.Instructions, actual code.Instructions) error {
