@@ -42,6 +42,10 @@ func NewEnclosedEnvironment(outer *Environment) *Environment {
 	return env
 }
 
+func (e *Environment) IsRoot() bool {
+	return e.outer == nil
+}
+
 func (e *Environment) Has(name string) bool {
 	_, ok := e.GetStateItem(name)
 	return ok

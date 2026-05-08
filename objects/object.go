@@ -291,9 +291,10 @@ func (f *Function) Inspect() string {
 
 type BuiltinFunction func(args ...Object) (Object, error)
 type BuiltinDefinition struct {
-	Name    string
-	Schema  BuiltinSchema
-	Builtin *Builtin
+	Name             string
+	Schema           BuiltinSchema
+	OmitOptimization bool
+	Builtin          *Builtin
 }
 
 type BuiltinArgument struct {
@@ -314,7 +315,8 @@ func NewOptionalArgument(types ...ObjectType) BuiltinArgument {
 func (arg BuiltinArgument) IsRequired() bool { return arg.Required }
 
 type Builtin struct {
-	Fn BuiltinFunction
+	CaptureStdout bool
+	Fn            BuiltinFunction
 }
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
@@ -322,7 +324,8 @@ func (b *Builtin) Inspect() string  { return "builtin function" }
 
 type ASTAwareBuiltinFunction func(node *ast.CallExpression, env *Environment, args ...Object) Object
 type ASTAwareBuiltin struct {
-	Fn ASTAwareBuiltinFunction
+	CaptureStdout bool
+	Fn            ASTAwareBuiltinFunction
 }
 
 func (b *ASTAwareBuiltin) Type() ObjectType { return BUILTIN_OBJ }

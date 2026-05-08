@@ -1,0 +1,7 @@
+--TEST--
+It fails if return is used outside of a function scope
+--FILE--
+return 5;
+--ERROR--
+return statement cannot be used outside of a function scope
+    at <unknown>:1:1

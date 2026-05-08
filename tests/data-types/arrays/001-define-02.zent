@@ -2,5 +2,7 @@
 Can define an array to a variable
 --FILE--
 var arr = [1, 2, 3];
+
+arr;
 --EXPECT--
 [1, 2, 3]

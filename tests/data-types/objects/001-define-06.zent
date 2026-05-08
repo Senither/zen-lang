@@ -2,5 +2,7 @@
 Can define an object with null values
 --FILE--
 var obj = {"key": null};
+
+obj;
 --EXPECT--
 {key: null}

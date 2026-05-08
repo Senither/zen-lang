@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -11,15 +12,16 @@ import (
 	"github.com/senither/zen-lang/compiler"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/optimizer"
 	"github.com/senither/zen-lang/vm"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	debugCommand.Flags().BoolP("verbose", "v", false, "Disables print capture and panic recoveries so failures show full stack traces.")
-	debugCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
-
 	rootCommand.AddCommand(debugCommand)
+	debugCommand.Flags().BoolP("verbose", "v", false, "Disables print capture and panic recoveries so failures show full stack traces")
+	debugCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
+	debugCommand.Flags().BoolP("optimize", "o", false, "Add optimization steps to the compiled bytecode")
 }
 
 var debugCommand = &cobra.Command{
@@ -30,6 +32,7 @@ var debugCommand = &cobra.Command{
 	Args:   cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose, _ := cmd.Flags().GetBool("verbose")
+		optimize, _ := cmd.Flags().GetBool("optimize")
 		serialize, _ := cmd.Flags().GetBool("serialize")
 
 		table, globals, constants := createCompilerParameters()
@@ -49,7 +52,20 @@ var debugCommand = &cobra.Command{
 			compilerErr := compile.Compile(program)
 			bytecode := compile.Bytecode()
 
-			fmt.Printf("=====[ Compiled Bytecode (Instructions: %d)]=====\n", len(bytecode.Instructions))
+			var optimizedBytecode *compiler.Bytecode = nil
+			if optimize {
+				optimization, err := optimizer.Optimize(bytecode)
+				if err != nil {
+					fmt.Printf("Optimization Error: %s\n", err)
+					return
+				}
+
+				optimizedBytecode = optimization
+			}
+
+			fmt.Printf("=====[ Compiled Bytecode (Ins: %d | Ops: %d)]=====\n",
+				bytecode.InstructionsCount(), bytecode.OperationsCount(),
+			)
 			if compilerErr != nil {
 				fmt.Printf(colors.BgRed+"\nCOMPILATION ERROR%s\n\n%s\n", colors.Reset, compilerErr.Error())
 			} else {
@@ -64,6 +80,40 @@ var debugCommand = &cobra.Command{
 					}
 
 					printBytecodeComparison(bytecode, deserializedBytecode)
+				}
+
+				if optimizedBytecode != nil {
+					instructionReduction := float64(optimizedBytecode.InstructionsCount()) / float64(bytecode.InstructionsCount())
+					instructionReductionPercentage := (1.0 - instructionReduction) * 100.0
+					if math.IsNaN(instructionReductionPercentage) || math.IsInf(instructionReductionPercentage, 0) {
+						instructionReductionPercentage = 0
+					}
+
+					constantReduction := float64(optimizedBytecode.ConstantsCount()) / float64(bytecode.ConstantsCount())
+					constantReductionPercentage := (1.0 - constantReduction) * 100.0
+					if math.IsNaN(constantReductionPercentage) || math.IsInf(constantReductionPercentage, 0) {
+						constantReductionPercentage = 0
+					}
+
+					fmt.Printf("=====[ Optimized Bytecode (Ins: %d | Ops: %d | Red: (Ins: %.2f%% | Const: %.2f%%)]=====\n",
+						optimizedBytecode.InstructionsCount(),
+						optimizedBytecode.OperationsCount(),
+						instructionReductionPercentage,
+						constantReductionPercentage,
+					)
+
+					if !serialize {
+						fmt.Print(optimizedBytecode.String())
+					} else {
+						series := optimizedBytecode.Serialize()
+						deserializedBytecode, err := compiler.Deserialize(series)
+						if err != nil {
+							fmt.Printf("Deserialization Error: %s\n", err)
+							return
+						}
+
+						printBytecodeComparison(optimizedBytecode, deserializedBytecode)
+					}
 				}
 			}
 
@@ -93,6 +143,14 @@ var debugCommand = &cobra.Command{
 				vmDuration := time.Since(vmStart)
 
 				fmt.Printf("=====[ Virtual Machine Serializer Result (Time: %s) ]=====\n", vmDuration)
+				fmt.Println(vmRes)
+			}
+
+			if optimizedBytecode != nil {
+				vmStart := time.Now()
+				vmRes = runAndReturnVirtualMachineResult(verbose, optimizedBytecode, globals)
+				vmDuration := time.Since(vmStart)
+				fmt.Printf("=====[ Virtual Machine Optimized Result (Time: %s) ]=====\n", vmDuration)
 				fmt.Println(vmRes)
 			}
 

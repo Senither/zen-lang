@@ -32,7 +32,7 @@ func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineTyp
 			timings = fmt.Sprintf(" %sT:%s%s",
 				colors.Gray, test.metadata[EvaluatorExecutionTiming], colors.Reset,
 			)
-		case VirtualMachineEngine, _VirtualMachineEngineUnprocessed, _VirtualMachineEngineSerialized:
+		case VirtualMachineEngine, _VirtualMachineEngineUnprocessed, _VirtualMachineEngineSerialized, _VirtualMachineEngineOptimized:
 			vmTiming := test.metadata[VMExecutionTiming]
 			if vmTiming == nil {
 				vmTiming = "n/a"
@@ -41,6 +41,15 @@ func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineTyp
 			timings = fmt.Sprintf(" %sC:%s VM:%s%s",
 				colors.Gray, test.metadata[CompilationTiming], vmTiming, colors.Reset,
 			)
+
+			if engineType == _VirtualMachineEngineOptimized {
+				timings += fmt.Sprintf(" %sO:%d->%d%s",
+					colors.Gray,
+					test.metadata[MetaOriginalSize],
+					test.metadata[MetaOptimizationSize],
+					colors.Reset,
+				)
+			}
 		}
 	}
 

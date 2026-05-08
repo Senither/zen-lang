@@ -597,6 +597,7 @@ func TestChainIndexAssignments(t *testing.T) {
 				code.Make(code.OpConstant, 2),
 				code.Make(code.OpConstant, 3),
 				code.Make(code.OpIndexAssign),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -631,6 +632,7 @@ func TestChainIndexAssignments(t *testing.T) {
 				code.Make(code.OpConstant, 4),
 				code.Make(code.OpConstant, 5),
 				code.Make(code.OpIndexAssign),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -2242,6 +2244,7 @@ func TestAssignmentExpressions(t *testing.T) {
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpSetGlobal, 0),
 				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -2262,6 +2265,7 @@ func TestAssignmentExpressions(t *testing.T) {
 				code.Make(code.OpAdd),
 				code.Make(code.OpSetGlobal, 0),
 				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpPop),
 			},
 		},
 	}
@@ -2302,6 +2306,7 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 				code.Make(code.OpConstant, 3),
 				code.Make(code.OpConstant, 4),
 				code.Make(code.OpIndexAssign),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -2320,6 +2325,7 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 				code.Make(code.OpConstant, 2),
 				code.Make(code.OpConstant, 3),
 				code.Make(code.OpIndexAssign),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -2342,6 +2348,7 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 				code.Make(code.OpConstant, 4),
 				code.Make(code.OpConstant, 5),
 				code.Make(code.OpIndexAssign),
+				code.Make(code.OpPop),
 			},
 		},
 		{
@@ -2365,6 +2372,7 @@ func TestIndexAssignmentExpressions(t *testing.T) {
 				code.Make(code.OpConstant, 5),
 				code.Make(code.OpConstant, 6),
 				code.Make(code.OpIndexAssign),
+				code.Make(code.OpPop),
 			},
 		},
 	}

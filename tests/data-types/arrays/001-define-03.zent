@@ -2,5 +2,7 @@
 Can define an array with mixed values
 --FILE--
 var arr = [1, "two", null, 4.0];
+
+arr;
 --EXPECT--
 [1, two, null, 4.000000]

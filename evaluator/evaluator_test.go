@@ -59,15 +59,24 @@ func TestErrorHandling(t *testing.T) {
 		{
 			"nested if statement with boolean addition",
 			`
-			if (10 > 1) {
+			func test() {
 				if (10 > 1) {
-					return true + false;
-				}
+					if (10 > 1) {
+						return true + false;
+					}
 
-				return 1;
+					return 1;
+				}
 			}
+
+			test()
 		`,
 			&objects.Error{Message: "unknown operator: BOOLEAN + BOOLEAN"},
+		},
+		{
+			"return outside function",
+			"return 10;",
+			&objects.Error{Message: "return statement cannot be used outside of a function scope"},
 		},
 		{
 			"undefined identifier",

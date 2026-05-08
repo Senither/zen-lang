@@ -1,5 +1,5 @@
 --TEST--
-Can check if strings ends with value
+Can check if strings ends with value in array
 --FILE--
 println(strings.endsWith("Hello, World", ["Hello", "World"]));
 println(strings.endsWith("Hello, World", ["World", "Hello"]));

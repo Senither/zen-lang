@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"strings"
 
 	"github.com/senither/zen-lang/code"
 	"github.com/senither/zen-lang/objects"
@@ -37,6 +38,42 @@ func (c *Compiler) Bytecode() *Bytecode {
 		Instructions: c.currentInstructions(),
 		Constants:    c.constants,
 	}
+}
+
+func (b *Bytecode) OperationsCount() int {
+	return len(strings.Split(strings.TrimSpace(b.String()), "\n"))
+}
+
+func (b *Bytecode) InstructionsCount() int {
+	count := len(b.Instructions)
+
+	for _, constant := range b.Constants {
+		if fn, ok := constant.(*objects.CompiledFunction); ok {
+			count += len(fn.OpcodeInstructions)
+		} else if cfi, ok := constant.(*objects.CompiledZenFileImport); ok {
+			count += (&Bytecode{
+				Instructions: cfi.OpcodeInstructions,
+				Constants:    cfi.Constants,
+			}).InstructionsCount()
+		}
+	}
+
+	return count
+}
+
+func (b *Bytecode) ConstantsCount() int {
+	count := len(b.Constants)
+
+	for _, constant := range b.Constants {
+		if cfi, ok := constant.(*objects.CompiledZenFileImport); ok {
+			count += (&Bytecode{
+				Instructions: cfi.OpcodeInstructions,
+				Constants:    cfi.Constants,
+			}).ConstantsCount()
+		}
+	}
+
+	return count
 }
 
 func (b *Bytecode) String() string {

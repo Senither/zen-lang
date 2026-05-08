@@ -2,16 +2,19 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/senither/zen-lang/cli/colors"
 	"github.com/senither/zen-lang/compiler"
+	"github.com/senither/zen-lang/optimizer"
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	rootCommand.AddCommand(codeCommand)
 	codeCommand.Flags().BoolP("serialize", "s", false, "Compare the serialized/deserialized and the original bytecode")
+	codeCommand.Flags().BoolP("optimize", "o", false, "Add optimization steps to the compiled bytecode")
 }
 
 var codeCommand = &cobra.Command{
@@ -20,6 +23,7 @@ var codeCommand = &cobra.Command{
 	Long:  "Runs the code provided and outputs the bytecode instructions it generates.",
 	Run: func(cmd *cobra.Command, args []string) {
 		serialize, _ := cmd.Flags().GetBool("serialize")
+		optimize, _ := cmd.Flags().GetBool("optimize")
 
 		table, _, constants := createCompilerParameters()
 
@@ -31,6 +35,16 @@ var codeCommand = &cobra.Command{
 			program := lexerToProgram(lexer, path)
 
 			if bytecode := programToBytecode(path, program, table, constants); bytecode != nil {
+				if optimize {
+					op, err := optimizer.Optimize(bytecode)
+					if err != nil {
+						fmt.Printf("Optimization Error: %s\n", err)
+						os.Exit(1)
+					}
+
+					bytecode = op
+				}
+
 				if !serialize {
 					fmt.Print(bytecode.String())
 				} else {
@@ -38,7 +52,7 @@ var codeCommand = &cobra.Command{
 					deserializedBytecode, err := compiler.Deserialize(series)
 					if err != nil {
 						fmt.Printf("Deserialization Error: %s\n", err)
-						return
+						os.Exit(1)
 					}
 
 					printBytecodeComparison(bytecode, deserializedBytecode)

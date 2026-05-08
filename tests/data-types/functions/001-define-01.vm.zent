@@ -4,5 +4,7 @@ Can define a named function
 func add(a, b) {
     return a + b;
 }
+
+add;
 --EXPECT--
 Closure[<pointer>]
