@@ -53,8 +53,10 @@ func (tr *TestRunner) printSuccessStatusMessage(test *Test, engineType EngineTyp
 		}
 	}
 
+	testMessage, _, _ := strings.Cut(test.message, "\n")
+
 	message := fmt.Sprintf("  %s✔%s %s %s[%s%s%s]%s",
-		colors.Green, colors.Reset, tr.normalizeLineEndings(test.message),
+		colors.Green, colors.Reset, tr.normalizeLineEndings(testMessage+"\n"),
 		colors.Gray, engineType.GetTag(), timings, colors.Gray, colors.Reset,
 	)
 
