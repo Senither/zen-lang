@@ -44,6 +44,9 @@ func TestMake(t *testing.T) {
 		{"OpGreaterThanOrEqual", OpGreaterThanOrEqual, []int{}, []byte{byte(OpGreaterThanOrEqual)}},
 		{"OpAnd", OpAnd, []int{}, []byte{byte(OpAnd)}},
 		{"OpOr", OpOr, []int{}, []byte{byte(OpOr)}},
+		// Bitwise
+		{"OpLeftShift", OpLeftShift, []int{}, []byte{byte(OpLeftShift)}},
+		{"OpRightShift", OpRightShift, []int{}, []byte{byte(OpRightShift)}},
 		// Prefixes
 		{"OpMinus", OpMinus, []int{}, []byte{byte(OpMinus)}},
 		{"OpBang", OpBang, []int{}, []byte{byte(OpBang)}},

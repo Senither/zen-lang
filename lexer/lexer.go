@@ -98,6 +98,10 @@ func (l *Lexer) NextToken() tokens.Token {
 			ch := l.ch
 			l.readChar()
 			token = newTokenWithValue(tokens.GT_EQ, l, string(ch)+string(l.ch))
+		case '>':
+			ch := l.ch
+			l.readChar()
+			token = newTokenWithValue(tokens.BITWISE_RSHIFT, l, string(ch)+string(l.ch))
 		default:
 			token = newToken(tokens.GT, l)
 		}
@@ -107,6 +111,10 @@ func (l *Lexer) NextToken() tokens.Token {
 			ch := l.ch
 			l.readChar()
 			token = newTokenWithValue(tokens.LT_EQ, l, string(ch)+string(l.ch))
+		case '<':
+			ch := l.ch
+			l.readChar()
+			token = newTokenWithValue(tokens.BITWISE_LSHIFT, l, string(ch)+string(l.ch))
 		default:
 			token = newToken(tokens.LT, l)
 		}

@@ -65,6 +65,20 @@ func BenchmarkIntegerArithmeticComplex(b *testing.B) {
 	runVmBenchmark(b, `(5 + 10 - 3 * 2 / 4 + 6 ^ 2 % 4) * (12 - 4 + 3 * 7 / 2 ^ 3 % 5) + (8 ^ 2 % 5 + 14 - 3 * 6 / 2 + 9)`)
 }
 
+func TestBitwiseOperatorExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{nil, "1 << 2", 4},
+		{nil, "4 << 1", 8},
+		{nil, "8 << 2", 32},
+		{nil, "32 << 3", 256},
+		{nil, "4 >> 1", 2},
+		{nil, "8 >> 2", 2},
+		{nil, "32 >> 3", 4},
+		{nil, "100 >> 2", 25},
+	}
+	runVmTests(t, tests)
+}
+
 func TestBooleanExpressions(t *testing.T) {
 	tests := []vmTestCase{
 		{nil, "true", true},

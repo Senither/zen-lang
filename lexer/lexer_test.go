@@ -52,6 +52,8 @@ func TestNextToken(t *testing.T) {
 
 		++ --;
 
+		>> <<;
+
 		[1, 2];
 		{"foo": "bar"};
 		obj.foo(5);
@@ -214,6 +216,10 @@ func TestNextToken(t *testing.T) {
 		// Increment & Decrement
 		{tokens.INCREMENT, "++"},
 		{tokens.DECREMENT, "--"},
+		{tokens.SEMICOLON, ";"},
+		// Bitwise shifts
+		{tokens.BITWISE_RSHIFT, ">>"},
+		{tokens.BITWISE_LSHIFT, "<<"},
 		{tokens.SEMICOLON, ";"},
 		// Array literals
 		{tokens.LBRACKET, "["},

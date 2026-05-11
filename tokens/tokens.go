@@ -50,6 +50,10 @@ const (
 	INCREMENT TokenType = "++"
 	DECREMENT TokenType = "--"
 
+	// Bitwise operators
+	BITWISE_LSHIFT TokenType = "<<"
+	BITWISE_RSHIFT TokenType = ">>"
+
 	// Delimiters
 	COMMA  TokenType = ","
 	COLON  TokenType = ":"

@@ -50,6 +50,10 @@ const (
 	OpAnd
 	OpOr
 
+	// Bitwise Operators
+	OpLeftShift
+	OpRightShift
+
 	// Prefixes
 	OpMinus
 	OpBang

@@ -548,6 +548,14 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) *objects.Er
 				node.Operator,
 			)
 		}
+	case ">>", "<<":
+		if c.isArrayOrHashExpression(node.Left) || c.isArrayOrHashExpression(node.Right) {
+			return objects.NewError(
+				node.Token, c.file,
+				"cannot use bitwise operator %s with arrays or hashes",
+				node.Operator,
+			)
+		}
 	}
 
 	err := c.compileInfixExpressionOperands(node)
@@ -580,6 +588,10 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) *objects.Er
 		c.emit(code.OpAnd)
 	case "||":
 		c.emit(code.OpOr)
+	case "<<":
+		c.emit(code.OpLeftShift)
+	case ">>":
+		c.emit(code.OpRightShift)
 
 	default:
 		return objects.NewError(

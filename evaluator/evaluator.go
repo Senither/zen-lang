@@ -907,6 +907,10 @@ func evalNumberInfixExpression(
 		return objects.NativeBoolToBooleanObject(leftVal <= rightVal)
 	case ">=":
 		return objects.NativeBoolToBooleanObject(leftVal >= rightVal)
+	case ">>":
+		return objects.WrapNumberValue(float64(uint64(leftVal)>>uint64(rightVal)), left, right)
+	case "<<":
+		return objects.WrapNumberValue(float64(uint64(leftVal)<<uint64(rightVal)), left, right)
 
 	default:
 		return objects.NewError(

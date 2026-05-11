@@ -84,6 +84,8 @@ func New(lexer *lexer.Lexer, filePath interface{}) *Parser {
 	p.registerInfix(tokens.OR, p.parseInfixExpression)
 	p.registerInfix(tokens.LPAREN, p.parseCallExpression)
 	p.registerInfix(tokens.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(tokens.BITWISE_LSHIFT, p.parseInfixExpression)
+	p.registerInfix(tokens.BITWISE_RSHIFT, p.parseInfixExpression)
 
 	// Read two tokens, so curToken and peekToken are both set
 	p.nextToken()

@@ -2400,3 +2400,36 @@ func BenchmarkIndexAssignmentExpressions(b *testing.B) {
 		`,
 	})
 }
+
+func TestBitwiseOperatorExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			name: "left shift operator",
+			input: `
+				1 << 2
+			`,
+			expectedConstants: []any{1, 2},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpLeftShift),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			name: "right shift operator",
+			input: `
+				4 >> 1
+			`,
+			expectedConstants: []any{4, 1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpRightShift),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilationTests(t, tests)
+}

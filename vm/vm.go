@@ -344,6 +344,10 @@ func (vm *VM) executeInstructions(op code.Opcode, ins code.Instructions, ip int)
 	case code.OpExport:
 		return vm.executeExport()
 
+	// Bitwise operations
+	case code.OpLeftShift, code.OpRightShift:
+		return vm.executeBinaryOperation(op)
+
 	default:
 		return fmt.Errorf("unsupported opcode in compiled function: %d", op)
 	}
@@ -445,6 +449,10 @@ func (vm *VM) executeBinaryNumberOperation(op code.Opcode, left, right objects.O
 		result = math.Pow(leftValue, rightValue)
 	case code.OpMod:
 		result = math.Mod(leftValue, rightValue)
+	case code.OpLeftShift:
+		result = float64(int64(leftValue) << uint64(rightValue))
+	case code.OpRightShift:
+		result = float64(int64(leftValue) >> uint64(rightValue))
 
 	default:
 		return fmt.Errorf("unknown number operator: %d", op)
