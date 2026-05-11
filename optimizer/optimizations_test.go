@@ -415,6 +415,54 @@ func BenchmarkReplaceIncrementsAndDecrementsWithDirectOperations(b *testing.B) {
 	})
 }
 
+func TestOptimizerRemoveGettersBeforeIncrementingOrDecrementing(t *testing.T) {
+	input := append(
+		code.Make(code.OpConstant, 0),
+		code.Make(code.OpSetGlobal, 0)...,
+	)
+	input = append(input,
+		code.Make(code.OpGetGlobal, 0)...,
+	)
+	input = append(input,
+		code.Make(code.OpIncGlobal, 0)...,
+	)
+	input = append(input,
+		code.Make(code.OpPop)...,
+	)
+	input = append(input,
+		code.Make(code.OpJump, 6)...,
+	)
+
+	infos, err := decodeInstructions(input)
+	if err != nil {
+		t.Fatalf("decodeInstructions returned error: %v", err)
+	}
+
+	b := &BytecodeOptimization{
+		Infos:   infos,
+		Targets: findJumpTargets(infos),
+	}
+
+	if err := removeGettersBeforeIncrementingOrDecrementing(b); err != nil {
+		t.Fatalf("removeGettersBeforeIncrementingOrDecrementing returned error: %v", err)
+	}
+
+	optimized, _, err := b.reassembleBytecodeParameters()
+	if err != nil {
+		t.Fatalf("reassembleBytecodeParameters returned error: %v", err)
+	}
+
+	expected := append(code.Instructions{}, code.Make(code.OpConstant, 0)...)
+	expected = append(expected, code.Make(code.OpSetGlobal, 0)...)
+	expected = append(expected, code.Make(code.OpIncGlobal, 0)...)
+	expected = append(expected, code.Make(code.OpPop)...)
+	expected = append(expected, code.Make(code.OpJump, 6)...)
+
+	if string(optimized) != string(expected) {
+		t.Fatalf("unexpected optimized instructions:\n got %q\nwant %q", optimized.String(), expected.String())
+	}
+}
+
 func TestOptimizerCallBuiltinsWithKnownConstantParameters(t *testing.T) {
 	tests := []optimizerTestCase{
 		{

@@ -896,6 +896,66 @@ func removePopAtBeginningOfInstructions(b *BytecodeOptimization) error {
 	return nil
 }
 
+// Removes OpGetGlobal and OpGetLocal instructions that are immediately followed
+// by an OpIncGlobal, OpDecGlobal, OpIncLocal or OpDecLocal instruction that
+// operates on the same variable, since the getter is not needed and the
+// increment/decrement can operate directly on the variable.
+//
+// Example:
+//
+//	OpGetGlobal 0
+//	OpIncGlobal 0
+//
+// -->
+//
+//	OpIncGlobal 0
+func removeGettersBeforeIncrementingOrDecrementing(b *BytecodeOptimization) error {
+	for i := range b.Infos {
+		if !b.Infos[i].Keep {
+			continue
+		}
+
+		var op int = -1
+
+		switch b.Infos[i].Op {
+		case code.OpGetGlobal:
+			op = findNextKeptInstructionIndex(b.Infos, i)
+			if op == -1 || (b.Infos[op].Op != code.OpIncGlobal && b.Infos[op].Op != code.OpDecGlobal) {
+				continue
+			}
+		case code.OpGetLocal:
+			op = findNextKeptInstructionIndex(b.Infos, i)
+			if op == -1 || (b.Infos[op].Op != code.OpIncLocal && b.Infos[op].Op != code.OpDecLocal) {
+				continue
+			}
+		default:
+			continue
+		}
+
+		if b.Infos[i].Operands[0] != b.Infos[op].Operands[0] {
+			continue
+		}
+
+		if b.isJumpTarget(b.Infos[i].OldOffset) {
+			for jumpIdx := range b.Infos {
+				if !b.Infos[jumpIdx].Keep || !b.Infos[jumpIdx].IsJump || len(b.Infos[jumpIdx].Operands) == 0 {
+					continue
+				}
+
+				if b.Infos[jumpIdx].Operands[0] == b.Infos[i].OldOffset {
+					b.Infos[jumpIdx].Operands[0] = b.Infos[op].OldOffset
+				}
+			}
+		}
+
+		b.Infos[i].Keep = false
+	}
+
+	b.Targets = findJumpTargetsFromKeptInstructions(b.Infos)
+
+	return nil
+}
+
 // Reorganizes constant references to remove unused constants and
 // re-index the used and duplicated ones to a more compact range.
 //

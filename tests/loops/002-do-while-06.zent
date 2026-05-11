@@ -1,0 +1,15 @@
+--TEST--
+Can loop while incrementing variable
+
+This tests to ensure the optimized bytecode correctly handles the case where a variable is incremented in the condition of a do-while loop without filling up the stack.
+--FILE--
+var mut result = 0;
+var i = 0;
+
+do {
+    result += 1
+} while (i++ < 10_000);
+
+println(result);
+--EXPECT--
+10000

@@ -134,8 +134,9 @@ func optimizeInstructions(
 		replaceIncrementsAndDecrementsWithDirectOperations,
 		callBuiltinsWithKnownConstantParameters,
 		removeRedundantJumpInstructions,
-		removePopAtBeginningOfInstructions,
 		removeInstructionsAfterReturn,
+		removePopAtBeginningOfInstructions,
+		removeGettersBeforeIncrementingOrDecrementing,
 	)
 
 	if err != nil {
