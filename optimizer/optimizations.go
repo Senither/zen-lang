@@ -202,7 +202,7 @@ func deleteArrayOrHashInitializer(b *BytecodeOptimization, idx int) {
 func preCalculateNumberConstants(b *BytecodeOptimization) error {
 	for i := range b.Infos {
 		switch b.Infos[i].Op {
-		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpPow, code.OpMod:
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv, code.OpPow, code.OpMod, code.OpLeftShift, code.OpRightShift:
 			if !b.Infos[i].Keep {
 				continue
 			}
@@ -245,6 +245,10 @@ func preCalculateNumberConstants(b *BytecodeOptimization) error {
 				result = math.Pow(leftVal, rightVal)
 			case code.OpMod:
 				result = math.Mod(leftVal, rightVal)
+			case code.OpLeftShift:
+				result = float64(int64(leftVal) << uint64(rightVal))
+			case code.OpRightShift:
+				result = float64(int64(leftVal) >> uint64(rightVal))
 			}
 
 			newConst := objects.WrapNumberValue(result, leftObj, rightObj)

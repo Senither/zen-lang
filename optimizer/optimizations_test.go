@@ -227,6 +227,24 @@ func TestOptimizerPreCalculateNumberConstants(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			name:              "folds left shifts with integer operands",
+			input:             "1 << 3",
+			expectedConstants: []any{8},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			name:              "folds right shifts with integer operands",
+			input:             "8 >> 2",
+			expectedConstants: []any{2},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
 	}
 
 	runOptimizerTests(t, tests)
