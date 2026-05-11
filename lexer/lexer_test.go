@@ -36,6 +36,10 @@ func TestNextToken(t *testing.T) {
 			break;
 		}
 
+		do {
+			// Loop body
+		} while (condition)
+
 		"one-word";
 		"multiple words";
 		'one-word';
@@ -170,6 +174,14 @@ func TestNextToken(t *testing.T) {
 		{tokens.BREAK_LOOP, "break"},
 		{tokens.SEMICOLON, ";"},
 		{tokens.RBRACE, "}"},
+		// Do-while loops
+		{tokens.DO_WHILE, "do"},
+		{tokens.LBRACE, "{"},
+		{tokens.RBRACE, "}"},
+		{tokens.WHILE, "while"},
+		{tokens.LPAREN, "("},
+		{tokens.IDENT, "condition"},
+		{tokens.RPAREN, ")"},
 		// String literals
 		{tokens.STRING, "one-word"},
 		{tokens.SEMICOLON, ";"},
