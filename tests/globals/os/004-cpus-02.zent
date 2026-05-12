@@ -1,0 +1,9 @@
+--TEST--
+Can get the OS cpus
+--ENV--
+os=fake
+os.cpus=64
+--FILE--
+println(os.cpus());
+--EXPECT--
+64

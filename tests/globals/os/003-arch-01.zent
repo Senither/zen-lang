@@ -1,0 +1,8 @@
+--TEST--
+Can get the OS architecture
+--ENV--
+os=fake
+--FILE--
+println(os.arch());
+--EXPECT--
+OS_FAKE_ARCH

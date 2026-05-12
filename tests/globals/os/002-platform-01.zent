@@ -1,0 +1,8 @@
+--TEST--
+Can get the OS platform
+--ENV--
+os=fake
+--FILE--
+println(os.platform());
+--EXPECT--
+OS_FAKE_PLATFORM

@@ -3,6 +3,7 @@ package os
 import (
 	"os"
 	"runtime"
+	"strconv"
 )
 
 var faking bool = false
@@ -63,7 +64,12 @@ func Arch() (string, error) {
 
 func CPUs() int64 {
 	if faking {
-		return 8
+		val, err := strconv.ParseInt(getFakeState("cpus", "8"), 10, 64)
+		if err != nil {
+			return 8
+		}
+
+		return val
 	}
 
 	return int64(runtime.NumCPU())

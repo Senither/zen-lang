@@ -10,6 +10,7 @@ import (
 	"github.com/senither/zen-lang/cli/colors"
 	"github.com/senither/zen-lang/evaluator"
 	"github.com/senither/zen-lang/objects"
+	"github.com/senither/zen-lang/objects/os"
 	"github.com/senither/zen-lang/objects/process"
 	"github.com/senither/zen-lang/objects/timer"
 	"github.com/senither/zen-lang/vm"
@@ -159,6 +160,22 @@ func (tr *TestRunner) applyTestEnvVariables(test *Test) {
 				}
 				process.FakeEnv(kv[0], kv[1])
 			}
+		case "os":
+			os.Fake()
+		case "os.hostname":
+			os.SetFakeState("hostname", value)
+		case "os.platform":
+			os.SetFakeState("platform", value)
+		case "os.arch":
+			os.SetFakeState("arch", value)
+		case "os.cpus":
+			_, err := strconv.Atoi(value)
+			if err != nil {
+				fmt.Printf("Invalid os.cpus env variable: %s\n", value)
+				continue
+			}
+
+			os.SetFakeState("cpus", value)
 		}
 	}
 }

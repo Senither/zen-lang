@@ -1,0 +1,9 @@
+--TEST--
+Can get the fake OS architecture
+--ENV--
+os=fake
+os.arch=amd64
+--FILE--
+println(os.arch());
+--EXPECT--
+amd64
