@@ -343,6 +343,31 @@ var Globals = []struct {
 		},
 	},
 	{
+		Name: "os",
+		Builtins: []*BuiltinDefinition{
+			{
+				Name:             "hostname",
+				OmitOptimization: true,
+				Builtin:          &Builtin{Fn: globalOSHostname},
+			},
+			{
+				Name:             "platform",
+				OmitOptimization: true,
+				Builtin:          &Builtin{Fn: globalOSPlatform},
+			},
+			{
+				Name:             "arch",
+				OmitOptimization: true,
+				Builtin:          &Builtin{Fn: globalOSArch},
+			},
+			{
+				Name:             "cpus",
+				OmitOptimization: true,
+				Builtin:          &Builtin{Fn: globalOSCPUs},
+			},
+		},
+	},
+	{
 		Name: "json",
 		Builtins: []*BuiltinDefinition{
 			{
