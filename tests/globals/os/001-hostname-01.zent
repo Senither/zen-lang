@@ -1,0 +1,8 @@
+--TEST--
+Can get the hostname of the machine
+--ENV--
+os=fake
+--FILE--
+println(os.hostname());
+--EXPECT--
+OS_FAKE_HOSTNAME

@@ -1,0 +1,9 @@
+--TEST--
+Can get the fake hostname
+--ENV--
+os=fake
+os.hostname=awesome-workstation
+--FILE--
+println(os.hostname());
+--EXPECT--
+awesome-workstation
